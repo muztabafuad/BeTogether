@@ -27,22 +27,43 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String[] LOCATION_PERMS = {
+            Manifest.permission.ACCESS_FINE_LOCATION
+    };
     private TextView mTextTitle;
     private TextView mTextMessage;
     private TextView mTextMessage2;
     private TextView mTextMessage3;
-
     private Sensor mSensorLight;
     private Sensor mSensorProxy;
     private SensorManager mSensorManager;
     private LocationManager mLocationManager;
-
     private float mLight;
     private float mProximity;
-    private static final String[] LOCATION_PERMS = {
-            Manifest.permission.ACCESS_FINE_LOCATION
-    };
+    SensorEventListener mListnerLight = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            mLight = (float) sensorEvent.values[0];
+            mTextMessage.setText("Light：" + mLight + " of " + mSensorLight.getMaximumRange() + " in lux units.");
+            sensePocket();
+        }
 
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+        }
+    };
+    SensorEventListener mListnerProxy = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            mProximity = (float) sensorEvent.values[0];
+            mTextMessage2.setText("Proxmity：" + mProximity + " of " + mSensorProxy.getMaximumRange() + " in binary near or far.");
+            sensePocket();
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+        }
+    };
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -220,32 +241,6 @@ public class MainActivity extends AppCompatActivity {
         mSensorManager.registerListener(mListnerLight, mSensorLight, mSensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListnerProxy, mSensorProxy, mSensorManager.SENSOR_DELAY_UI);
     }
-
-    SensorEventListener mListnerLight = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent sensorEvent) {
-            mLight = (float) sensorEvent.values[0];
-            mTextMessage.setText("Light：" + mLight + " of " + mSensorLight.getMaximumRange() + " in lux units.");
-            sensePocket();
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-        }
-    };
-
-    SensorEventListener mListnerProxy = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent sensorEvent) {
-            mProximity = (float) sensorEvent.values[0];
-            mTextMessage2.setText("Proxmity：" + mProximity + " of " + mSensorProxy.getMaximumRange() + " in binary near or far.");
-            sensePocket();
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-        }
-    };
 
     public void sensePocket() {
         if (mProximity == 0 && mLight < 50) {
