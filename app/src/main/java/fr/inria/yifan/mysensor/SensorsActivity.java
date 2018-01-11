@@ -1,6 +1,5 @@
 package fr.inria.yifan.mysensor;
 
-import android.Manifest;
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -26,7 +25,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class SensorsActivity extends AppCompatActivity {
 
     // Declare views
     private TextView mTextTitle;
@@ -45,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private float mProximity;
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1001;
     private static final String[] LOCATION_PERMS = {
-            Manifest.permission.ACCESS_FINE_LOCATION
+            permission.ACCESS_FINE_LOCATION
     };
 
     // Declare light sensor listener
