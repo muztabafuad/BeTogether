@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context="fr.inria.yifan.mysensor.MainActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Miles" />
+
+        <EditText
+            android:id="@+id/editMiles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="5" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Km" />
+
+        <EditText
+            android:id="@+id/editKm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="5" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonMiltToKm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Convert Miles to Km" />
+
+    <Button
+        android:id="@+id/buttonKmtoMile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Convert Km to Miles" />
+
+</LinearLayout>

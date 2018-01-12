@@ -1,68 +1,50 @@
 package fr.inria.yifan.mysensor;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MenuItem;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+
+import java.text.DecimalFormat;
 
 public class MainActivity extends AppCompatActivity {
 
     // Declare views
-    private TextView mTextTitle;
-    private TextView mTextMessage;
-    private TextView mTextMessage2;
-    private TextView mTextMessage3;
-
-    // Navigator button events listener
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.navigation_home:
-                    mTextTitle.setText(R.string.title_test);
-                    initialView();
-                    return true;
-                case R.id.navigation_dashboard:
-                    mTextTitle.setText(R.string.title_sensors);
-                    initialView();
-                    return true;
-                case R.id.navigation_notifications:
-                    mTextTitle.setText(R.string.title_sensing);
-                    initialView();
-                    return true;
-            }
-            return false;
-        }
-    };
-
-    // Initially bind views
-    private void bindViews() {
-        mTextTitle = findViewById(R.id.title);
-        mTextMessage = findViewById(R.id.message);
-        mTextMessage2 = findViewById(R.id.message2);
-        mTextMessage3 = findViewById(R.id.message3);
-    }
-
-    // Clear all views content
-    private void initialView() {
-        mTextMessage.setText("...");
-        mTextMessage2.setText("...");
-        mTextMessage3.setText("...");
-    }
+    private EditText milesEdit;
+    private EditText kmEdit;
+    private Button mileToKmButton;
+    private Button kmToMileButton;
 
     // Main activity initialization
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sensor);
-        bindViews();
+        setContentView(R.layout.activity_main);
+        milesEdit = findViewById(R.id.editMiles);
+        kmEdit = findViewById(R.id.editKm);
+        mileToKmButton = findViewById(R.id.buttonMiltToKm);
+        mileToKmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                double miles = Double.valueOf(milesEdit.getText().toString());
+                double km = miles / 0.62137;
+                DecimalFormat formater = new DecimalFormat("##.##");
+                kmEdit.setText(formater.format(km));
+            }
+        });
+        kmToMileButton = findViewById(R.id.buttonKmtoMile);
+        kmToMileButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                double km = Double.valueOf(kmEdit.getText().toString());
+                double miles = km * 0.62137;
+                DecimalFormat formater = new DecimalFormat("##.##");
+                milesEdit.setText(formater.format(miles));
+            }
+        });
 
-        BottomNavigationView navigation = findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
     }
 
 }
