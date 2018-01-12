@@ -28,7 +28,7 @@ public class WifiBroadcastReceiver extends BroadcastReceiver {
         this.mActivity = activity;
     }
 
-    // Callback
+    // Callback on receive
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();

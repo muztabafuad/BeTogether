@@ -22,33 +22,33 @@ import android.widget.Toast;
 
 import java.util.List;
 
-public class LocationActivity extends AppCompatActivity {
+public class DetectionActivity extends AppCompatActivity {
 
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1001;
+    private static final String[] LOCATION_PERMS = {
+            permission.ACCESS_FINE_LOCATION
+    };
     // Declare views
     private TextView mTextTitle;
     private TextView mTextMessage;
     private TextView mTextMessage2;
     private TextView mTextMessage3;
-
+    private TextView mTextMessage4;
+    private TextView mTextMessage5;
+    private TextView mTextMessage6;
     // Declare sensors and managers
     private Sensor mSensorLight;
     private Sensor mSensorProxy;
     private SensorManager mSensorManager;
     private LocationManager mLocationManager;
-
     // Declare variables
     private float mLight;
     private float mProximity;
-    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1001;
-    private static final String[] LOCATION_PERMS = {
-            permission.ACCESS_FINE_LOCATION
-    };
-
     // Declare light sensor listener
     private SensorEventListener mListenerLight = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mLight = (float) sensorEvent.values[0];
+            mLight = sensorEvent.values[0];
             mTextMessage.setText("Light：" + mLight + " of " + mSensorLight.getMaximumRange() + " in lux units.");
             sensePocket();
         }
@@ -62,7 +62,7 @@ public class LocationActivity extends AppCompatActivity {
     private SensorEventListener mListenerProxy = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mProximity = (float) sensorEvent.values[0];
+            mProximity = sensorEvent.values[0];
             mTextMessage2.setText("Proxmity：" + mProximity + " of " + mSensorProxy.getMaximumRange() + " in binary near or far.");
             sensePocket();
         }
@@ -97,21 +97,45 @@ public class LocationActivity extends AppCompatActivity {
 
     // Initially bind views
     private void bindViews() {
-        mTextTitle = (TextView) findViewById(R.id.title);
-        mTextMessage = (TextView) findViewById(R.id.message);
-        mTextMessage2 = (TextView) findViewById(R.id.message2);
-        mTextMessage3 = (TextView) findViewById(R.id.message3);
+        mTextTitle = findViewById(R.id.title);
+        mTextMessage = findViewById(R.id.message);
+        mTextMessage2 = findViewById(R.id.message2);
+        mTextMessage3 = findViewById(R.id.message3);
+        mTextMessage4 = findViewById(R.id.message4);
+        mTextMessage5 = findViewById(R.id.message5);
+        mTextMessage6 = findViewById(R.id.message6);
     }
 
     // Clear all views content
     private void initialView() {
+        mTextTitle.setText("Detection");
         mTextMessage.setText("...");
         mTextMessage2.setText("...");
         mTextMessage3.setText("...");
+        mTextMessage4.setText("...");
+        mTextMessage5.setText("...");
+        mTextMessage6.setText("...");
     }
 
     // Unregister all sensor listeners
     private void initialListeners() {
+
+    }
+
+    // register the broadcast receiver with the intent values to be matched
+    @SuppressLint("MissingPermission")
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(mListenerLight, mSensorLight, mSensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerProxy, mSensorProxy, mSensorManager.SENSOR_DELAY_UI);
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mListenerGPS);
+    }
+
+    // unregister the broadcast receiver
+    @Override
+    protected void onPause() {
+        super.onPause();
         mSensorManager.unregisterListener(mListenerLight);
         mSensorManager.unregisterListener(mListenerProxy);
         mLocationManager.removeUpdates(mListenerGPS);
@@ -142,13 +166,12 @@ public class LocationActivity extends AppCompatActivity {
             startActivityForResult(intent, 0);
         }
         List<String> names = mLocationManager.getAllProviders();
-        mTextMessage.setText(getListString(names));
+        mTextMessage4.setText(getListString(names));
         if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Requesting permission", Toast.LENGTH_SHORT).show();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(LOCATION_PERMS, MY_PERMISSIONS_REQUEST_LOCATION);
             }
-            return;
         } else {
             showGPSList();
         }
@@ -167,7 +190,6 @@ public class LocationActivity extends AppCompatActivity {
                         requestPermissions(LOCATION_PERMS, MY_PERMISSIONS_REQUEST_LOCATION);
                     }
                 }
-                return;
             }
         }
     }
@@ -175,7 +197,7 @@ public class LocationActivity extends AppCompatActivity {
     // Configure and show GPS service information
     @SuppressLint("MissingPermission")
     private void showGPSList() {
-        mTextMessage2.setText("The current location provider is " + mLocationManager.getProvider(LocationManager.GPS_PROVIDER).getName() + ".\n");
+        mTextMessage5.setText("The current location provider is " + mLocationManager.getProvider(LocationManager.GPS_PROVIDER).getName() + ".\n");
         Location lc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         updateGPSShow(lc);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mListenerGPS);
@@ -192,18 +214,22 @@ public class LocationActivity extends AppCompatActivity {
             sb.append(" - Speed：" + location.getSpeed() + "\n");
             sb.append(" - Bearing：" + location.getBearing() + "\n");
             sb.append(" - Accuracy：" + location.getAccuracy() + "\n");
-            mTextMessage3.setText(sb.toString());
-        } else mTextMessage3.setText("...");
+            mTextMessage6.setText(sb.toString());
+        } else mTextMessage6.setText("...");
     }
 
     // Main activity initialization
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_detection);
         bindViews();
+        initialListeners();
+        initialView();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        senseLightProxy();
+        startGPS();
     }
 
     // Convert a list into a string
