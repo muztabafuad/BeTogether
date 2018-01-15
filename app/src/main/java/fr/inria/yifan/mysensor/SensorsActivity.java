@@ -4,17 +4,18 @@ import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MenuItem;
 import android.widget.TextView;
 
 import java.util.List;
 
+/*
+* This activity provides functions including showing sensor and log sensing data.
+*/
+
 public class SensorsActivity extends AppCompatActivity {
 
-    // Declare views
+    // Declare all views used
     private TextView mTextTitle;
     private TextView mTextMessage;
     private TextView mTextMessage2;
@@ -22,31 +23,6 @@ public class SensorsActivity extends AppCompatActivity {
 
     // Declare sensors and managers
     private SensorManager mSensorManager;
-
-    // Navigator button events listener
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.navigation_home:
-                    mTextTitle.setText(R.string.title_test);
-                    initialView();
-                    return true;
-                case R.id.navigation_dashboard:
-                    mTextTitle.setText(R.string.title_sensors);
-                    initialView();
-                    showSensorList();
-                    return true;
-                case R.id.navigation_notifications:
-                    mTextTitle.setText(R.string.title_sensing);
-                    initialView();
-                    return true;
-            }
-            return false;
-        }
-    };
 
     // Initially bind views
     private void bindViews() {
@@ -58,9 +34,20 @@ public class SensorsActivity extends AppCompatActivity {
 
     // Clear all views content
     private void initialView() {
+        mTextTitle.setText(R.string.title_sensing);
         mTextMessage.setText("...");
         mTextMessage2.setText("...");
         mTextMessage3.setText("...");
+    }
+
+    // Main activity initialization
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sensor);
+        bindViews();
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        showSensorList();
     }
 
     // Show all available sensors in list
@@ -125,17 +112,6 @@ public class SensorsActivity extends AppCompatActivity {
                     + s.getVendor() + "\n - Power consumption: " + s.getPower() + "\n\n");
         }
         mTextMessage.setText(sb.toString());
-    }
-
-    // Main activity initialization
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sensor);
-        bindViews();
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        BottomNavigationView navigation = findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
 
 }

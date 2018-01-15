@@ -22,13 +22,18 @@ import android.widget.Toast;
 
 import java.util.List;
 
+/*
+* This activity provides functions including in-pocket detection and GPS location service.
+*/
+
 public class DetectionActivity extends AppCompatActivity {
 
-    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1001;
-    private static final String[] LOCATION_PERMS = {
-            permission.ACCESS_FINE_LOCATION
-    };
-    // Declare views
+    // Declare GPS permissions
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1000;
+    private static final int MY_ENABLE_REQUEST_LOCATION = 1001;
+    private static final String[] LOCATION_PERMS = {permission.ACCESS_FINE_LOCATION};
+
+    // Declare all used views
     private TextView mTextTitle;
     private TextView mTextMessage;
     private TextView mTextMessage2;
@@ -36,14 +41,17 @@ public class DetectionActivity extends AppCompatActivity {
     private TextView mTextMessage4;
     private TextView mTextMessage5;
     private TextView mTextMessage6;
+
     // Declare sensors and managers
     private Sensor mSensorLight;
     private Sensor mSensorProxy;
     private SensorManager mSensorManager;
     private LocationManager mLocationManager;
-    // Declare variables
+
+    // Declare sensing variables
     private float mLight;
     private float mProximity;
+
     // Declare light sensor listener
     private SensorEventListener mListenerLight = new SensorEventListener() {
         @Override
@@ -55,6 +63,7 @@ public class DetectionActivity extends AppCompatActivity {
 
         @Override
         public void onAccuracyChanged(Sensor sensor, int i) {
+            //PASS
         }
     };
 
@@ -63,12 +72,13 @@ public class DetectionActivity extends AppCompatActivity {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
             mProximity = sensorEvent.values[0];
-            mTextMessage2.setText("Proxmity：" + mProximity + " of " + mSensorProxy.getMaximumRange() + " in binary near or far.");
+            mTextMessage2.setText("Proximity：" + mProximity + " of " + mSensorProxy.getMaximumRange() + " in binary (near or far).");
             sensePocket();
         }
 
         @Override
         public void onAccuracyChanged(Sensor sensor, int i) {
+            //PASS
         }
     };
 
@@ -81,6 +91,7 @@ public class DetectionActivity extends AppCompatActivity {
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
+            //PASS
         }
 
         @SuppressLint("MissingPermission")
@@ -95,7 +106,7 @@ public class DetectionActivity extends AppCompatActivity {
         }
     };
 
-    // Initially bind views
+    // Initially bind all views
     private void bindViews() {
         mTextTitle = findViewById(R.id.title);
         mTextMessage = findViewById(R.id.message);
@@ -106,9 +117,9 @@ public class DetectionActivity extends AppCompatActivity {
         mTextMessage6 = findViewById(R.id.message6);
     }
 
-    // Clear all views content
+    // Initialize all views contents
     private void initialView() {
-        mTextTitle.setText("Detection");
+        mTextTitle.setText(R.string.title_detect);
         mTextMessage.setText("...");
         mTextMessage2.setText("...");
         mTextMessage3.setText("...");
@@ -117,12 +128,20 @@ public class DetectionActivity extends AppCompatActivity {
         mTextMessage6.setText("...");
     }
 
-    // Unregister all sensor listeners
-    private void initialListeners() {
-
+    // Main activity initialization
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_detection);
+        bindViews();
+        initialView();
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        senseLightProxy();
+        startGPSLocation();
     }
 
-    // register the broadcast receiver with the intent values to be matched
+    // Register the broadcast receiver with the intent values to be matched
     @SuppressLint("MissingPermission")
     @Override
     protected void onResume() {
@@ -132,7 +151,7 @@ public class DetectionActivity extends AppCompatActivity {
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mListenerGPS);
     }
 
-    // unregister the broadcast receiver
+    // Unregister the broadcast receiver and listeners
     @Override
     protected void onPause() {
         super.onPause();
@@ -141,7 +160,7 @@ public class DetectionActivity extends AppCompatActivity {
         mLocationManager.removeUpdates(mListenerGPS);
     }
 
-    // Start to sense the light
+    // Start to sense the light and proximity
     private void senseLightProxy() {
         mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
@@ -149,58 +168,71 @@ public class DetectionActivity extends AppCompatActivity {
         mSensorManager.registerListener(mListenerProxy, mSensorProxy, mSensorManager.SENSOR_DELAY_UI);
     }
 
-    // In-pocket detection function
+    // Simple In-pocket detection function
     private void sensePocket() {
-        if (mProximity == 0 && mLight < 50) {
+        if (mProximity == 0 && mLight < 30) {
             mTextMessage3.setText("\nIn-pocket.");
         } else {
             mTextMessage3.setText("\nOut-pocket.");
         }
     }
 
-    // Start GPS location service
-    private void startGPS() {
+    // Start GPS and location service
+    private void startGPSLocation() {
+        // Check GPS switch
         if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Toast.makeText(this, "Please enable GPS", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enable the GPS", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivityForResult(intent, 0);
-        }
-        List<String> names = mLocationManager.getAllProviders();
-        mTextMessage4.setText(getListString(names));
-        if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Requesting permission", Toast.LENGTH_SHORT).show();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(LOCATION_PERMS, MY_PERMISSIONS_REQUEST_LOCATION);
-            }
+            startActivityForResult(intent, MY_ENABLE_REQUEST_LOCATION);
         } else {
-            showGPSList();
+            List<String> names = mLocationManager.getAllProviders();
+            mTextMessage4.setText(getListString(names));
+            // Check user permission for GPS
+            if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Requesting GPS permission", Toast.LENGTH_SHORT).show();
+                // Request permission
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(LOCATION_PERMS, MY_PERMISSIONS_REQUEST_LOCATION);
+                } else {
+                    Toast.makeText(this, "Please give GPS permission", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                showGPSInfo();
+                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mListenerGPS);
+            }
         }
     }
 
-    // Callback for user allowing permission
-    @SuppressLint("MissingPermission")
+    // Callback for user enabling GPS switch
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_LOCATION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    showGPSList();
-                } else {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        requestPermissions(LOCATION_PERMS, MY_PERMISSIONS_REQUEST_LOCATION);
-                    }
+            case MY_ENABLE_REQUEST_LOCATION: {
+                if (resultCode == RESULT_OK) {
+                    startGPSLocation();
                 }
             }
         }
     }
 
-    // Configure and show GPS service information
+    // Callback for user allowing permission
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startGPSLocation();
+                }
+            }
+        }
+    }
+
+    // Get location information from GPS ans show it
     @SuppressLint("MissingPermission")
-    private void showGPSList() {
+    private void showGPSInfo() {
         mTextMessage5.setText("The current location provider is " + mLocationManager.getProvider(LocationManager.GPS_PROVIDER).getName() + ".\n");
-        Location lc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        updateGPSShow(lc);
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mListenerGPS);
+        Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        updateGPSShow(loc);
     }
 
     // Update the GPS information in views
@@ -216,20 +248,6 @@ public class DetectionActivity extends AppCompatActivity {
             sb.append(" - Accuracy：" + location.getAccuracy() + "\n");
             mTextMessage6.setText(sb.toString());
         } else mTextMessage6.setText("...");
-    }
-
-    // Main activity initialization
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detection);
-        bindViews();
-        initialListeners();
-        initialView();
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        senseLightProxy();
-        startGPS();
     }
 
     // Convert a list into a string
