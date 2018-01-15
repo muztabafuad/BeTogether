@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mileToKmButton;
     private Button kmToMileButton;
     private BottomNavigationView navigation = findViewById(R.id.navigation);
+
     // Navigator button events listener
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
