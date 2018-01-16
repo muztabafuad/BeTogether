@@ -26,7 +26,7 @@ import java.util.List;
 * This activity provides functions including in-pocket detection and GPS location service.
 */
 
-public class DetectionActivity extends AppCompatActivity {
+public class InPocketActivity extends AppCompatActivity {
 
     // Declare GPS permissions
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1000;
