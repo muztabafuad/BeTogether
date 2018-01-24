@@ -26,7 +26,7 @@ import java.util.List;
 * This activity provides functions including in-pocket detection and GPS location service.
 */
 
-public class InPocketActivity extends AppCompatActivity {
+public class DetectionActivity extends AppCompatActivity {
 
     // Declare GPS permissions
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1000;
@@ -112,9 +112,6 @@ public class InPocketActivity extends AppCompatActivity {
         mTextMessage = findViewById(R.id.message);
         mTextMessage2 = findViewById(R.id.message2);
         mTextMessage3 = findViewById(R.id.message3);
-        mTextMessage4 = findViewById(R.id.message4);
-        mTextMessage5 = findViewById(R.id.message5);
-        mTextMessage6 = findViewById(R.id.message6);
     }
 
     // Initialize all views contents
@@ -146,8 +143,8 @@ public class InPocketActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(mListenerLight, mSensorLight, mSensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerProxy, mSensorProxy, mSensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mListenerGPS);
     }
 
@@ -164,8 +161,8 @@ public class InPocketActivity extends AppCompatActivity {
     private void senseLightProxy() {
         mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        mSensorManager.registerListener(mListenerLight, mSensorLight, mSensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerProxy, mSensorProxy, mSensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
     }
 
     // Simple In-pocket detection function
