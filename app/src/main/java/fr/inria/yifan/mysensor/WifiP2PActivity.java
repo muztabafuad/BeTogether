@@ -18,7 +18,7 @@ import android.widget.Toast;
 * This activity provides functions related to the Wifi Direct service.
 */
 
-public class WifiDirectActivity extends AppCompatActivity {
+public class WifiP2PActivity extends AppCompatActivity {
 
     // Declare all views used
     private TextView mTextTitle;
@@ -33,22 +33,20 @@ public class WifiDirectActivity extends AppCompatActivity {
     // Declare other references
     private IntentFilter mIntentFilter;
     private Activity mActivity = this;
-
-    // Declare Wifi Direct discover peer action listener
-    private WifiP2pManager.ActionListener mWifiDiscoverListener = new WifiP2pManager.ActionListener() {
+    // Declare Wifi Direct connect peer action listener
+    private WifiP2pManager.ActionListener mWifiConnectListener = new WifiP2pManager.ActionListener() {
         @Override
         public void onSuccess() {
-            Toast.makeText(mActivity, "Wifi Direct peer discovered", Toast.LENGTH_SHORT).show();
-            mTextMessage.setText("Wifi Direct peer discovered");
-            mManager.requestPeers(mChannel, mPeerListListener);
+            Toast.makeText(mActivity, "Wifi Direct peer connected", Toast.LENGTH_SHORT).show();
+            mTextMessage2.setText("Wifi Direct peer connected");
         }
 
         @Override
         public void onFailure(int reasonCode) {
-            Toast.makeText(mActivity, "Wifi Direct peer not discovered", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mActivity, "Wifi Direct peer not connected", Toast.LENGTH_SHORT).show();
+            mTextMessage2.setText("Wifi Direct peer not connected");
         }
     };
-
     // Declare Wifi Direct peer list listener
     private WifiP2pManager.PeerListListener mPeerListListener = new WifiP2pManager.PeerListListener() {
         @Override
@@ -64,22 +62,20 @@ public class WifiDirectActivity extends AppCompatActivity {
             }
         }
     };
-
-    // Declare Wifi Direct connect peer action listener
-    private WifiP2pManager.ActionListener mWifiConnectListener = new WifiP2pManager.ActionListener() {
+    // Declare Wifi Direct discover peer action listener
+    private WifiP2pManager.ActionListener mWifiDiscoverListener = new WifiP2pManager.ActionListener() {
         @Override
         public void onSuccess() {
-            Toast.makeText(mActivity, "Wifi Direct peer connected", Toast.LENGTH_SHORT).show();
-            mTextMessage2.setText("Wifi Direct peer connected");
+            Toast.makeText(mActivity, "Wifi Direct peer discovered", Toast.LENGTH_SHORT).show();
+            mTextMessage.setText("Wifi Direct peer discovered");
+            mManager.requestPeers(mChannel, mPeerListListener);
         }
 
         @Override
         public void onFailure(int reasonCode) {
-            Toast.makeText(mActivity, "Wifi Direct peer not connected", Toast.LENGTH_SHORT).show();
-            mTextMessage2.setText("Wifi Direct peer not connected");
+            Toast.makeText(mActivity, "Wifi Direct peer not discovered", Toast.LENGTH_SHORT).show();
         }
     };
-
     // Declare a broadcast receiver
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -117,7 +113,7 @@ public class WifiDirectActivity extends AppCompatActivity {
 
     // Clear all views content
     private void initialView() {
-        mTextTitle.setText("WiFi Direct");
+        mTextTitle.setText(R.string.title_network);
         mTextMessage.setText("...");
         mTextMessage2.setText("...");
         mTextMessage3.setText("...");
@@ -127,7 +123,7 @@ public class WifiDirectActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_wifi);
+        setContentView(R.layout.activity_wifip2p);
         bindViews();
         initialView();
 

@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /*
@@ -38,6 +39,8 @@ public class SoundActivity extends AppCompatActivity {
     // File helper and string data
     private FileHelper fileHelper;
     private StringBuilder stringBuilder;
+    // Declare all used views
+    private TextView soundView;
 
     // Constructor initializes locker
     public SoundActivity() {
@@ -49,6 +52,7 @@ public class SoundActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sound);
+        soundView = findViewById(R.id.soundView);
         fileHelper = new FileHelper(this);
         checkPermission();
         startRecord();
@@ -81,7 +85,7 @@ public class SoundActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMS_REQUEST_RECORD: {
-                if (grantResults.length <= 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "Please give Microphone permission", Toast.LENGTH_SHORT).show();
                     checkPermission();
                 }
@@ -89,6 +93,7 @@ public class SoundActivity extends AppCompatActivity {
         }
     }
 
+    // Start the sound sensing
     private void startRecord() {
         if (isGetVoiceRun) {
             Log.e(TAG, "Still in recording");
@@ -112,9 +117,14 @@ public class SoundActivity extends AppCompatActivity {
                     }
                     // square sum divide by data length to get volume
                     double mean = v / (double) r;
-                    double volume = 10 * Math.log10(mean);
+                    final double volume = 10 * Math.log10(mean);
                     Log.d(TAG, "Sound dB value: " + volume);
                     stringBuilder.append(System.currentTimeMillis()).append(", ").append(volume).append("\n");
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            soundView.append("Time: " + System.currentTimeMillis() + ", Volume: " + volume + "\n");
+                        }
+                    });
                     // 10 times per second
                     synchronized (mLock) {
                         try {
@@ -131,7 +141,7 @@ public class SoundActivity extends AppCompatActivity {
         }).start();
     }
 
-    // Get the sound level
+    // Stop the sound sensing
     private void stopRecord() {
         isGetVoiceRun = false;
         String time = String.valueOf(System.currentTimeMillis());
