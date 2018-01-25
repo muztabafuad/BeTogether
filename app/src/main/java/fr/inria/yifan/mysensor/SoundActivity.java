@@ -64,8 +64,8 @@ public class SoundActivity extends AppCompatActivity {
 
         // Build an adapter to feed the list with the content of an array of strings
         sensingData = new ArrayList<>();
-        sensingData.add("Sound level:");
         adapterSensing = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, sensingData);
+        adapterSensing.add("Sound level:");
 
         // Attache the adapter to the list view
         listView.setAdapter(adapterSensing);
@@ -84,6 +84,8 @@ public class SoundActivity extends AppCompatActivity {
                 stopRecord();
                 startButton.setVisibility(View.VISIBLE);
                 stopButton.setVisibility(View.INVISIBLE);
+                adapterSensing.clear();
+                adapterSensing.add("Sound level:");
             }
         });
     }
@@ -143,20 +145,22 @@ public class SoundActivity extends AppCompatActivity {
                     // r is the real measurement data, normally r is less than buffersize
                     int r = mAudioRecord.read(buffer, 0, BUFFER_SIZE);
                     long v = 0;
-                    // get content from buffer and calculate square sum
+                    // Get content from buffer and calculate square sum
                     for (short aBuffer : buffer) {
                         v += aBuffer * aBuffer;
                     }
-                    // square sum divide by data length to get volume
+                    // Square sum divide by data length to get volume
                     double mean = v / (double) r;
                     final double volume = 10 * Math.log10(mean);
                     Log.d(TAG, "Sound dB value: " + volume);
-                    runOnUiThread(new Runnable() {
-                        public void run() {
-                            adapterSensing.add("Time: " + System.currentTimeMillis() + ", Volume: " + (int) volume + "dB");
-                        }
-                    });
-                    Log.d(TAG, sensingData.toString());
+                    //Log.d(TAG, sensingData.toString());
+                    if (isGetVoiceRun) {
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                                adapterSensing.add("Time: " + System.currentTimeMillis() + ", Volume: " + (int) volume + "dB");
+                            }
+                        });
+                    }
                     // 10 times per second
                     synchronized (mLock) {
                         try {
@@ -178,13 +182,13 @@ public class SoundActivity extends AppCompatActivity {
         isGetVoiceRun = false;
         String time = String.valueOf(System.currentTimeMillis());
         StringBuilder text = new StringBuilder();
-        for (String line : sensingData) {
+        for (String line : sensingData.subList(1, sensingData.size())) {
             text.append(line).append("\n");
         }
         //Log.d(TAG, "Now is " + time);
         try {
             fileHelper.savaFile(time, text.toString());
-            Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
