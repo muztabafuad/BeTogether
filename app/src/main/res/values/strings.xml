@@ -3,4 +3,6 @@
     <string name="title_network">Network</string>
     <string name="title_detect">Detection</string>
     <string name="title_sensing">Sensing</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
 </resources>

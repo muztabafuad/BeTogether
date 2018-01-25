@@ -7,13 +7,17 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 /*
 * This activity provides functions including showing sensor and log sensing data.
@@ -38,13 +42,50 @@ public class SoundActivity extends AppCompatActivity {
 
     // File helper and string data
     private FileHelper fileHelper;
-    private StringBuilder stringBuilder;
+    private ArrayList<String> sensingData;
+
     // Declare all used views
-    private TextView soundView;
+    private ListView listView;
+    private Button startButton;
+    private Button stopButton;
+    private ArrayAdapter<String> adapterSensing;
 
     // Constructor initializes locker
     public SoundActivity() {
         mLock = new Object();
+    }
+
+    // Initially bind all views
+    private void bindViews() {
+        listView = findViewById(R.id.list_view);
+        startButton = findViewById(R.id.start_button);
+        stopButton = findViewById(R.id.stop_button);
+        stopButton.setVisibility(View.INVISIBLE);
+
+        // Build an adapter to feed the list with the content of an array of strings
+        sensingData = new ArrayList<>();
+        sensingData.add("Sound level:");
+        adapterSensing = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, sensingData);
+
+        // Attache the adapter to the list view
+        listView.setAdapter(adapterSensing);
+
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startRecord();
+                startButton.setVisibility(View.INVISIBLE);
+                stopButton.setVisibility(View.VISIBLE);
+            }
+        });
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopRecord();
+                startButton.setVisibility(View.VISIBLE);
+                stopButton.setVisibility(View.INVISIBLE);
+            }
+        });
     }
 
     // Main activity initialization
@@ -52,20 +93,12 @@ public class SoundActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sound);
-        soundView = findViewById(R.id.soundView);
         fileHelper = new FileHelper(this);
+        bindViews();
         checkPermission();
-        startRecord();
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                stopRecord();
-            }
-        }, 10000);
     }
 
-    // Start to sense the sound
+    // Check related user permissions
     private void checkPermission() {
         // Check user permission for microphone
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -99,7 +132,6 @@ public class SoundActivity extends AppCompatActivity {
             Log.e(TAG, "Still in recording");
             return;
         }
-        stringBuilder = new StringBuilder();
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
         isGetVoiceRun = true;
         new Thread(new Runnable() {
@@ -119,12 +151,12 @@ public class SoundActivity extends AppCompatActivity {
                     double mean = v / (double) r;
                     final double volume = 10 * Math.log10(mean);
                     Log.d(TAG, "Sound dB value: " + volume);
-                    stringBuilder.append(System.currentTimeMillis()).append(", ").append(volume).append("\n");
                     runOnUiThread(new Runnable() {
                         public void run() {
-                            soundView.append("Time: " + System.currentTimeMillis() + ", Volume: " + volume + "\n");
+                            adapterSensing.add("Time: " + System.currentTimeMillis() + ", Volume: " + (int) volume + "dB");
                         }
                     });
+                    Log.d(TAG, sensingData.toString());
                     // 10 times per second
                     synchronized (mLock) {
                         try {
@@ -145,9 +177,14 @@ public class SoundActivity extends AppCompatActivity {
     private void stopRecord() {
         isGetVoiceRun = false;
         String time = String.valueOf(System.currentTimeMillis());
+        StringBuilder text = new StringBuilder();
+        for (String line : sensingData) {
+            text.append(line).append("\n");
+        }
         //Log.d(TAG, "Now is " + time);
         try {
-            fileHelper.savaFile(time, stringBuilder.toString());
+            fileHelper.savaFile(time, text.toString());
+            Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
