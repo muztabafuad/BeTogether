@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import static android.support.v4.app.ActivityCompat.requestPermissions;
+import static fr.inria.yifan.mysensor.Configuration.PERMS_REQUEST_STORAGE;
 
 /**
  * This class provides functions including storing and reading sensing data file.
@@ -25,7 +26,6 @@ public class FileHelper {
     private static final String TAG = "File storage";
 
     // Declare file storage permissions
-    private static final int PERMS_REQUEST_STORAGE = 1000;
     @SuppressLint("InlinedApi")
     private static final String[] STORAGE_PERMS = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
@@ -47,7 +47,7 @@ public class FileHelper {
     }
 
     // Write file to storage
-    void savaFile(String filename, String filecontent) throws Exception {
+    void saveFile(String filename, String filecontent) throws Exception {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             filename = Environment.getExternalStorageDirectory().getCanonicalPath() + "/Documents/" + filename;
             //Log.d(TAG, filename);

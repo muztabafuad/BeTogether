@@ -19,6 +19,10 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import static fr.inria.yifan.mysensor.Configuration.PERMS_REQUEST_RECORD;
+import static fr.inria.yifan.mysensor.Configuration.SAMPLE_DELAY_IN_MS;
+import static fr.inria.yifan.mysensor.Configuration.SAMPLE_RATE_IN_HZ;
+
 /*
 * This activity provides functions including showing sensor and log sensing data.
 */
@@ -28,11 +32,9 @@ public class SoundActivity extends AppCompatActivity {
     private static final String TAG = "Sound measurement";
 
     // Declare microphone permissions
-    private static final int PERMS_REQUEST_RECORD = 1000;
     private static final String[] RECORD_PERMS = {Manifest.permission.RECORD_AUDIO};
 
     // Audio recorder parameters for sampling
-    private static final int SAMPLE_RATE_IN_HZ = 8000;
     private final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
 
     // Thread locker and running flag
@@ -65,7 +67,6 @@ public class SoundActivity extends AppCompatActivity {
         // Build an adapter to feed the list with the content of an array of strings
         sensingData = new ArrayList<>();
         adapterSensing = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, sensingData);
-        adapterSensing.add("Sound level:");
 
         // Attache the adapter to the list view
         listView.setAdapter(adapterSensing);
@@ -73,6 +74,8 @@ public class SoundActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                adapterSensing.clear();
+                adapterSensing.add("Timestamp and Sound level (dB):");
                 startRecord();
                 startButton.setVisibility(View.INVISIBLE);
                 stopButton.setVisibility(View.VISIBLE);
@@ -84,8 +87,6 @@ public class SoundActivity extends AppCompatActivity {
                 stopRecord();
                 startButton.setVisibility(View.VISIBLE);
                 stopButton.setVisibility(View.INVISIBLE);
-                adapterSensing.clear();
-                adapterSensing.add("Sound level:");
             }
         });
     }
@@ -121,6 +122,7 @@ public class SoundActivity extends AppCompatActivity {
         switch (requestCode) {
             case PERMS_REQUEST_RECORD: {
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, String.valueOf(grantResults[0]));
                     Toast.makeText(this, "Please give Microphone permission", Toast.LENGTH_SHORT).show();
                     checkPermission();
                 }
@@ -157,14 +159,14 @@ public class SoundActivity extends AppCompatActivity {
                     if (isGetVoiceRun) {
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                adapterSensing.add("Time: " + System.currentTimeMillis() + ", Volume: " + (int) volume + "dB");
+                                adapterSensing.add(System.currentTimeMillis() + ", " + (int) volume);
                             }
                         });
                     }
                     // 10 times per second
                     synchronized (mLock) {
                         try {
-                            mLock.wait(100);
+                            mLock.wait(SAMPLE_DELAY_IN_MS);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -187,7 +189,7 @@ public class SoundActivity extends AppCompatActivity {
         }
         //Log.d(TAG, "Now is " + time);
         try {
-            fileHelper.savaFile(time, text.toString());
+            fileHelper.saveFile(time, text.toString());
             Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
