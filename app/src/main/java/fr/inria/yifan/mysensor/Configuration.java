@@ -12,7 +12,6 @@ class Configuration implements Serializable {
     static final int SAMPLE_RATE_IN_HZ = 8000;
     static final int SAMPLE_DELAY_IN_MS = 100;
 
-
     // Permission request indicator code
     static final int PERMS_REQUEST_RECORD = 1000;
     static final int PERMS_REQUEST_STORAGE = 1001;
