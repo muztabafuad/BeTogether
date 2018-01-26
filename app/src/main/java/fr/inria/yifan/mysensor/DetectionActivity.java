@@ -1,26 +1,23 @@
 package fr.inria.yifan.mysensor;
 
-import android.Manifest.permission;
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
+
+import fr.inria.yifan.mysensor.Support.SensorsHelper;
+
+import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
+import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_LOCATION;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
 
 /*
 * This activity provides functions including in-pocket detection and GPS location service.
@@ -28,101 +25,52 @@ import java.util.List;
 
 public class DetectionActivity extends AppCompatActivity {
 
-    // Declare GPS permissions
-    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1000;
-    private static final int MY_ENABLE_REQUEST_LOCATION = 1001;
-    private static final String[] LOCATION_PERMS = {permission.ACCESS_FINE_LOCATION};
-
+    private static final String TAG = "Detection activity";
+    // Thread locker and running flag
+    private final Object mLock;
     // Declare all used views
-    private TextView mTextTitle;
-    private TextView mTextMessage;
-    private TextView mTextMessage2;
-    private TextView mTextMessage3;
-    private TextView mTextMessage4;
-    private TextView mTextMessage5;
-    private TextView mTextMessage6;
+    private TextView mProximityView;
+    private TextView mLightView;
+    private TextView mPocketView;
+    private TextView mLocationView;
+    private Button mStartButton;
+    private Button mStopButton;
+    private boolean isSensingRun;
 
-    // Declare sensors and managers
-    private Sensor mSensorLight;
-    private Sensor mSensorProxy;
-    private SensorManager mSensorManager;
-    private LocationManager mLocationManager;
+    // Sensors helper for sensor and GPS
+    private SensorsHelper mSensorHelper;
 
-    // Declare sensing variables
-    private float mLight;
-    private float mProximity;
-
-    // Declare light sensor listener
-    private SensorEventListener mListenerLight = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent sensorEvent) {
-            mLight = sensorEvent.values[0];
-            mTextMessage.setText("Light：" + mLight + " of " + mSensorLight.getMaximumRange() + " in lux units.");
-            sensePocket();
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-            //PASS
-        }
-    };
-
-    // Declare proximity sensor listener
-    private SensorEventListener mListenerProxy = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent sensorEvent) {
-            mProximity = sensorEvent.values[0];
-            mTextMessage2.setText("Proximity：" + mProximity + " of " + mSensorProxy.getMaximumRange() + " in binary (near or far).");
-            sensePocket();
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-            //PASS
-        }
-    };
-
-    // Declare location service listener
-    private LocationListener mListenerGPS = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-            updateGPSShow(location);
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            //PASS
-        }
-
-        @SuppressLint("MissingPermission")
-        @Override
-        public void onProviderEnabled(String provider) {
-            updateGPSShow(mLocationManager.getLastKnownLocation(provider));
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-            updateGPSShow(null);
-        }
-    };
+    // Constructor initializes locker
+    public DetectionActivity() {
+        mLock = new Object();
+    }
 
     // Initially bind all views
     private void bindViews() {
-        mTextTitle = findViewById(R.id.title);
-        mTextMessage = findViewById(R.id.message);
-        mTextMessage2 = findViewById(R.id.message2);
-        mTextMessage3 = findViewById(R.id.message3);
-    }
+        mProximityView = findViewById(R.id.proximity_view);
+        mLightView = findViewById(R.id.light_view);
+        mPocketView = findViewById(R.id.pocket_view);
+        mLocationView = findViewById(R.id.location_view);
+        mStartButton = findViewById(R.id.start_button);
+        mStopButton = findViewById(R.id.stop_button);
+        mStopButton.setVisibility(View.INVISIBLE);
 
-    // Initialize all views contents
-    private void initialView() {
-        mTextTitle.setText(R.string.title_detect);
-        mTextMessage.setText("...");
-        mTextMessage2.setText("...");
-        mTextMessage3.setText("...");
-        mTextMessage4.setText("...");
-        mTextMessage5.setText("...");
-        mTextMessage6.setText("...");
+        mStartButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startSensing();
+                mStartButton.setVisibility(View.INVISIBLE);
+                mStopButton.setVisibility(View.VISIBLE);
+            }
+        });
+        mStopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopSensing();
+                mStartButton.setVisibility(View.VISIBLE);
+                mStopButton.setVisibility(View.INVISIBLE);
+            }
+        });
     }
 
     // Main activity initialization
@@ -131,120 +79,91 @@ public class DetectionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detection);
         bindViews();
-        initialView();
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        senseLightProxy();
-        startGPSLocation();
-    }
-
-    // Register the broadcast receiver with the intent values to be matched
-    @SuppressLint("MissingPermission")
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mListenerGPS);
-    }
-
-    // Unregister the broadcast receiver and listeners
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mSensorManager.unregisterListener(mListenerLight);
-        mSensorManager.unregisterListener(mListenerProxy);
-        mLocationManager.removeUpdates(mListenerGPS);
-    }
-
-    // Start to sense the light and proximity
-    private void senseLightProxy() {
-        mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
     }
 
     // Simple In-pocket detection function
-    private void sensePocket() {
-        if (mProximity == 0 && mLight < 30) {
-            mTextMessage3.setText("\nIn-pocket.");
-        } else {
-            mTextMessage3.setText("\nOut-pocket.");
-        }
-    }
-
-    // Start GPS and location service
-    private void startGPSLocation() {
-        // Check GPS switch
-        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Toast.makeText(this, "Please enable the GPS", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivityForResult(intent, MY_ENABLE_REQUEST_LOCATION);
-        } else {
-            List<String> names = mLocationManager.getAllProviders();
-            mTextMessage4.setText(getListString(names));
-            // Check user permission for GPS
-            if (ActivityCompat.checkSelfPermission(this, permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Requesting GPS permission", Toast.LENGTH_SHORT).show();
-                // Request permission
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    requestPermissions(LOCATION_PERMS, MY_PERMISSIONS_REQUEST_LOCATION);
-                } else {
-                    Toast.makeText(this, "Please give GPS permission", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                showGPSInfo();
-                mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, mListenerGPS);
-            }
-        }
+    private boolean isInPocket(float proximity, float light) {
+        //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
+//Toast.makeText(this, "Out-pocket", Toast.LENGTH_SHORT).show();
+        return proximity == 0 && light < 30;
     }
 
     // Callback for user enabling GPS switch
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
-            case MY_ENABLE_REQUEST_LOCATION: {
-                if (resultCode == RESULT_OK) {
-                    startGPSLocation();
-                }
+            case ENABLE_REQUEST_LOCATION: {
+                mSensorHelper.initialization();
             }
         }
     }
 
     // Callback for user allowing permission
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_LOCATION: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startGPSLocation();
+            case PERMS_REQUEST_LOCATION: {
+                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    mSensorHelper.initialization();
                 }
             }
         }
     }
 
-    // Get location information from GPS ans show it
-    @SuppressLint("MissingPermission")
-    private void showGPSInfo() {
-        mTextMessage5.setText("The current location provider is " + mLocationManager.getProvider(LocationManager.GPS_PROVIDER).getName() + ".\n");
-        Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        updateGPSShow(loc);
+    // Start the sensing detection
+    private void startSensing() {
+        if (isSensingRun) {
+            Log.e(TAG, "Still in sensing");
+            return;
+        }
+        isSensingRun = true;
+        mSensorHelper = new SensorsHelper(this);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (isSensingRun) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            float proximity = mSensorHelper.getProximity();
+                            float light = mSensorHelper.getLightDensity();
+                            mProximityView.setText("Proximity：" + proximity + " in binary (near or far).");
+                            mLightView.setText("Light：" + light + " of " + " in lux units.");
+                            if (isInPocket(proximity, light)) {
+                                mPocketView.setText("Detection result: In-pocket");
+                            } else {
+                                mPocketView.setText("Detection result: Out-pocket");
+                            }
+                            Location location = mSensorHelper.getLocation();
+                            if (location != null) {
+                                String loc = "Current location information：\n" +
+                                        " - Longitude：" + location.getLongitude() + "\n" +
+                                        " - Latitude：" + location.getLatitude() + "\n" +
+                                        " - Altitude：" + location.getAltitude() + "\n" +
+                                        " - Speed：" + location.getSpeed() + "\n" +
+                                        " - Bearing：" + location.getBearing() + "\n" +
+                                        " - Accuracy：" + location.getAccuracy() + "\n";
+                                mLocationView.setText(loc);
+                            }
+                        }
+                    });
+                    // 10 times per second
+                    synchronized (mLock) {
+                        try {
+                            mLock.wait(SAMPLE_DELAY_IN_MS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }).start();
     }
 
-    // Update the GPS information in views
-    private void updateGPSShow(Location location) {
-        if (location != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Current location information：\n");
-            sb.append(" - Longitude：" + location.getLongitude() + "\n");
-            sb.append(" - Latitude：" + location.getLatitude() + "\n");
-            sb.append(" - Altitude：" + location.getAltitude() + "\n");
-            sb.append(" - Speed：" + location.getSpeed() + "\n");
-            sb.append(" - Bearing：" + location.getBearing() + "\n");
-            sb.append(" - Accuracy：" + location.getAccuracy() + "\n");
-            mTextMessage6.setText(sb.toString());
-        } else mTextMessage6.setText("...");
+    // Stop the sensing detection
+    private void stopSensing() {
+        isSensingRun = false;
+        mSensorHelper.close();
     }
 
     // Convert a list into a string
@@ -257,5 +176,4 @@ public class DetectionActivity extends AppCompatActivity {
         }
         return sb.toString();
     }
-
 }

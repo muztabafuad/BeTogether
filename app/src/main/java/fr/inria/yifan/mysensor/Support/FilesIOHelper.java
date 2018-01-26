@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor;
+package fr.inria.yifan.mysensor.Support;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -15,15 +15,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import static android.support.v4.app.ActivityCompat.requestPermissions;
-import static fr.inria.yifan.mysensor.Configuration.PERMS_REQUEST_STORAGE;
 
 /**
  * This class provides functions including storing and reading sensing data file.
  */
 
-public class FileHelper {
+public class FilesIOHelper {
 
-    private static final String TAG = "File storage";
+    private static final String TAG = "File IO helper";
 
     // Declare file storage permissions
     @SuppressLint("InlinedApi")
@@ -31,7 +30,7 @@ public class FileHelper {
 
     private Context context;
 
-    FileHelper(Context context) {
+    public FilesIOHelper(Context context) {
         super();
         this.context = context;
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
@@ -39,7 +38,7 @@ public class FileHelper {
             Toast.makeText(context, "Requesting storage permission", Toast.LENGTH_SHORT).show();
             // Request permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions((Activity) context, STORAGE_PERMS, PERMS_REQUEST_STORAGE);
+                requestPermissions((Activity) context, STORAGE_PERMS, Configuration.PERMS_REQUEST_STORAGE);
             } else {
                 Toast.makeText(context, "Please give storage permission", Toast.LENGTH_SHORT).show();
             }
@@ -47,7 +46,7 @@ public class FileHelper {
     }
 
     // Write file to storage
-    void saveFile(String filename, String filecontent) throws Exception {
+    public void saveFile(String filename, String filecontent) throws Exception {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             filename = Environment.getExternalStorageDirectory().getCanonicalPath() + "/Documents/" + filename;
             //Log.d(TAG, filename);

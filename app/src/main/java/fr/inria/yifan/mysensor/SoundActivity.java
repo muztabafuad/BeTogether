@@ -19,9 +19,11 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
-import static fr.inria.yifan.mysensor.Configuration.PERMS_REQUEST_RECORD;
-import static fr.inria.yifan.mysensor.Configuration.SAMPLE_DELAY_IN_MS;
-import static fr.inria.yifan.mysensor.Configuration.SAMPLE_RATE_IN_HZ;
+import fr.inria.yifan.mysensor.Support.FilesIOHelper;
+
+import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_RECORD;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 
 /*
 * This activity provides functions including showing sensor and log sensing data.
@@ -29,13 +31,13 @@ import static fr.inria.yifan.mysensor.Configuration.SAMPLE_RATE_IN_HZ;
 
 public class SoundActivity extends AppCompatActivity {
 
-    private static final String TAG = "Sound measurement";
+    private static final String TAG = "Sound activity";
 
     // Declare microphone permissions
     private static final String[] RECORD_PERMS = {Manifest.permission.RECORD_AUDIO};
 
     // Audio recorder parameters for sampling
-    private final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
+    private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
 
     // Thread locker and running flag
     private final Object mLock;
@@ -43,14 +45,13 @@ public class SoundActivity extends AppCompatActivity {
     private boolean isGetVoiceRun;
 
     // File helper and string data
-    private FileHelper fileHelper;
-    private ArrayList<String> sensingData;
+    private FilesIOHelper mFilesIOHelper;
+    private ArrayList<String> mSensingData;
 
-    // Declare all used views
-    private ListView listView;
-    private Button startButton;
-    private Button stopButton;
-    private ArrayAdapter<String> adapterSensing;
+    // Declare all related views
+    private Button mStartButton;
+    private Button mStopButton;
+    private ArrayAdapter<String> mAdapterSensing;
 
     // Constructor initializes locker
     public SoundActivity() {
@@ -59,34 +60,34 @@ public class SoundActivity extends AppCompatActivity {
 
     // Initially bind all views
     private void bindViews() {
-        listView = findViewById(R.id.list_view);
-        startButton = findViewById(R.id.start_button);
-        stopButton = findViewById(R.id.stop_button);
-        stopButton.setVisibility(View.INVISIBLE);
+        mStartButton = findViewById(R.id.start_button);
+        mStopButton = findViewById(R.id.stop_button);
+        mStopButton.setVisibility(View.INVISIBLE);
 
         // Build an adapter to feed the list with the content of an array of strings
-        sensingData = new ArrayList<>();
-        adapterSensing = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, sensingData);
+        mSensingData = new ArrayList<>();
+        mAdapterSensing = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mSensingData);
 
         // Attache the adapter to the list view
-        listView.setAdapter(adapterSensing);
+        ListView listView = findViewById(R.id.list_view);
+        listView.setAdapter(mAdapterSensing);
 
-        startButton.setOnClickListener(new View.OnClickListener() {
+        mStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                adapterSensing.clear();
-                adapterSensing.add("Timestamp and Sound level (dB):");
+                mAdapterSensing.clear();
+                mAdapterSensing.add("Timestamp and Sound level (dB):");
                 startRecord();
-                startButton.setVisibility(View.INVISIBLE);
-                stopButton.setVisibility(View.VISIBLE);
+                mStartButton.setVisibility(View.INVISIBLE);
+                mStopButton.setVisibility(View.VISIBLE);
             }
         });
-        stopButton.setOnClickListener(new View.OnClickListener() {
+        mStopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 stopRecord();
-                startButton.setVisibility(View.VISIBLE);
-                stopButton.setVisibility(View.INVISIBLE);
+                mStartButton.setVisibility(View.VISIBLE);
+                mStopButton.setVisibility(View.INVISIBLE);
             }
         });
     }
@@ -96,7 +97,7 @@ public class SoundActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sound);
-        fileHelper = new FileHelper(this);
+        mFilesIOHelper = new FilesIOHelper(this);
         bindViews();
         checkPermission();
     }
@@ -155,11 +156,11 @@ public class SoundActivity extends AppCompatActivity {
                     double mean = v / (double) r;
                     final double volume = 10 * Math.log10(mean);
                     Log.d(TAG, "Sound dB value: " + volume);
-                    //Log.d(TAG, sensingData.toString());
+                    //Log.d(TAG, mSensingData.toString());
                     if (isGetVoiceRun) {
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                adapterSensing.add(System.currentTimeMillis() + ", " + (int) volume);
+                                mAdapterSensing.add(System.currentTimeMillis() + ", " + (int) volume);
                             }
                         });
                     }
@@ -184,12 +185,12 @@ public class SoundActivity extends AppCompatActivity {
         isGetVoiceRun = false;
         String time = String.valueOf(System.currentTimeMillis());
         StringBuilder text = new StringBuilder();
-        for (String line : sensingData.subList(1, sensingData.size())) {
+        for (String line : mSensingData.subList(1, mSensingData.size())) {
             text.append(line).append("\n");
         }
         //Log.d(TAG, "Now is " + time);
         try {
-            fileHelper.saveFile(time, text.toString());
+            mFilesIOHelper.saveFile(time, text.toString());
             Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();

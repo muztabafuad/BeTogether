@@ -39,7 +39,6 @@
             android:layout_marginStart="@dimen/activity_vertical_margin"
             android:text="@string/stop"
             tools:ignore="ButtonStyle" />
-
     </LinearLayout>
 
     <LinearLayout
@@ -52,7 +51,7 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/button1"
+            android:id="@+id/detection_button"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
@@ -62,17 +61,18 @@
             android:text="@string/title_detect" />
 
         <Button
-            android:id="@+id/button2"
+            android:id="@+id/sensing_button"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:clickable="false"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/red_round"
             android:text="@string/title_sensing" />
 
         <Button
-            android:id="@+id/button3"
+            android:id="@+id/network_button"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="match_parent"
