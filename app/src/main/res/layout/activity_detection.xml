@@ -89,6 +89,7 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/red_round"
+            android:onClick="goSensing"
             android:text="@string/title_sensing" />
 
         <Button

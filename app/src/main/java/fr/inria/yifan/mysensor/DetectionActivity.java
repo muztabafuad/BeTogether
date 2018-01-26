@@ -26,8 +26,11 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
 public class DetectionActivity extends AppCompatActivity {
 
     private static final String TAG = "Detection activity";
+
     // Thread locker and running flag
     private final Object mLock;
+    private boolean isSensingRun;
+
     // Declare all used views
     private TextView mProximityView;
     private TextView mLightView;
@@ -35,7 +38,6 @@ public class DetectionActivity extends AppCompatActivity {
     private TextView mLocationView;
     private Button mStartButton;
     private Button mStopButton;
-    private boolean isSensingRun;
 
     // Sensors helper for sensor and GPS
     private SensorsHelper mSensorHelper;
@@ -73,19 +75,31 @@ public class DetectionActivity extends AppCompatActivity {
         });
     }
 
+    // Clean all text views
+    private void cleanView() {
+        mProximityView.setText("Press start to detect light density, proximity and GPS location (if available).");
+        mLightView.setText(null);
+        mPocketView.setText(null);
+        mLocationView.setText(null);
+    }
+
     // Main activity initialization
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detection);
         bindViews();
+        cleanView();
     }
 
-    // Simple In-pocket detection function
-    private boolean isInPocket(float proximity, float light) {
-        //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
-//Toast.makeText(this, "Out-pocket", Toast.LENGTH_SHORT).show();
-        return proximity == 0 && light < 30;
+    // Stop thread when exit!
+    @Override
+    protected void onPause() {
+        isSensingRun = false;
+        super.onPause();
+        if (mSensorHelper != null) {
+            mSensorHelper.close();
+        }
     }
 
     // Callback for user enabling GPS switch
@@ -129,7 +143,7 @@ public class DetectionActivity extends AppCompatActivity {
                             float light = mSensorHelper.getLightDensity();
                             mProximityView.setText("Proximity：" + proximity + " in binary (near or far).");
                             mLightView.setText("Light：" + light + " of " + " in lux units.");
-                            if (isInPocket(proximity, light)) {
+                            if (mSensorHelper.isInPocket()) {
                                 mPocketView.setText("Detection result: In-pocket");
                             } else {
                                 mPocketView.setText("Detection result: Out-pocket");
@@ -164,6 +178,15 @@ public class DetectionActivity extends AppCompatActivity {
     private void stopSensing() {
         isSensingRun = false;
         mSensorHelper.close();
+        cleanView();
+    }
+
+    // Go to the sensing activity
+    public void goSensing(View view) {
+        Intent goToSensing = new Intent();
+        goToSensing.setClass(this, SensingActivity.class);
+        startActivity(goToSensing);
+        finish();
     }
 
     // Convert a list into a string
@@ -171,7 +194,7 @@ public class DetectionActivity extends AppCompatActivity {
         StringBuilder sb = new StringBuilder();
         int i = 1;
         for (String str : list) {
-            sb.append(i + " " + str + ".\n");
+            sb.append(i).append(" ").append(str).append(".\n");
             i++;
         }
         return sb.toString();

@@ -32,18 +32,19 @@ import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_LOCATI
 public class SensorsHelper {
 
     private static final String TAG = "Sensors helper";
+
     // Declare GPS permissions
     private static final String[] LOCATION_PERMS = {Manifest.permission.ACCESS_FINE_LOCATION};
     private Activity mActivity;
-    // Declare sensors and managers
-    private Sensor mSensorLight;
-    private Sensor mSensorProxy;
-    private SensorManager mSensorManager;
-    private LocationManager mLocationManager;
+
     // Declare sensing variables
     private float mLight;
     private float mProximity;
     private Location mLocation;
+
+    private SensorManager mSensorManager;
+    private LocationManager mLocationManager;
+
     // Declare light sensor listener
     private SensorEventListener mListenerLight = new SensorEventListener() {
         @Override
@@ -99,36 +100,13 @@ public class SensorsHelper {
         mActivity = activity;
         mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
         assert mSensorManager != null;
-        mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        Sensor mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        Sensor mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         // Start to sense the light and proximity
         mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
         initialization();
-    }
-
-    // Unregister the broadcast receiver and listeners
-    public void close() {
-        mSensorManager.unregisterListener(mListenerLight);
-        mSensorManager.unregisterListener(mListenerProxy);
-        mLocationManager.removeUpdates(mListenerGPS);
-    }
-
-    // Get the most recent light density
-    public float getLightDensity() {
-        return mLight;
-    }
-
-    // Get thr most recent proximity value
-    public float getProximity() {
-        return mProximity;
-    }
-
-    // Get location information from GPS
-    public Location getLocation() {
-        Log.d(TAG, "Location information: " + mLocation);
-        return mLocation;
     }
 
     // Check related user permissions
@@ -154,5 +132,35 @@ public class SensorsHelper {
                 mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_TIME, LOCATION_UPDATE_DISTANCE, mListenerGPS);
             }
         }
+    }
+
+    // Unregister the broadcast receiver and listeners
+    public void close() {
+        mSensorManager.unregisterListener(mListenerLight);
+        mSensorManager.unregisterListener(mListenerProxy);
+        mLocationManager.removeUpdates(mListenerGPS);
+    }
+
+    // Get the most recent light density
+    public float getLightDensity() {
+        return mLight;
+    }
+
+    // Get thr most recent proximity value
+    public float getProximity() {
+        return mProximity;
+    }
+
+    // Simple In-pocket detection function
+    public boolean isInPocket() {
+        //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Out-pocket", Toast.LENGTH_SHORT).show();
+        return mProximity == 0 && mLight < 30;
+    }
+
+    // Get location information from GPS
+    public Location getLocation() {
+        Log.d(TAG, "Location information: " + mLocation);
+        return mLocation;
     }
 }

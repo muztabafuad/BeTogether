@@ -1,6 +1,7 @@
 package fr.inria.yifan.mysensor;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
+import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_RECORD;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
@@ -29,7 +31,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 * This activity provides functions including showing sensor and log sensing data.
 */
 
-public class SoundActivity extends AppCompatActivity {
+public class SensingActivity extends AppCompatActivity {
 
     private static final String TAG = "Sound activity";
 
@@ -44,17 +46,20 @@ public class SoundActivity extends AppCompatActivity {
     private AudioRecord mAudioRecord;
     private boolean isGetVoiceRun;
 
-    // File helper and string data
-    private FilesIOHelper mFilesIOHelper;
-    private ArrayList<String> mSensingData;
-
     // Declare all related views
     private Button mStartButton;
     private Button mStopButton;
     private ArrayAdapter<String> mAdapterSensing;
 
+    // File helper and string data
+    private FilesIOHelper mFilesIOHelper;
+    private ArrayList<String> mSensingData;
+
+    // Sensors helper for sensor and GPS
+    private SensorsHelper mSensorHelper;
+
     // Constructor initializes locker
-    public SoundActivity() {
+    public SensingActivity() {
         mLock = new Object();
     }
 
@@ -76,7 +81,7 @@ public class SoundActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mAdapterSensing.clear();
-                mAdapterSensing.add("Timestamp and Sound level (dB):");
+                mAdapterSensing.add("Timestamp, Sound level (dB) and in-pocket flag:");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
@@ -96,10 +101,17 @@ public class SoundActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sound);
+        setContentView(R.layout.activity_sensing);
         mFilesIOHelper = new FilesIOHelper(this);
         bindViews();
         checkPermission();
+    }
+
+    // Stop thread when exit!
+    @Override
+    protected void onPause() {
+        isGetVoiceRun = false;
+        super.onPause();
     }
 
     // Check related user permissions
@@ -138,6 +150,7 @@ public class SoundActivity extends AppCompatActivity {
             return;
         }
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
+        mSensorHelper = new SensorsHelper(this);
         isGetVoiceRun = true;
         new Thread(new Runnable() {
             @Override
@@ -160,7 +173,7 @@ public class SoundActivity extends AppCompatActivity {
                     if (isGetVoiceRun) {
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                mAdapterSensing.add(System.currentTimeMillis() + ", " + (int) volume);
+                                mAdapterSensing.add(System.currentTimeMillis() + ", " + (int) volume + ", " + mSensorHelper.isInPocket());
                             }
                         });
                     }
@@ -195,6 +208,14 @@ public class SoundActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // Go to the sensing activity
+    public void goDetection(View view) {
+        Intent goToDetection = new Intent();
+        goToDetection.setClass(this, DetectionActivity.class);
+        startActivity(goToDetection);
+        finish();
     }
 
 }

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fr.inria.yifan.mysensor.SoundActivity">
+    tools:context="fr.inria.yifan.mysensor.SensingActivity">
 
     <ListView
         android:id="@+id/list_view"
@@ -58,6 +58,7 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/green_square"
+            android:onClick="goDetection"
             android:text="@string/title_detect" />
 
         <Button

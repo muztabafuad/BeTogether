@@ -33,7 +33,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
-            android:name=".SoundActivity"
+            android:name=".SensingActivity"
             android:label="@string/title_sensing"
             android:screenOrientation="portrait" />
         <activity
@@ -46,7 +46,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SensorsActivity"
+            android:name=".WifiP2PActivity"
             android:label="@string/title_sensors"
             android:screenOrientation="portrait" />
     </application>
