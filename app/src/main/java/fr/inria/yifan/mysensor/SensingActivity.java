@@ -81,7 +81,7 @@ public class SensingActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mAdapterSensing.clear();
-                mAdapterSensing.add("Timestamp, Sound level (dB) and in-pocket flag:");
+                mAdapterSensing.add("Timestamp, sound level (dB) and in-pocket flag:");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
