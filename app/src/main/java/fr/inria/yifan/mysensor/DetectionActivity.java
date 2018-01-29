@@ -1,10 +1,8 @@
 package fr.inria.yifan.mysensor;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -16,7 +14,6 @@ import java.util.List;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
 
 /*
@@ -90,6 +87,7 @@ public class DetectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detection);
         bindViews();
         cleanView();
+        mSensorHelper = new SensorsHelper(this);
     }
 
     // Stop thread when exit!
@@ -102,28 +100,6 @@ public class DetectionActivity extends AppCompatActivity {
         }
     }
 
-    // Callback for user enabling GPS switch
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case ENABLE_REQUEST_LOCATION: {
-                mSensorHelper.initialization();
-            }
-        }
-    }
-
-    // Callback for user allowing permission
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PERMS_REQUEST_LOCATION: {
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    mSensorHelper.initialization();
-                }
-            }
-        }
-    }
-
     // Start the sensing detection
     private void startSensing() {
         if (isSensingRun) {
@@ -131,7 +107,6 @@ public class DetectionActivity extends AppCompatActivity {
             return;
         }
         isSensingRun = true;
-        mSensorHelper = new SensorsHelper(this);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -187,6 +162,15 @@ public class DetectionActivity extends AppCompatActivity {
         goToSensing.setClass(this, SensingActivity.class);
         startActivity(goToSensing);
         finish();
+    }
+
+    // Callback for user enabling GPS switch
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case ENABLE_REQUEST_LOCATION: {
+            }
+        }
     }
 
     // Convert a list into a string

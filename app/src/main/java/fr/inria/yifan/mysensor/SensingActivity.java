@@ -1,15 +1,10 @@
 package fr.inria.yifan.mysensor;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -23,7 +18,6 @@ import java.util.ArrayList;
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_RECORD;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 
@@ -34,9 +28,6 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 public class SensingActivity extends AppCompatActivity {
 
     private static final String TAG = "Sound activity";
-
-    // Declare microphone permissions
-    private static final String[] RECORD_PERMS = {Manifest.permission.RECORD_AUDIO};
 
     // Audio recorder parameters for sampling
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
@@ -102,9 +93,9 @@ public class SensingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensing);
-        mFilesIOHelper = new FilesIOHelper(this);
         bindViews();
-        checkPermission();
+        mSensorHelper = new SensorsHelper(this);
+        mFilesIOHelper = new FilesIOHelper(this);
     }
 
     // Stop thread when exit!
@@ -114,35 +105,6 @@ public class SensingActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    // Check related user permissions
-    private void checkPermission() {
-        // Check user permission for microphone
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Requesting Microphone permission", Toast.LENGTH_SHORT).show();
-            // Request permission
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(RECORD_PERMS, PERMS_REQUEST_RECORD);
-            } else {
-                Toast.makeText(this, "Please give Microphone permission", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        }
-    }
-
-    // Callback for user allowing permission
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case PERMS_REQUEST_RECORD: {
-                if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                    Log.d(TAG, String.valueOf(grantResults[0]));
-                    Toast.makeText(this, "Please give Microphone permission", Toast.LENGTH_SHORT).show();
-                    checkPermission();
-                }
-            }
-        }
-    }
-
     // Start the sound sensing
     private void startRecord() {
         if (isGetVoiceRun) {
@@ -150,7 +112,6 @@ public class SensingActivity extends AppCompatActivity {
             return;
         }
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
-        mSensorHelper = new SensorsHelper(this);
         isGetVoiceRun = true;
         new Thread(new Runnable() {
             @Override

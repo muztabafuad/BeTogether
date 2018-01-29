@@ -16,9 +16,9 @@ public class Configuration implements Serializable {
 
     // Permission request indicator code
     public static final int PERMS_REQUEST_RECORD = 1000;
+    public static final int PERMS_REQUEST_STORAGE = 1001;
     public static final int PERMS_REQUEST_LOCATION = 1002;
     public static final int ENABLE_REQUEST_LOCATION = 1003;
-    static final int PERMS_REQUEST_STORAGE = 1001;
 
     // Minimum time interval between location updates (milliseconds)
     static final int LOCATION_UPDATE_TIME = 100;
