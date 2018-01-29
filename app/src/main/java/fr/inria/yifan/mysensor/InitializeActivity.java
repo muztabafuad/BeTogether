@@ -37,6 +37,7 @@ public class InitializeActivity extends AppCompatActivity {
     private static final String[] LOCATION_PERMS = {Manifest.permission.ACCESS_FINE_LOCATION};
 
     // Main activity initialization
+    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,6 +83,8 @@ public class InitializeActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please give location permission", Toast.LENGTH_SHORT).show();
                 finish();
             }
+        } else {
+            Toast.makeText(this, "Permission checked OK", Toast.LENGTH_LONG).show();
         }
     }
 

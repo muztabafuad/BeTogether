@@ -12,17 +12,17 @@ public class Configuration implements Serializable {
     public static final int SAMPLE_RATE_IN_HZ = 8000;
 
     // Parameters for sensing sampling
-    public static final int SAMPLE_DELAY_IN_MS = 100;
+    public static final int SAMPLE_DELAY_IN_MS = 1000;
 
     // Permission request indicator code
     public static final int PERMS_REQUEST_RECORD = 1000;
     public static final int PERMS_REQUEST_STORAGE = 1001;
     public static final int PERMS_REQUEST_LOCATION = 1002;
     public static final int ENABLE_REQUEST_LOCATION = 1003;
-
+    // Wifi Direct network parameters
+    public static final int SERVER_PORT = 8888;
     // Minimum time interval between location updates (milliseconds)
     static final int LOCATION_UPDATE_TIME = 100;
-
     // Minimum distance between location updates (meters)
     static final int LOCATION_UPDATE_DISTANCE = 5;
 }

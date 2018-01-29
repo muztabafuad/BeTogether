@@ -6,16 +6,10 @@
     <!--Wifi Direct permissions-->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!--Location service permission-->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <!--Wifi Aware permissions-->
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <!--Audio record permission-->
@@ -47,7 +41,7 @@
             android:name=".SensingActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".WifiP2PActivity"
+            android:name=".NetworkActivity"
             android:screenOrientation="portrait" />
     </application>
 

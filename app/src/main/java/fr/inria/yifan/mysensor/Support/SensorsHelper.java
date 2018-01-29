@@ -135,11 +135,19 @@ public class SensorsHelper {
         return mProximity;
     }
 
-    // Simple In-pocket detection function
+    // Simple In/Out-pocket detection function
     public boolean isInPocket() {
         //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "Out-pocket", Toast.LENGTH_SHORT).show();
-        return mProximity == 0 && mLight < 30;
+        return mProximity == 0 && mLight < 5;
+    }
+
+    // Simple Indoor/Outdoor detection function
+    public boolean isInDoor() {
+        //Toast.makeText(this, "Indoor", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Outdoor", Toast.LENGTH_SHORT).show();
+        //TODO
+        return mLight < 100;
     }
 
     // Get location information from GPS
