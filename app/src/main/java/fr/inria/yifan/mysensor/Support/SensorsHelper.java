@@ -92,19 +92,21 @@ public class SensorsHelper {
     public SensorsHelper(Activity activity) {
         mActivity = activity;
         mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
+        mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
+
         assert mSensorManager != null;
         Sensor mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         Sensor mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         // Start to sense the light and proximity
         mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
-        mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
-        initialization();
+
+        initialGPS();
     }
 
     // Check if location service on system is enabled
     @SuppressLint("MissingPermission")
-    private void initialization() {
+    public void initialGPS() {
         // Check GPS enable switch
         if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             Toast.makeText(mActivity, "Please enable the GPS", Toast.LENGTH_SHORT).show();

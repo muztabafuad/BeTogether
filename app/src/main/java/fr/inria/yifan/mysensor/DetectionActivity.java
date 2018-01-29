@@ -1,5 +1,6 @@
 package fr.inria.yifan.mysensor;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
@@ -73,6 +74,7 @@ public class DetectionActivity extends AppCompatActivity {
     }
 
     // Clean all text views
+    @SuppressLint("SetTextI18n")
     private void cleanView() {
         mProximityView.setText("Press start to detect light density, proximity and GPS location (if available).");
         mLightView.setText(null);
@@ -101,6 +103,7 @@ public class DetectionActivity extends AppCompatActivity {
     }
 
     // Start the sensing detection
+    @SuppressLint("SetTextI18n")
     private void startSensing() {
         if (isSensingRun) {
             Log.e(TAG, "Still in sensing");
@@ -169,6 +172,7 @@ public class DetectionActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_LOCATION: {
+                mSensorHelper.initialGPS();
             }
         }
     }
