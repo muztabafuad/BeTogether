@@ -108,13 +108,13 @@ public class SensorsHelper {
     @SuppressLint("MissingPermission")
     public void initialGPS() {
         // Check GPS enable switch
-        if (!mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            // Start GPS and location service
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_TIME, LOCATION_UPDATE_DISTANCE, mListenerGPS);
+        } else {
             Toast.makeText(mActivity, "Please enable the GPS", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             mActivity.startActivityForResult(intent, ENABLE_REQUEST_LOCATION);
-        } else {
-            // Start GPS and location service
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_TIME, LOCATION_UPDATE_DISTANCE, mListenerGPS);
         }
     }
 
