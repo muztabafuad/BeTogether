@@ -51,7 +51,7 @@ public class InitializeActivity extends AppCompatActivity {
     private void checkPermission() {
         // Check user permission for microphone
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Requesting microphone permission", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Requesting microphone permission", Toast.LENGTH_SHORT).show();
             // Request permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(RECORD_PERMS, PERMS_REQUEST_RECORD);
@@ -63,7 +63,7 @@ public class InitializeActivity extends AppCompatActivity {
         // Check user permission for file storage
         else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Requesting storage permission", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Requesting storage permission", Toast.LENGTH_SHORT).show();
             // Request permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(STORAGE_PERMS, PERMS_REQUEST_STORAGE);
@@ -75,7 +75,7 @@ public class InitializeActivity extends AppCompatActivity {
         // Check user permission for GPS location
         else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Requesting location permission", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Requesting location permission", Toast.LENGTH_SHORT).show();
             // Request permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(LOCATION_PERMS, PERMS_REQUEST_LOCATION);
@@ -92,27 +92,27 @@ public class InitializeActivity extends AppCompatActivity {
     // Callback for user allowing permission
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
-            case PERMS_REQUEST_RECORD: {
+            case PERMS_REQUEST_RECORD:
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, String.valueOf(grantResults[0]));
-                    Toast.makeText(this, "Please give microphone permission", Toast.LENGTH_SHORT).show();
-                    checkPermission();
+                    Toast.makeText(this, "Please give microphone permission", Toast.LENGTH_LONG).show();
                 }
-            }
-            case PERMS_REQUEST_STORAGE: {
+                checkPermission();
+                break;
+            case PERMS_REQUEST_STORAGE:
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, String.valueOf(grantResults[0]));
-                    Toast.makeText(this, "Please give storage permission", Toast.LENGTH_SHORT).show();
-                    checkPermission();
+                    Toast.makeText(this, "Please give storage permission", Toast.LENGTH_LONG).show();
                 }
-            }
-            case PERMS_REQUEST_LOCATION: {
+                checkPermission();
+                break;
+            case PERMS_REQUEST_LOCATION:
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, String.valueOf(grantResults[0]));
-                    Toast.makeText(this, "Please give location permission", Toast.LENGTH_SHORT).show();
-                    checkPermission();
+                    Toast.makeText(this, "Please give location permission", Toast.LENGTH_LONG).show();
                 }
-            }
+                checkPermission();
+                break;
         }
     }
 

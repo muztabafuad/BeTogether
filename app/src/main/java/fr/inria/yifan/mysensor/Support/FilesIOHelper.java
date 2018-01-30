@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Environment;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,13 +27,17 @@ public class FilesIOHelper {
     // Write file to storage
     public void saveFile(String filename, String filecontent) throws Exception {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            filename = Environment.getExternalStorageDirectory().getCanonicalPath() + "/Documents/" + filename;
+            File folder = new File(Environment.getExternalStorageDirectory().getCanonicalPath() + "/Download");
+            if (!folder.exists()) {
+                boolean mkdir = folder.mkdir();
+            }
+            filename = folder + "/" + filename + ".txt";
             //Log.d(TAG, filename);
             FileOutputStream output = new FileOutputStream(filename);
             output.write(filecontent.getBytes());
             output.close();
         } else {
-            Toast.makeText(context, "Failed in writing file", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Failed in writing file", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -49,7 +54,7 @@ public class FilesIOHelper {
             }
             input.close();
         } else {
-            Toast.makeText(context, "Failed in writing file", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Failed in reading file", Toast.LENGTH_LONG).show();
         }
         return sb.toString();
     }

@@ -165,7 +165,7 @@ public class SensingActivity extends AppCompatActivity {
         //Log.d(TAG, "Now is " + time);
         try {
             mFilesIOHelper.saveFile(time, text.toString());
-            Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
