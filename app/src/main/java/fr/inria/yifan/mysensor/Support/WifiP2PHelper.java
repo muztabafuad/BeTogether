@@ -39,23 +39,22 @@ public class WifiP2PHelper {
 
     // Set the service record information
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    private void startRegistration(Map<String, String> record) {
+    public void startService(Map<String, String> record) {
         // Service information
         WifiP2pDnsSdServiceInfo serviceInfo;
         serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_test", "_presence._tcp", record);
-
         // Add the local service, sending the service info, network channel and listener
         mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 // Command successful! Code isn't necessarily needed here,
             }
-
             @Override
             public void onFailure(int arg0) {
                 // Command failed.
             }
         });
+        discoverService();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
