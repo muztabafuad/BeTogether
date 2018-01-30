@@ -3,15 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fr.inria.yifan.mysensor.InitializeActivity">
+    tools:context="fr.inria.yifan.mysensor.NetworkActivity">
 
-    <TextView
-        android:id="@+id/welcome_view"
+    <ListView
+        android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_above="@id/two_buttons"
         android:layout_alignParentTop="true"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:textSize="20sp" />
+        android:transcriptMode="alwaysScroll" />
 
     <LinearLayout
         android:id="@+id/three_buttons"
@@ -30,7 +30,6 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/green_square"
-            android:onClick="goDetection"
             android:text="@string/title_detect" />
 
         <Button
@@ -41,7 +40,6 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/red_round"
-            android:onClick="goSensing"
             android:text="@string/title_sensing" />
 
         <Button
@@ -50,9 +48,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:clickable="false"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/blue_square"
-            android:onClick="goNetwork"
             android:text="@string/title_network" />
     </LinearLayout>
 

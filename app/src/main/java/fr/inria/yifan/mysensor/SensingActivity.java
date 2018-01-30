@@ -22,7 +22,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 
 /*
-* This activity provides functions including showing sensor and log sensing data.
+* This activity provides functions including showing sensor and logging sensing data.
 */
 
 public class SensingActivity extends AppCompatActivity {

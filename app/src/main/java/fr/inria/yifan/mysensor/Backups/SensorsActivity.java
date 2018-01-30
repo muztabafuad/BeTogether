@@ -20,8 +20,6 @@ public class SensorsActivity extends AppCompatActivity {
     // Declare all views used
     private TextView mTextTitle;
     private TextView mTextMessage;
-    private TextView mTextMessage2;
-    private TextView mTextMessage3;
 
     // Declare sensors and managers
     private SensorManager mSensorManager;
@@ -30,23 +28,19 @@ public class SensorsActivity extends AppCompatActivity {
     private void bindViews() {
         mTextTitle = findViewById(R.id.title);
         mTextMessage = findViewById(R.id.message);
-        mTextMessage2 = findViewById(R.id.message2);
-        mTextMessage3 = findViewById(R.id.message3);
     }
 
     // Clear all views content
     private void initialView() {
         mTextTitle.setText(R.string.title_sensing);
         mTextMessage.setText("...");
-        mTextMessage2.setText("...");
-        mTextMessage3.setText("...");
     }
 
     // Main activity initialization
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sensor);
+        //setContentView(R.layout.activity_sensor);
         bindViews();
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         showSensorList();

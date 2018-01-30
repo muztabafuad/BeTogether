@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor;
+package fr.inria.yifan.mysensor.Backups;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -13,6 +13,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import fr.inria.yifan.mysensor.R;
 
 /*
 * This activity provides functions related to the Wifi Direct service.
@@ -107,8 +109,6 @@ public class WifiP2PActivity extends AppCompatActivity {
     private void bindViews() {
         mTextTitle = findViewById(R.id.title);
         mTextMessage = findViewById(R.id.message);
-        mTextMessage2 = findViewById(R.id.message2);
-        mTextMessage3 = findViewById(R.id.message3);
     }
 
     // Clear all views content
@@ -123,7 +123,7 @@ public class WifiP2PActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_wifip2p);
+        setContentView(R.layout.activity_network);
         bindViews();
         initialView();
 

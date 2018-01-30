@@ -132,4 +132,12 @@ public class InitializeActivity extends AppCompatActivity {
         finish();
     }
 
+    // Go to the sensing activity
+    public void goNetwork(View view) {
+        Intent goToNetwork = new Intent();
+        goToNetwork.setClass(this, NetworkActivity.class);
+        startActivity(goToNetwork);
+        finish();
+    }
+
 }
