@@ -42,8 +42,10 @@ public class InitializeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initialize);
+
         TextView welcomeView = findViewById(R.id.welcome_view);
-        welcomeView.setText("Please select a function below to run after permission checked:");
+        welcomeView.setText("Please select a function below to run after permission checked.");
+
         checkPermission();
     }
 
@@ -116,7 +118,7 @@ public class InitializeActivity extends AppCompatActivity {
         }
     }
 
-    // Go to the sensing activity
+    // Go to the detection activity
     public void goDetection(View view) {
         Intent goToDetection = new Intent();
         goToDetection.setClass(this, DetectionActivity.class);
@@ -132,7 +134,7 @@ public class InitializeActivity extends AppCompatActivity {
         finish();
     }
 
-    // Go to the sensing activity
+    // Go to the network activity
     public void goNetwork(View view) {
         Intent goToNetwork = new Intent();
         goToNetwork.setClass(this, NetworkActivity.class);

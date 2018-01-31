@@ -12,9 +12,9 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,23 +24,27 @@ import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
  * This class provides functions functions related to the Wifi Direct service..
  */
 
-public class WifiP2PHelper {
+public class WifiDirectHelper {
 
     private static final String TAG = "Wifi Direct helper";
+
     // To store information from the peer
     private final HashMap<String, String> buddies = new HashMap<>();
     private Activity mActivity;
+    private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
+
     // Declare channel and Wifi Direct manager
     private WifiP2pManager.Channel mChannel;
     private WifiP2pManager mManager;
-    private ArrayList<WifiP2pDevice> mDeviceList;
 
     // Constructor
-    public WifiP2PHelper(Activity activity) {
+    public WifiDirectHelper(Activity activity) {
         mActivity = activity;
-        // Initialize Wifi direct components
-        mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
+    }
+
+    // Add to the custom adapter defined specifically for showing wifi devices.
+    public void setAdapterWifi(ArrayAdapter<WifiP2pDevice> adapter) {
+        mAdapterWifi = adapter;
     }
 
     // Set the service record information
@@ -50,6 +54,11 @@ public class WifiP2PHelper {
         // Check if Wifi service on system is enabled
         assert wifi != null;
         if (wifi.isWifiEnabled()) {
+            // Initialize Wifi direct components
+            mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
+            Log.d(TAG, String.valueOf(mManager == null));
+            mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
+
             // Service information
             WifiP2pDnsSdServiceInfo serviceInfo;
             serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);
@@ -69,22 +78,26 @@ public class WifiP2PHelper {
                 }
             });
         } else {
-            Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-            mActivity.startActivityForResult(intent, ENABLE_REQUEST_WIFI);
+            try {
+                Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
+                mActivity.startActivityForResult(intent, ENABLE_REQUEST_WIFI);
+            } catch (Exception e) {
+                Log.e(TAG, String.valueOf(e));
+                Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void discoverService() {
-        mDeviceList = new ArrayList<>();
         WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
             @Override
             // Callback includes TXT record and device running the advertised service
             public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
                 Log.d(TAG, "DnsSdTxtRecord available -" + record.toString());
                 buddies.put(device.deviceAddress, (String) record.get("listenport"));
-                mDeviceList.add(device);
+                mAdapterWifi.add(device);
             }
         };
         WifiP2pManager.DnsSdServiceResponseListener servListener = new WifiP2pManager.DnsSdServiceResponseListener() {
@@ -134,11 +147,6 @@ public class WifiP2PHelper {
                 }
             }
         });
-    }
-
-    // Get the current device list
-    public ArrayList<WifiP2pDevice> getDeviceList() {
-        return mDeviceList;
     }
 
 }

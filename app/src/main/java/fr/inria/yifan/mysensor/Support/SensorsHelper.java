@@ -139,7 +139,7 @@ public class SensorsHelper {
     public boolean isInPocket() {
         //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "Out-pocket", Toast.LENGTH_SHORT).show();
-        return mProximity == 0 && mLight < 5;
+        return mProximity == 0 && mLight < 10;
     }
 
     // Simple Indoor/Outdoor detection function

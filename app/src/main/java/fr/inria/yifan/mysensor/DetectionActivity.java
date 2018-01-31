@@ -47,6 +47,9 @@ public class DetectionActivity extends AppCompatActivity {
 
     // Initially bind all views
     private void bindViews() {
+        TextView mWelcomeView = findViewById(R.id.welcome_view);
+        mWelcomeView.setText(R.string.hint_detect);
+
         mProximityView = findViewById(R.id.proximity_view);
         mLightView = findViewById(R.id.light_view);
         mPocketView = findViewById(R.id.pocket_view);
@@ -76,7 +79,7 @@ public class DetectionActivity extends AppCompatActivity {
     // Clean all text views
     @SuppressLint("SetTextI18n")
     private void cleanView() {
-        mProximityView.setText("Press start to detect light density, proximity and GPS location (if available).");
+        mProximityView.setText(null);
         mLightView.setText(null);
         mPocketView.setText(null);
         mLocationView.setText(null);
@@ -164,6 +167,14 @@ public class DetectionActivity extends AppCompatActivity {
         Intent goToSensing = new Intent();
         goToSensing.setClass(this, SensingActivity.class);
         startActivity(goToSensing);
+        finish();
+    }
+
+    // Go to the network activity
+    public void goNetwork(View view) {
+        Intent goToNetwork = new Intent();
+        goToNetwork.setClass(this, NetworkActivity.class);
+        startActivity(goToNetwork);
         finish();
     }
 

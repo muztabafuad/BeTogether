@@ -6,16 +6,21 @@ package fr.inria.yifan.mysensor;
 */
 
 import android.content.Intent;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.inria.yifan.mysensor.Support.WifiP2PHelper;
+import fr.inria.yifan.mysensor.Support.WifiDirectHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
 import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
@@ -24,12 +29,28 @@ public class NetworkActivity extends AppCompatActivity {
 
     private static final String TAG = "Wifi Direct activity";
 
-    // Declare all related views
-    private ArrayAdapter<String> mAdapterWifi;
+    // Declare adapter and device list
+    private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
+    private ArrayList<WifiP2pDevice> mDeviceList;
 
     // Wifi Direct helper
-    private WifiP2PHelper mWifiP2PHelper;
+    private WifiDirectHelper mWifiDirectHelper;
     private Map<String, String> record;
+
+    // Initially bind all views
+    private void bindViews() {
+
+        TextView welcomeView = findViewById(R.id.welcome_view);
+        welcomeView.setText(R.string.hint_network);
+
+        // Build an adapter to feed the list with the content of an array of strings
+        mDeviceList = new ArrayList<>();
+        mAdapterWifi = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mDeviceList);
+
+        // Attache the adapter to the list view
+        ListView listView = findViewById(R.id.list_view);
+        listView.setAdapter(mAdapterWifi);
+    }
 
     // Main activity initialization
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -37,7 +58,9 @@ public class NetworkActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_network);
-        mWifiP2PHelper = new WifiP2PHelper(this);
+        bindViews();
+        mWifiDirectHelper = new WifiDirectHelper(this);
+        mWifiDirectHelper.setAdapterWifi(mAdapterWifi);
 
         //  Create a string map containing information about your service.
         record = new HashMap<>();
@@ -45,7 +68,23 @@ public class NetworkActivity extends AppCompatActivity {
         record.put("deviceid", "Device " + (int) (Math.random() * 1000));
         record.put("available", "visible");
 
-        mWifiP2PHelper.startService(record);
+        mWifiDirectHelper.startService(record);
+    }
+
+    // Go to the detection activity
+    public void goDetection(View view) {
+        Intent goToDetection = new Intent();
+        goToDetection.setClass(this, DetectionActivity.class);
+        startActivity(goToDetection);
+        finish();
+    }
+
+    // Go to the sensing activity
+    public void goSensing(View view) {
+        Intent goToSensing = new Intent();
+        goToSensing.setClass(this, SensingActivity.class);
+        startActivity(goToSensing);
+        finish();
     }
 
     // Callback for user enabling Wifi switch
@@ -54,12 +93,8 @@ public class NetworkActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_WIFI: {
-                mWifiP2PHelper.startService(record);
+                mWifiDirectHelper.startService(record);
             }
         }
     }
-
-
-    // Add to the custom adapter defined specifically for showing wifi devices.
-
 }

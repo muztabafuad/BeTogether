@@ -1,9 +1,11 @@
 <resources>
     <string name="app_name">My Sensor</string>
-    <string name="title_network">Network</string>
     <string name="title_detect">Detection</string>
-    <string name="title_sensors">Sensors</string>
     <string name="title_sensing">Sensing</string>
+    <string name="title_network">Network</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
+    <string name="hint_detect">Press start to detect light density, proximity and GPS location (if available).</string>
+    <string name="hint_sensing">Press start to sense sound level, and stop to save the log.</string>
+    <string name="hint_network">Discovering neighbors providing services …</string>
 </resources>

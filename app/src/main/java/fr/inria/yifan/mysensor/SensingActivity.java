@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -59,6 +60,9 @@ public class SensingActivity extends AppCompatActivity {
         mStartButton = findViewById(R.id.start_button);
         mStopButton = findViewById(R.id.stop_button);
         mStopButton.setVisibility(View.INVISIBLE);
+
+        TextView mWelcomeView = findViewById(R.id.welcome_view);
+        mWelcomeView.setText(R.string.hint_sensing);
 
         // Build an adapter to feed the list with the content of an array of strings
         mSensingData = new ArrayList<>();
@@ -171,11 +175,19 @@ public class SensingActivity extends AppCompatActivity {
         }
     }
 
-    // Go to the sensing activity
+    // Go to the detection activity
     public void goDetection(View view) {
         Intent goToDetection = new Intent();
         goToDetection.setClass(this, DetectionActivity.class);
         startActivity(goToDetection);
+        finish();
+    }
+
+    // Go to the network activity
+    public void goNetwork(View view) {
+        Intent goToNetwork = new Intent();
+        goToNetwork.setClass(this, NetworkActivity.class);
+        startActivity(goToNetwork);
         finish();
     }
 

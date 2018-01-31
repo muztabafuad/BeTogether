@@ -5,12 +5,20 @@
     android:layout_height="match_parent"
     tools:context="fr.inria.yifan.mysensor.SensingActivity">
 
+    <TextView
+        android:id="@+id/welcome_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:textSize="@dimen/font_size_normal" />
+
     <ListView
         android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_above="@id/two_buttons"
-        android:layout_alignParentTop="true"
+        android:layout_below="@id/welcome_view"
         android:transcriptMode="alwaysScroll" />
 
     <LinearLayout
@@ -80,6 +88,7 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/blue_square"
+            android:onClick="goNetwork"
             android:text="@string/title_network" />
     </LinearLayout>
 
