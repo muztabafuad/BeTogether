@@ -16,6 +16,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.Calendar;
+
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
@@ -146,8 +148,14 @@ public class SensorsHelper {
     public boolean isInDoor() {
         //Toast.makeText(this, "Indoor", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "Outdoor", Toast.LENGTH_SHORT).show();
-        //TODO
-        return mLight < 100;
+        // Detection on day or night
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        if (hour < 6 || hour > 18) {
+            return mLight > 10;
+        } else {
+            return mLight < 100;
+        }
     }
 
     // Get location information from GPS

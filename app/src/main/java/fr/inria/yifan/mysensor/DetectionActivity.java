@@ -34,6 +34,7 @@ public class DetectionActivity extends AppCompatActivity {
     private TextView mLightView;
     private TextView mPocketView;
     private TextView mLocationView;
+    private TextView mIndoorView;
     private Button mStartButton;
     private Button mStopButton;
 
@@ -53,6 +54,7 @@ public class DetectionActivity extends AppCompatActivity {
         mProximityView = findViewById(R.id.proximity_view);
         mLightView = findViewById(R.id.light_view);
         mPocketView = findViewById(R.id.pocket_view);
+        mIndoorView = findViewById(R.id.indoor_view);
         mLocationView = findViewById(R.id.location_view);
         mStartButton = findViewById(R.id.start_button);
         mStopButton = findViewById(R.id.stop_button);
@@ -82,6 +84,7 @@ public class DetectionActivity extends AppCompatActivity {
         mProximityView.setText(null);
         mLightView.setText(null);
         mPocketView.setText(null);
+        mIndoorView.setText(null);
         mLocationView.setText(null);
     }
 
@@ -128,6 +131,11 @@ public class DetectionActivity extends AppCompatActivity {
                                 mPocketView.setText("Detection result: In-pocket");
                             } else {
                                 mPocketView.setText("Detection result: Out-pocket");
+                            }
+                            if (mSensorHelper.isInDoor()) {
+                                mIndoorView.setText("Detection result: In-door");
+                            } else {
+                                mIndoorView.setText("Detection result: Out-door");
                             }
                             Location location = mSensorHelper.getLocation();
                             if (location != null) {
