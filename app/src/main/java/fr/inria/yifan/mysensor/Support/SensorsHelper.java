@@ -154,7 +154,7 @@ public class SensorsHelper {
         if (hour < 6 || hour > 18) {
             return mLight > 10;
         } else {
-            return mLight < 300;
+            return mLight < 1000;
         }
     }
 

@@ -125,7 +125,6 @@ public class InitializeActivity extends AppCompatActivity {
         Intent goToSensors = new Intent();
         goToSensors.setClass(this, SensorsActivity.class);
         startActivity(goToSensors);
-        finish();
     }
 
     // Go to the detection activity
