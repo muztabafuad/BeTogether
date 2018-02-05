@@ -3,6 +3,7 @@
     <string name="title_detect">Detection</string>
     <string name="title_sensing">Sensing</string>
     <string name="title_network">Network</string>
+    <string name="title_sensors">Show all sensors</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="hint_detect">Press start to detect light density, proximity and GPS location (if available).</string>

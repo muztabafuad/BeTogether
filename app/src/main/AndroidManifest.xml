@@ -43,6 +43,10 @@
         <activity
             android:name=".NetworkActivity"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".Backups.SensorsActivity"
+            android:screenOrientation="portrait"
+            tools:ignore="InnerclassSeparator" />
     </application>
 
 </manifest>

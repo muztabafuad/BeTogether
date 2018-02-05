@@ -14,6 +14,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import fr.inria.yifan.mysensor.Backups.SensorsActivity;
+
 import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_RECORD;
 import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_STORAGE;
@@ -116,6 +118,14 @@ public class InitializeActivity extends AppCompatActivity {
                 checkPermission();
                 break;
         }
+    }
+
+    // Go to the sensor list activity
+    public void goSensors(View view) {
+        Intent goToSensors = new Intent();
+        goToSensors.setClass(this, SensorsActivity.class);
+        startActivity(goToSensors);
+        finish();
     }
 
     // Go to the detection activity
