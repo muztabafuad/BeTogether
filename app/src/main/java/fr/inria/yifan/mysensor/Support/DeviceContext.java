@@ -12,7 +12,7 @@ import android.util.ArrayMap;
  * This class represents the context map set of a sensing device.
  */
 
-public class SensorContext {
+public class DeviceContext {
 
     public boolean isInPocket;
 
@@ -24,7 +24,7 @@ public class SensorContext {
     private Activity mActivity;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public SensorContext(Activity activity) {
+    public DeviceContext(Activity activity) {
         mActivity = activity;
         //sensorArray = new ArrayMap<>();
 

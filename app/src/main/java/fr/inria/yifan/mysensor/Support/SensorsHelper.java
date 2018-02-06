@@ -35,6 +35,9 @@ public class SensorsHelper {
     // Declare sensing variables
     private float mLight;
     private float mProximity;
+    private float mTemperature;
+    private float mPressure;
+    private float mHumidity;
     private Location mLocation;
 
     private SensorManager mSensorManager;
@@ -58,6 +61,45 @@ public class SensorsHelper {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
             mProximity = sensorEvent.values[0];
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+            //PASS
+        }
+    };
+
+    // Declare proximity sensor listener
+    private SensorEventListener mListenerTemp = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            mTemperature = sensorEvent.values[0];
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+            //PASS
+        }
+    };
+
+    // Declare proximity sensor listener
+    private SensorEventListener mListenerPress = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            mPressure = sensorEvent.values[0];
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+            //PASS
+        }
+    };
+
+    // Declare proximity sensor listener
+    private SensorEventListener mListenerHumid = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            mHumidity = sensorEvent.values[0];
         }
 
         @Override
@@ -99,9 +141,15 @@ public class SensorsHelper {
         assert mSensorManager != null;
         Sensor mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         Sensor mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        // Start to sense the light and proximity
+        Sensor mSensorTemp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+        Sensor mSensorPress = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+        Sensor mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+        // Register listeners for all environmental sensors
         mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerTemp, mSensorTemp, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerPress, mSensorPress, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerHumid, mSensorHumid, SensorManager.SENSOR_DELAY_UI);
 
         initialGPS();
     }
@@ -124,6 +172,9 @@ public class SensorsHelper {
     public void close() {
         mSensorManager.unregisterListener(mListenerLight);
         mSensorManager.unregisterListener(mListenerProxy);
+        mSensorManager.unregisterListener(mListenerTemp);
+        mSensorManager.unregisterListener(mListenerPress);
+        mSensorManager.unregisterListener(mListenerHumid);
         mLocationManager.removeUpdates(mListenerGPS);
     }
 
