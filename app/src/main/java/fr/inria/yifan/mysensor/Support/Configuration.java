@@ -12,7 +12,7 @@ public class Configuration implements Serializable {
     public static final int SAMPLE_RATE_IN_HZ = 8000;
 
     // Parameters for sensing sampling
-    public static final int SAMPLE_DELAY_IN_MS = 1000;
+    public static final int SAMPLE_DELAY_IN_MS = 500;
 
     // Permission request indicator code
     public static final int PERMS_REQUEST_RECORD = 1000;
