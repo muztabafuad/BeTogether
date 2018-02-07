@@ -145,7 +145,8 @@ public class DetectionActivity extends AppCompatActivity {
                                         " - Altitude：" + location.getAltitude() + "\n" +
                                         " - Speed：" + location.getSpeed() + "\n" +
                                         " - Bearing：" + location.getBearing() + "\n" +
-                                        " - Accuracy：" + location.getAccuracy() + "\n";
+                                        " - Accuracy：" + location.getAccuracy() + "\n" +
+                                        " - Time：" + location.getTime();
                                 mLocationView.setText(loc);
                             }
                         }
