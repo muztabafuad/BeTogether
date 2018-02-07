@@ -188,6 +188,21 @@ public class SensorsHelper {
         return mProximity;
     }
 
+    // Get the most recent temperature
+    public float getTemperature() {
+        return mTemperature;
+    }
+
+    // Get the most recent pressure
+    public float getPressure() {
+        return mPressure;
+    }
+
+    // Get the most recent humidity
+    public float getHumidity() {
+        return mHumidity;
+    }
+
     // Simple In/Out-pocket detection function
     public boolean isInPocket() {
         //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
@@ -205,7 +220,7 @@ public class SensorsHelper {
         if (hour < 6 || hour > 18) {
             return mLight > 10;
         } else {
-            return mLight < 1000;
+            return mLight < 1500;
         }
     }
 

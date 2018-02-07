@@ -76,7 +76,7 @@ public class SensingActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mAdapterSensing.clear();
-                mAdapterSensing.add("Timestamp, sound level (dB) and in-pocket flag:");
+                mAdapterSensing.add("Timestamp, sound level (dB), in-pocket, indoor, temperature (C), pressure (hPa), humidity (%):");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
@@ -138,7 +138,9 @@ public class SensingActivity extends AppCompatActivity {
                     if (isGetVoiceRun) {
                         runOnUiThread(new Runnable() {
                             public void run() {
-                                mAdapterSensing.add(System.currentTimeMillis() + ", " + (int) volume + ", " + mSensorHelper.isInPocket());
+                                mAdapterSensing.add(System.currentTimeMillis() + ", " + (int) volume + ", " + mSensorHelper.isInPocket() + ", "
+                                        + mSensorHelper.isInDoor() + ", " + mSensorHelper.getTemperature() + ", " + mSensorHelper.getPressure() + ", "
+                                        + mSensorHelper.getHumidity());
                             }
                         });
                     }

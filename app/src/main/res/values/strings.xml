@@ -7,6 +7,6 @@
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="hint_detect">Press start to detect light density, proximity and GPS location (if available).</string>
-    <string name="hint_sensing">Press start to sense sound level, and stop to save the log.</string>
-    <string name="hint_network">Discovering neighbors providing services …</string>
+    <string name="hint_sensing">Press start to enable environmental sensors, and stop to save the log.</string>
+    <string name="hint_network">Discovering neighbors providing services…</string>
 </resources>
