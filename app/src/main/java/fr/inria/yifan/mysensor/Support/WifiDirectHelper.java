@@ -47,7 +47,7 @@ public class WifiDirectHelper {
         mAdapterWifi = adapter;
     }
 
-    // Set the service record information
+    // Set the service record information and start thr service
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void startService(Map<String, String> record) {
         WifiManager wifi = (WifiManager) mActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -89,6 +89,7 @@ public class WifiDirectHelper {
         }
     }
 
+    // Start to discovery neighbors for services
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void discoverService() {
         WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
