@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 
 /*
@@ -18,9 +20,11 @@ public class WifiP2PHelper extends BroadcastReceiver {
     // Declare channel, manager and other references
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
+    private WifiP2pManager.PeerListListener mPeerListListener;
     private Activity mActivity;
     private IntentFilter mIntentFilter;
 
+    // Constructor.
     public WifiP2PHelper(Activity activity) {
         super();
         this.mActivity = activity;
@@ -36,6 +40,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
         mActivity.registerReceiver(this, mIntentFilter);
     }
 
+    // Start to discover peers
     public void startService() {
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
@@ -48,6 +53,26 @@ public class WifiP2PHelper extends BroadcastReceiver {
         });
     }
 
+    // Connecting to a peer
+    public void connectTo(WifiP2pDevice device) {
+        //obtain a peer from the WifiP2pDeviceList
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                //success logic
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                //failure logic
+            }
+        });
+    }
+
+    // Creating a broadcast receiver for Wi-Fi P2P intents
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
@@ -67,6 +92,10 @@ public class WifiP2PHelper extends BroadcastReceiver {
                 break;
             case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
                 // Call WifiP2pManager.requestPeers() to get a list of current peers
+                // request available peers from the wifi p2p manager. This is an
+                // asynchronous call and the calling activity is notified with a
+                // callback on PeerListListener.onPeersAvailable()
+                mManager.requestPeers(mChannel, mPeerListListener);
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
                 // Respond to new connection or disconnections
