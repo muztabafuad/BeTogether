@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Backups;
+package fr.inria.yifan.mysensor.Support;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.widget.ArrayAdapter;
 
 /*
 * This activity provides functions related to the Wifi Direct service.
@@ -20,14 +22,25 @@ public class WifiP2PHelper extends BroadcastReceiver {
     // Declare channel, manager and other references
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    private WifiP2pManager.PeerListListener mPeerListListener;
     private Activity mActivity;
     private IntentFilter mIntentFilter;
+    private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
 
     // Constructor.
     public WifiP2PHelper(Activity activity) {
         super();
         this.mActivity = activity;
+    }
+
+    // Add to the custom adapter defined specifically for showing wifi devices.
+    public void setAdapterWifi(ArrayAdapter<WifiP2pDevice> adapter) {
+        mAdapterWifi = adapter;
+    }
+
+    // Start to discover peers
+    public void startService() {
+
+        // Initialize components and intents
         mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
         mIntentFilter = new IntentFilter();
@@ -35,13 +48,9 @@ public class WifiP2PHelper extends BroadcastReceiver {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-
-        /* register the broadcast receiver with the intent values to be matched */
+        // register the broadcast receiver with the intent values to be matched
         mActivity.registerReceiver(this, mIntentFilter);
-    }
 
-    // Start to discover peers
-    public void startService() {
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -95,7 +104,12 @@ public class WifiP2PHelper extends BroadcastReceiver {
                 // request available peers from the wifi p2p manager. This is an
                 // asynchronous call and the calling activity is notified with a
                 // callback on PeerListListener.onPeersAvailable()
-                mManager.requestPeers(mChannel, mPeerListListener);
+                mManager.requestPeers(mChannel, new WifiP2pManager.PeerListListener() {
+                    @Override
+                    public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
+                        mAdapterWifi.addAll(wifiP2pDeviceList.getDeviceList());
+                    }
+                });
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
                 // Respond to new connection or disconnections

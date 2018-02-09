@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.inria.yifan.mysensor.Support.WifiDirectHelper;
+import fr.inria.yifan.mysensor.Support.WifiP2PHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
 import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
@@ -34,7 +34,8 @@ public class NetworkActivity extends AppCompatActivity {
     private ArrayList<WifiP2pDevice> mDeviceList;
 
     // Wifi Direct helper
-    private WifiDirectHelper mWifiDirectHelper;
+    //private WifiDirectHelper mWifiDirectHelper;
+    private WifiP2PHelper mWifiP2PHelper;
     private Map<String, String> record;
 
     // Initially bind all views
@@ -59,8 +60,10 @@ public class NetworkActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_network);
         bindViews();
-        mWifiDirectHelper = new WifiDirectHelper(this);
-        mWifiDirectHelper.setAdapterWifi(mAdapterWifi);
+        //mWifiDirectHelper = new WifiDirectHelper(this);
+        //mWifiDirectHelper.setAdapterWifi(mAdapterWifi);
+        mWifiP2PHelper = new WifiP2PHelper(this);
+        mWifiP2PHelper.setAdapterWifi(mAdapterWifi);
 
         //  Create a string map containing information about your service.
         record = new HashMap<>();
@@ -68,7 +71,8 @@ public class NetworkActivity extends AppCompatActivity {
         record.put("deviceid", "Device " + (int) (Math.random() * 1000));
         record.put("available", "visible");
 
-        mWifiDirectHelper.startService(record);
+        //mWifiDirectHelper.startService(record);
+        mWifiP2PHelper.startService();
     }
 
     // Go to the detection activity
@@ -93,7 +97,8 @@ public class NetworkActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_WIFI: {
-                mWifiDirectHelper.startService(record);
+                //mWifiDirectHelper.startService(record);
+                mWifiP2PHelper.startService();
             }
         }
     }
