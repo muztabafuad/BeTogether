@@ -11,6 +11,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.widget.ArrayAdapter;
+import android.widget.Toast;
 
 /*
 * This activity provides functions related to the Wifi Direct service.
@@ -48,12 +49,14 @@ public class WifiP2PHelper extends BroadcastReceiver {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-        // register the broadcast receiver with the intent values to be matched
+        // Register the broadcast receiver with the intent values to be matched
         mActivity.registerReceiver(this, mIntentFilter);
 
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
+                // Success!
+                Toast.makeText(mActivity, "Discovery success", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -105,6 +108,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
                 // asynchronous call and the calling activity is notified with a
                 // callback on PeerListListener.onPeersAvailable()
                 mManager.requestPeers(mChannel, new WifiP2pManager.PeerListListener() {
+                    // Declare Wifi P2P peer list listener
                     @Override
                     public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
                         mAdapterWifi.addAll(wifiP2pDeviceList.getDeviceList());
@@ -120,18 +124,9 @@ public class WifiP2PHelper extends BroadcastReceiver {
         }
     }
 
-    // Declare all views used
 
     // Declare Wifi Direct connect peer action listener
 
-    // Declare Wifi Direct peer list listener
-
     // Declare Wifi Direct discover peer action listener
-
-    // Declare a broadcast receiver
-
-    // Clear all views content
-
-    // Main activity initialization
 
 }
