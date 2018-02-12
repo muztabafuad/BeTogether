@@ -6,12 +6,17 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.provider.Settings;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
+
+import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
 
 /*
 * This activity provides functions related to the Wifi Direct service.
@@ -19,6 +24,8 @@ import android.widget.Toast;
 
 @SuppressLint("Registered")
 public class WifiP2PHelper extends BroadcastReceiver {
+
+    private static final String TAG = "Wifi P2P helper";
 
     // Declare channel, manager and other references
     private WifiP2pManager mManager;
@@ -40,29 +47,42 @@ public class WifiP2PHelper extends BroadcastReceiver {
 
     // Start to discover peers
     public void startService() {
+        WifiManager wifi = (WifiManager) mActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        // Check if Wifi service on system is enabled
+        assert wifi != null;
+        if (wifi.isWifiEnabled()) {
+            // Initialize components and intents
+            mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
+            mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
+            mIntentFilter = new IntentFilter();
+            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+            // Register the broadcast receiver with the intent values to be matched
+            mActivity.registerReceiver(this, mIntentFilter);
 
-        // Initialize components and intents
-        mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
-        mIntentFilter = new IntentFilter();
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-        // Register the broadcast receiver with the intent values to be matched
-        mActivity.registerReceiver(this, mIntentFilter);
+            mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    // Success!
+                    Toast.makeText(mActivity, "Discovery success", Toast.LENGTH_SHORT).show();
+                }
 
-        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // Success!
-                Toast.makeText(mActivity, "Discovery success", Toast.LENGTH_SHORT).show();
+                @Override
+                public void onFailure(int reasonCode) {
+                }
+            });
+        } else {
+            try {
+                Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+                Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
+                mActivity.startActivityForResult(intent, ENABLE_REQUEST_WIFI);
+            } catch (Exception e) {
+                Log.e(TAG, String.valueOf(e));
+                Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
             }
-
-            @Override
-            public void onFailure(int reasonCode) {
-            }
-        });
+        }
     }
 
     // Connecting to a peer
@@ -111,6 +131,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
                     // Declare Wifi P2P peer list listener
                     @Override
                     public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
+                        mAdapterWifi.clear();
                         mAdapterWifi.addAll(wifiP2pDeviceList.getDeviceList());
                     }
                 });

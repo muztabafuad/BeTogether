@@ -98,7 +98,9 @@ public class WifiDirectHelper {
             public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
                 Log.d(TAG, "DnsSdTxtRecord available -" + record.toString());
                 buddies.put(device.deviceAddress, (String) record.get("listenport"));
-                mAdapterWifi.add(device);
+                if (mAdapterWifi.getPosition(device) == -1) {
+                    mAdapterWifi.add(device);
+                }
             }
         };
         WifiP2pManager.DnsSdServiceResponseListener servListener = new WifiP2pManager.DnsSdServiceResponseListener() {
