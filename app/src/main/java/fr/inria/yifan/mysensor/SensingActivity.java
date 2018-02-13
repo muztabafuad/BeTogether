@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import fr.inria.yifan.mysensor.Support.AWeighting;
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
@@ -37,6 +38,7 @@ public class SensingActivity extends AppCompatActivity {
     private final Object mLock;
     private AudioRecord mAudioRecord;
     private boolean isGetVoiceRun;
+    private AWeighting mAWeighting;
 
     // Declare all related views
     private Button mStartButton;
@@ -117,14 +119,19 @@ public class SensingActivity extends AppCompatActivity {
         }
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
         isGetVoiceRun = true;
+        mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 mAudioRecord.startRecording();
                 short[] buffer = new short[BUFFER_SIZE];
                 while (isGetVoiceRun) {
-                    // r is the real measurement data, normally r is less than buffersize
+                    // r is the real measurement data length, normally r is less than buffersize
                     int r = mAudioRecord.read(buffer, 0, BUFFER_SIZE);
+                    // Apply A-weighting filtering
+                    buffer = mAWeighting.apply(buffer);
+
                     long v = 0;
                     // Get content from buffer and calculate square sum
                     for (short aBuffer : buffer) {
@@ -134,6 +141,7 @@ public class SensingActivity extends AppCompatActivity {
                     double mean = v / (double) r;
                     final double volume = 10 * Math.log10(mean);
                     Log.d(TAG, "Sound dB value: " + volume);
+
                     //Log.d(TAG, mSensingData.toString());
                     if (isGetVoiceRun) {
                         runOnUiThread(new Runnable() {
