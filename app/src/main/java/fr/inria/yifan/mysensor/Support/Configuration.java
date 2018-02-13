@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class Configuration implements Serializable {
 
     // Parameters for audio sound signal sampling
-    public static final int SAMPLE_RATE_IN_HZ = 8000;
+    public static final int SAMPLE_RATE_IN_HZ = 44100;
 
     // Parameters for sensing sampling
     public static final int SAMPLE_DELAY_IN_MS = 500;

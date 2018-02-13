@@ -111,7 +111,8 @@ public class SensingActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    // Start the sound sensing
+    // Start the sensing thread
+    //TODO move sound sensing to the sensor helper
     private void startRecord() {
         if (isGetVoiceRun) {
             Log.e(TAG, "Still in recording");
