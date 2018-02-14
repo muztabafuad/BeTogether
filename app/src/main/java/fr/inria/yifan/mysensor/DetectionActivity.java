@@ -98,6 +98,15 @@ public class DetectionActivity extends AppCompatActivity {
         mSensorHelper = new SensorsHelper(this);
     }
 
+    // Resume the sensing service
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mSensorHelper != null) {
+            mSensorHelper.initial();
+        }
+    }
+
     // Stop thread when exit!
     @Override
     protected void onPause() {
@@ -192,7 +201,7 @@ public class DetectionActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_LOCATION: {
-                mSensorHelper.initialGPS();
+                mSensorHelper.initial();
             }
         }
     }

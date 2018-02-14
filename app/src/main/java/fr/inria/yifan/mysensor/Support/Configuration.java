@@ -8,12 +8,8 @@ import java.io.Serializable;
 
 public class Configuration implements Serializable {
 
-    // Parameters for audio sound signal sampling
-    public static final int SAMPLE_RATE_IN_HZ = 44100;
-
     // Parameters for sensing sampling
-    public static final int SAMPLE_DELAY_IN_MS = 500;
-
+    public static final int SAMPLE_DELAY_IN_MS = 1000;
     // Permission request indicator code
     public static final int PERMS_REQUEST_RECORD = 1000;
     public static final int PERMS_REQUEST_STORAGE = 1001;
@@ -22,6 +18,8 @@ public class Configuration implements Serializable {
     public static final int ENABLE_REQUEST_WIFI = 1004;
     // Wifi Direct network parameters
     public static final int SERVER_PORT = 8888;
+    // Parameters for audio sound signal sampling
+    static final int SAMPLE_RATE_IN_HZ = 44100;
     // Minimum time interval between location updates (milliseconds)
     static final int LOCATION_UPDATE_TIME = 100;
     // Minimum distance between location updates (meters)

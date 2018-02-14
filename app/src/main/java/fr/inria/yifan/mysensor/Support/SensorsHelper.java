@@ -11,6 +11,9 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -21,6 +24,7 @@ import java.util.Calendar;
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 
 /**
  * This class provides functions including initialize and reading data from sensors.
@@ -29,8 +33,17 @@ import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME
 public class SensorsHelper {
 
     private static final String TAG = "Sensors helper";
-
+    // Audio recorder parameters for sampling
+    private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
     private Activity mActivity;
+    // Declare sensors and recorder
+    private AudioRecord mAudioRecord;
+    private AWeighting mAWeighting;
+    private Sensor mSensorLight;
+    private Sensor mSensorProxy;
+    private Sensor mSensorTemp;
+    private Sensor mSensorPress;
+    private Sensor mSensorHumid;
 
     // Declare sensing variables
     private float mLight;
@@ -135,28 +148,33 @@ public class SensorsHelper {
     // Register the broadcast receiver with the intent values to be matched
     public SensorsHelper(Activity activity) {
         mActivity = activity;
-        mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
-        mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
 
+        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
+        mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
+        Log.d(TAG, "Buffer size = " + BUFFER_SIZE);
+
+        mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
         assert mSensorManager != null;
-        Sensor mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        Sensor mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        Sensor mSensorTemp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
-        Sensor mSensorPress = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-        Sensor mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+        mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        mSensorTemp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+        mSensorPress = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+        mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+
+        mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
+        initial();
+    }
+
+    // Check if location service on system is enabled
+    @SuppressLint("MissingPermission")
+    public void initial() {
+        mAudioRecord.startRecording();
         // Register listeners for all environmental sensors
         mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerTemp, mSensorTemp, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerPress, mSensorPress, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerHumid, mSensorHumid, SensorManager.SENSOR_DELAY_UI);
-
-        initialGPS();
-    }
-
-    // Check if location service on system is enabled
-    @SuppressLint("MissingPermission")
-    public void initialGPS() {
         // Check GPS enable switch
         if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             // Start GPS and location service
@@ -170,12 +188,32 @@ public class SensorsHelper {
 
     // Unregister the broadcast receiver and listeners
     public void close() {
+        mAudioRecord.stop();
         mSensorManager.unregisterListener(mListenerLight);
         mSensorManager.unregisterListener(mListenerProxy);
         mSensorManager.unregisterListener(mListenerTemp);
         mSensorManager.unregisterListener(mListenerPress);
         mSensorManager.unregisterListener(mListenerHumid);
         mLocationManager.removeUpdates(mListenerGPS);
+    }
+
+    // Get the most recent sound level
+    public double getSoundLevel() {
+        short[] buffer = new short[BUFFER_SIZE];
+        // r is the real measurement data length, normally r is less than buffersize
+        int r = mAudioRecord.read(buffer, 0, BUFFER_SIZE);
+        // Apply A-weighting filtering
+        buffer = mAWeighting.apply(buffer);
+        long v = 0;
+        // Get content from buffer and calculate square sum
+        for (short aBuffer : buffer) {
+            v += aBuffer * aBuffer;
+        }
+        // Square sum divide by data length to get volume
+        double mean = v / (double) r;
+        final double volume = 10 * Math.log10(mean);
+        Log.d(TAG, "Sound dB value: " + volume);
+        return volume;
     }
 
     // Get the most recent light density
