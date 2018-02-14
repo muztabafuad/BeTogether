@@ -1,6 +1,5 @@
 package fr.inria.yifan.mysensor;
 
-
 /*
 * This activity provides functions related to the Wifi Direct service.
 */

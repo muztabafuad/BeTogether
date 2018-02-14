@@ -63,6 +63,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
             mActivity.registerReceiver(this, mIntentFilter);
 
             mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+                // Declare Wifi Direct discover peer action listener
                 @Override
                 public void onSuccess() {
                     // Success!
@@ -91,7 +92,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
-
+            // Declare Wifi Direct connect peer action listener
             @Override
             public void onSuccess() {
                 //success logic
@@ -144,10 +145,5 @@ public class WifiP2PHelper extends BroadcastReceiver {
                 break;
         }
     }
-
-
-    // Declare Wifi Direct connect peer action listener
-
-    // Declare Wifi Direct discover peer action listener
 
 }

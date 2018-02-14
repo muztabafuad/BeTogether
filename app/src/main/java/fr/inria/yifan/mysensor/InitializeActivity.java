@@ -14,8 +14,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import fr.inria.yifan.mysensor.Backups.SensorsActivity;
-
 import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_RECORD;
 import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_STORAGE;

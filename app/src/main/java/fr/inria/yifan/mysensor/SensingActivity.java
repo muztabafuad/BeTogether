@@ -94,6 +94,15 @@ public class SensingActivity extends AppCompatActivity {
         mFilesIOHelper = new FilesIOHelper(this);
     }
 
+    // Resume the sensing service
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mSensorHelper != null) {
+            mSensorHelper.initial();
+        }
+    }
+
     // Stop thread when exit!
     @Override
     protected void onPause() {
@@ -105,7 +114,6 @@ public class SensingActivity extends AppCompatActivity {
     }
 
     // Start the sensing thread
-    //TODO move sound sensing to the sensor helper
     private void startRecord() {
         if (isGetSenseRun) {
             Log.e(TAG, "Still in sensing and recording");
@@ -115,22 +123,26 @@ public class SensingActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                //Log.d(TAG, mSensingData.toString());
-                if (isGetSenseRun) {
+                while (isGetSenseRun) {
                     runOnUiThread(new Runnable() {
+                        @Override
                         public void run() {
-                            mAdapterSensing.add(System.currentTimeMillis() + ", " + mSensorHelper.getSoundLevel() + ", " + mSensorHelper.isInPocket() + ", "
-                                    + mSensorHelper.isInDoor() + ", " + mSensorHelper.getTemperature() + ", " + mSensorHelper.getPressure() + ", "
-                                    + mSensorHelper.getHumidity());
+                            mAdapterSensing.add(System.currentTimeMillis() + ", " +
+                                    mSensorHelper.getSoundLevel() + ", " +
+                                    mSensorHelper.isInPocket() + ", " +
+                                    mSensorHelper.isInDoor() + ", " +
+                                    mSensorHelper.getTemperature() + ", " +
+                                    mSensorHelper.getPressure() + ", " +
+                                    mSensorHelper.getHumidity());
                         }
                     });
-                }
-                // sample times per second
-                synchronized (mLock) {
-                    try {
-                        mLock.wait(SAMPLE_DELAY_IN_MS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    // sample times per second
+                    synchronized (mLock) {
+                        try {
+                            mLock.wait(SAMPLE_DELAY_IN_MS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

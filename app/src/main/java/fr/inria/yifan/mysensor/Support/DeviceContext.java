@@ -14,12 +14,12 @@ import android.util.ArrayMap;
 
 public class DeviceContext {
 
-    public boolean isInPocket;
-
+    private static final String TAG = "Device context";
     // Declare all contexts
+    public boolean isInPocket;
     public boolean isInDoor;
     public float remainBattery;
-    public float locationTime;
+    public String locationTime;
     public ArrayMap<String, Boolean> sensorArray;
     private Activity mActivity;
 

@@ -107,13 +107,11 @@ public class AWeighting {
             output[i] = (short) y_i;
             //Adjust conditions:
             // all but the last condition:
-            for (int j = 0; j < order - 1; j++)
-                conditions[j] = x_i * bCoef[j + 1]
-                        - y_i * aCoef[j + 1]
-                        + conditions[j + 1];
+            for (int j = 0; j < order - 1; j++) {
+                conditions[j] = x_i * bCoef[j + 1] - y_i * aCoef[j + 1] + conditions[j + 1];
+            }
             // last condition:
-            conditions[order - 1] = x_i * bCoef[order]
-                    - y_i * aCoef[order];
+            conditions[order - 1] = x_i * bCoef[order] - y_i * aCoef[order];
         }
         return output;
     }

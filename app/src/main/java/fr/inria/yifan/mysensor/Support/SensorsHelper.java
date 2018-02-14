@@ -198,7 +198,7 @@ public class SensorsHelper {
     }
 
     // Get the most recent sound level
-    public double getSoundLevel() {
+    public int getSoundLevel() {
         short[] buffer = new short[BUFFER_SIZE];
         // r is the real measurement data length, normally r is less than buffersize
         int r = mAudioRecord.read(buffer, 0, BUFFER_SIZE);
@@ -213,7 +213,7 @@ public class SensorsHelper {
         double mean = v / (double) r;
         final double volume = 10 * Math.log10(mean);
         Log.d(TAG, "Sound dB value: " + volume);
-        return volume;
+        return (int) volume;
     }
 
     // Get the most recent light density

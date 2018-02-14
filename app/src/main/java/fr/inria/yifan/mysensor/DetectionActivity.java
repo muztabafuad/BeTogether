@@ -121,7 +121,7 @@ public class DetectionActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     private void startSensing() {
         if (isSensingRun) {
-            Log.e(TAG, "Still in sensing");
+            Log.e(TAG, "Still in sensing state");
             return;
         }
         isSensingRun = true;
@@ -136,16 +136,19 @@ public class DetectionActivity extends AppCompatActivity {
                             float light = mSensorHelper.getLightDensity();
                             mProximityView.setText("Proximity：" + proximity + " in binary (near or far).");
                             mLightView.setText("Light：" + light + " of " + " in lux units.");
+
                             if (mSensorHelper.isInPocket()) {
                                 mPocketView.setText("Detection result: In-pocket");
                             } else {
                                 mPocketView.setText("Detection result: Out-pocket");
                             }
+
                             if (mSensorHelper.isInDoor()) {
                                 mIndoorView.setText("Detection result: In-door");
                             } else {
                                 mIndoorView.setText("Detection result: Out-door");
                             }
+
                             Location location = mSensorHelper.getLocation();
                             if (location != null) {
                                 String loc = "Current location information：\n" +
@@ -160,7 +163,7 @@ public class DetectionActivity extends AppCompatActivity {
                             }
                         }
                     });
-                    // 10 times per second
+                    // sample times per second
                     synchronized (mLock) {
                         try {
                             mLock.wait(SAMPLE_DELAY_IN_MS);

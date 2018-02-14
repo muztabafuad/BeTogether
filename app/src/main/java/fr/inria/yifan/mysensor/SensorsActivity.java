@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Backups;
+package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -9,8 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
 import java.util.List;
-
-import fr.inria.yifan.mysensor.R;
 
 /*
 * This activity provides functions including showing sensor and log sensing data.
