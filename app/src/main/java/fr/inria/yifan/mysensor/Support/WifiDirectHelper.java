@@ -58,7 +58,6 @@ public class WifiDirectHelper {
             mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
             Log.d(TAG, String.valueOf(mManager == null));
             mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
-
             // Service information
             WifiP2pDnsSdServiceInfo serviceInfo;
             serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);
@@ -70,6 +69,7 @@ public class WifiDirectHelper {
                     Toast.makeText(mActivity, "Registration success", Toast.LENGTH_SHORT).show();
                     discoverService();
                 }
+
                 @Override
                 public void onFailure(int arg0) {
                     // Command failed.
@@ -91,6 +91,14 @@ public class WifiDirectHelper {
     // Start to discovery neighbors for services
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void discoverService() {
+        WifiP2pManager.DnsSdServiceResponseListener servListener = new WifiP2pManager.DnsSdServiceResponseListener() {
+            @Override
+            public void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice resourceType) {
+                // Update the device name with the version from the DnsTxtRecord
+                resourceType.deviceName = buddies.containsKey(resourceType.deviceAddress) ? buddies.get(resourceType.deviceAddress) : resourceType.deviceName;
+                Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
+            }
+        };
         WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
             @Override
             // Callback includes TXT record and device running the advertised service
@@ -100,14 +108,6 @@ public class WifiDirectHelper {
                 if (mAdapterWifi.getPosition(device) == -1) {
                     mAdapterWifi.add(device);
                 }
-            }
-        };
-        WifiP2pManager.DnsSdServiceResponseListener servListener = new WifiP2pManager.DnsSdServiceResponseListener() {
-            @Override
-            public void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice resourceType) {
-                // Update the device name with the version from the DnsTxtRecord
-                resourceType.deviceName = buddies.containsKey(resourceType.deviceAddress) ? buddies.get(resourceType.deviceAddress) : resourceType.deviceName;
-                Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
             }
         };
         mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
@@ -126,7 +126,6 @@ public class WifiDirectHelper {
                 Toast.makeText(mActivity, "Service request failed", Toast.LENGTH_SHORT).show();
             }
         });
-
         mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -150,5 +149,4 @@ public class WifiDirectHelper {
             }
         });
     }
-
 }

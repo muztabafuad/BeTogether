@@ -74,6 +74,12 @@ public class NetworkActivity extends AppCompatActivity {
         //mWifiP2PHelper.startService();
     }
 
+    // Stop thread when exit!
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
     // Go to the detection activity
     public void goDetection(View view) {
         Intent goToDetection = new Intent();
