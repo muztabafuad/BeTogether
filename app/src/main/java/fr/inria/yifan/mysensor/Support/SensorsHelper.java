@@ -22,9 +22,11 @@ import android.widget.Toast;
 import java.util.Calendar;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
+import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
+import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
 
 /**
  * This class provides functions including initialize and reading data from sensors.
@@ -213,7 +215,7 @@ public class SensorsHelper {
         double mean = v / (double) r;
         final double volume = 10 * Math.log10(mean);
         Log.d(TAG, "Sound dB value: " + volume);
-        return (int) volume;
+        return (int) (volume * SLOPE + INTERCEPT);
     }
 
     // Get the most recent light density
