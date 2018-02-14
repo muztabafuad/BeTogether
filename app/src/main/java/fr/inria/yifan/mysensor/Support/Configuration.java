@@ -24,4 +24,6 @@ public class Configuration implements Serializable {
     static final int LOCATION_UPDATE_TIME = 100;
     // Minimum distance between location updates (meters)
     static final int LOCATION_UPDATE_DISTANCE = 5;
+    // Storage path for the sensing data file
+    static final String STORAGE_FILE_PATH = "/Download";
 }

@@ -70,7 +70,6 @@ public class WifiDirectHelper {
                     Toast.makeText(mActivity, "Registration success", Toast.LENGTH_SHORT).show();
                     discoverService();
                 }
-
                 @Override
                 public void onFailure(int arg0) {
                     // Command failed.

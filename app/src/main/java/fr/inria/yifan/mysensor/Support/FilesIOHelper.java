@@ -9,6 +9,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import static fr.inria.yifan.mysensor.Support.Configuration.STORAGE_FILE_PATH;
+
 /**
  * This class provides functions including storing and reading sensing data file.
  */
@@ -27,7 +29,7 @@ public class FilesIOHelper {
     // Write file to storage
     public void saveFile(String filename, String filecontent) throws Exception {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            File folder = new File(Environment.getExternalStorageDirectory().getCanonicalPath() + "/Download");
+            File folder = new File(Environment.getExternalStorageDirectory().getCanonicalPath() + STORAGE_FILE_PATH);
             if (!folder.exists()) {
                 boolean mkdir = folder.mkdir();
             }
@@ -45,7 +47,7 @@ public class FilesIOHelper {
     public String readFile(String filename) throws IOException {
         StringBuilder sb = new StringBuilder("");
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            filename = Environment.getExternalStorageDirectory().getCanonicalPath() + "/Documents/" + filename;
+            filename = Environment.getExternalStorageDirectory().getCanonicalPath() + STORAGE_FILE_PATH + filename;
             FileInputStream input = new FileInputStream(filename);
             byte[] temp = new byte[1024];
             int len;
