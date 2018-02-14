@@ -47,7 +47,7 @@ public class WifiDirectHelper {
         mAdapterWifi = adapter;
     }
 
-    // Set the service record information and start thr service
+    // Set the service record information and run thr service
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void startService(Map<String, String> record) {
         WifiManager wifi = (WifiManager) mActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);

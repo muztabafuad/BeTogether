@@ -99,7 +99,7 @@ public class SensingActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (mSensorHelper != null) {
-            mSensorHelper.initial();
+            mSensorHelper.run();
         }
     }
 
@@ -109,7 +109,7 @@ public class SensingActivity extends AppCompatActivity {
         isGetSenseRun = false;
         super.onPause();
         if (mSensorHelper != null) {
-            mSensorHelper.close();
+            mSensorHelper.stop();
         }
     }
 
@@ -119,6 +119,7 @@ public class SensingActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing and recording");
             return;
         }
+        mSensorHelper.run();
         isGetSenseRun = true;
         new Thread(new Runnable() {
             @Override
@@ -151,6 +152,7 @@ public class SensingActivity extends AppCompatActivity {
 
     // Stop the sound sensing
     private void stopRecord() {
+        mSensorHelper.stop();
         isGetSenseRun = false;
         String time = String.valueOf(System.currentTimeMillis());
         StringBuilder text = new StringBuilder();

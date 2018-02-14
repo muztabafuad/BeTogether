@@ -103,7 +103,7 @@ public class DetectionActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (mSensorHelper != null) {
-            mSensorHelper.initial();
+            mSensorHelper.run();
         }
     }
 
@@ -113,7 +113,7 @@ public class DetectionActivity extends AppCompatActivity {
         isSensingRun = false;
         super.onPause();
         if (mSensorHelper != null) {
-            mSensorHelper.close();
+            mSensorHelper.stop();
         }
     }
 
@@ -124,6 +124,7 @@ public class DetectionActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing state");
             return;
         }
+        mSensorHelper.run();
         isSensingRun = true;
         new Thread(new Runnable() {
             @Override
@@ -178,8 +179,8 @@ public class DetectionActivity extends AppCompatActivity {
 
     // Stop the sensing detection
     private void stopSensing() {
+        mSensorHelper.stop();
         isSensingRun = false;
-        mSensorHelper.close();
         cleanView();
     }
 
@@ -204,7 +205,7 @@ public class DetectionActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_LOCATION: {
-                mSensorHelper.initial();
+                mSensorHelper.run();
             }
         }
     }

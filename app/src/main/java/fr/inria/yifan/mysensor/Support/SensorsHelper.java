@@ -164,12 +164,11 @@ public class SensorsHelper {
         mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
 
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
-        initial();
     }
 
     // Check if location service on system is enabled
     @SuppressLint("MissingPermission")
-    public void initial() {
+    public void run() {
         mAudioRecord.startRecording();
         // Register listeners for all environmental sensors
         mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
@@ -189,7 +188,7 @@ public class SensorsHelper {
     }
 
     // Unregister the broadcast receiver and listeners
-    public void close() {
+    public void stop() {
         mAudioRecord.stop();
         mSensorManager.unregisterListener(mListenerLight);
         mSensorManager.unregisterListener(mListenerProxy);
