@@ -12,6 +12,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -43,6 +44,16 @@ public class NetworkActivity extends AppCompatActivity {
         TextView welcomeView = findViewById(R.id.welcome_view);
         welcomeView.setText(R.string.hint_network);
 
+        Button startButton = findViewById(R.id.start_button);
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+            @Override
+            public void onClick(View view) {
+                mWifiDirectHelper.startService(record);
+                // mWifiP2PHelper.startService();
+            }
+        });
+
         // Build an adapter to feed the list with the content of an array of strings
         mDeviceList = new ArrayList<>();
         mAdapterWifi = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mDeviceList);
@@ -69,9 +80,6 @@ public class NetworkActivity extends AppCompatActivity {
         record.put("listenport", String.valueOf(SERVER_PORT));
         record.put("deviceid", "Device " + (int) (Math.random() * 1000));
         record.put("available", "visible");
-
-        mWifiDirectHelper.startService(record);
-        //mWifiP2PHelper.startService();
     }
 
     // Stop thread when exit!

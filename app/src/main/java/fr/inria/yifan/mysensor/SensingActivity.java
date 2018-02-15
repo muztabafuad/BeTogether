@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,6 +35,7 @@ public class SensingActivity extends AppCompatActivity {
     private Button mStartButton;
     private Button mStopButton;
     private ArrayAdapter<String> mAdapterSensing;
+    private Switch mSwitchLog;
 
     // File helper and string data
     private FilesIOHelper mFilesIOHelper;
@@ -52,6 +54,7 @@ public class SensingActivity extends AppCompatActivity {
         mStartButton = findViewById(R.id.start_button);
         mStopButton = findViewById(R.id.stop_button);
         mStopButton.setVisibility(View.INVISIBLE);
+        mSwitchLog = findViewById(R.id.switch_log);
 
         TextView mWelcomeView = findViewById(R.id.welcome_view);
         mWelcomeView.setText(R.string.hint_sensing);
@@ -154,17 +157,19 @@ public class SensingActivity extends AppCompatActivity {
     private void stopRecord() {
         mSensorHelper.stop();
         isGetSenseRun = false;
-        String time = String.valueOf(System.currentTimeMillis());
-        StringBuilder text = new StringBuilder();
-        for (String line : mSensingData.subList(1, mSensingData.size())) {
-            text.append(line).append("\n");
-        }
-        //Log.d(TAG, "Now is " + time);
-        try {
-            mFilesIOHelper.saveFile(time, text.toString());
-            Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (mSwitchLog.isChecked()) {
+            String time = String.valueOf(System.currentTimeMillis());
+            StringBuilder text = new StringBuilder();
+            for (String line : mSensingData.subList(1, mSensingData.size())) {
+                text.append(line).append("\n");
+            }
+            //Log.d(TAG, "Now is " + time);
+            try {
+                mFilesIOHelper.saveFile(time, text.toString());
+                Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

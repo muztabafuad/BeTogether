@@ -30,6 +30,14 @@
         android:gravity="center"
         android:orientation="horizontal">
 
+        <Switch
+            android:id="@+id/switch_log"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/activity_vertical_margin"
+            android:layout_marginRight="@dimen/activity_vertical_margin"
+            android:text="@string/switch_log" />
+
         <Button
             android:id="@+id/start_button"
             android:layout_width="wrap_content"
