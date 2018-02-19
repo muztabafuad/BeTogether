@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
@@ -149,4 +150,25 @@ public class WifiDirectHelper {
             }
         });
     }
+
+    // Connecting to a peer
+    public void connectTo(final WifiP2pDevice device) {
+        //obtain a peer from the WifiP2pDeviceList
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = device.deviceAddress;
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+            // Declare Wifi Direct connect peer action listener
+            @Override
+            public void onSuccess() {
+                //success logic
+                Toast.makeText(mActivity, "Connected to " + device.deviceAddress, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                //failure logic
+            }
+        });
+    }
+
 }

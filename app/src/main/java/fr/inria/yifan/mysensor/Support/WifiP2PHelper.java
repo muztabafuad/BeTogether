@@ -87,7 +87,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
     }
 
     // Connecting to a peer
-    public void connectTo(WifiP2pDevice device) {
+    public void connectTo(final WifiP2pDevice device) {
         //obtain a peer from the WifiP2pDeviceList
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = device.deviceAddress;
@@ -96,6 +96,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
             @Override
             public void onSuccess() {
                 //success logic
+                Toast.makeText(mActivity, "Connected to " + device.deviceAddress, Toast.LENGTH_SHORT).show();
             }
 
             @Override

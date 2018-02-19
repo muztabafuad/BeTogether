@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -61,6 +62,14 @@ public class NetworkActivity extends AppCompatActivity {
         // Attache the adapter to the list view
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(mAdapterWifi);
+        // attach a listener to the ListView to react to item click events
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                WifiP2pDevice device = mAdapterWifi.getItem(position);
+                mWifiDirectHelper.connectTo(device);
+            }
+        });
     }
 
     // Main activity initialization

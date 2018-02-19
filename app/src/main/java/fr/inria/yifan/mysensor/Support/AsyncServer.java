@@ -21,19 +21,20 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import static android.content.ContentValues.TAG;
+import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
 
 /**
  * Create a ServerSocket and waits for a connection from a client on a specified port in a background thread.
  */
 
-public class FileServerAsync extends AsyncTask<Void, Void, String> {
+public class AsyncServer extends AsyncTask<Void, Void, String> {
 
     @SuppressLint("StaticFieldLeak")
     private Context context;
     @SuppressLint("StaticFieldLeak")
     private TextView statusText;
 
-    public FileServerAsync(Context context, View statusText) {
+    public AsyncServer(Context context, View statusText) {
         this.context = context;
         this.statusText = (TextView) statusText;
     }
@@ -45,16 +46,14 @@ public class FileServerAsync extends AsyncTask<Void, Void, String> {
               Create a server socket and wait for client connections. This
               call blocks until a connection is accepted from a client
              */
-            ServerSocket serverSocket = new ServerSocket(8888);
+            ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
             Socket client = serverSocket.accept();
 
             /*
               If this code is reached, a client has connected and transferred data
               Save the input stream from the client as a JPEG file
              */
-            final File f = new File(Environment.getExternalStorageDirectory() + "/"
-                    + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis()
-                    + ".jpg");
+            final File f = new File(Environment.getExternalStorageDirectory() + "/" + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis() + ".jpg");
 
             File dirs = new File(f.getParent());
             if (!dirs.exists()) {
@@ -85,22 +84,15 @@ public class FileServerAsync extends AsyncTask<Void, Void, String> {
 
     public void clientAction() {
         String host;
-        int port;
         int len;
         Socket socket = new Socket();
         byte buf[] = new byte[1024];
         try {
-            /*
-              Create a client socket with the host,
-              port, and timeout information.
-             */
+            // Create a client socket with the host, port, and timeout information.
             socket.bind(null);
-            socket.connect((new InetSocketAddress("192.168.1.1", 8888)), 500);
+            socket.connect((new InetSocketAddress("192.168.1.1", SERVER_PORT)), 500);
 
-            /*
-              Create a byte stream from a JPEG file and pipe it to the output stream
-              of the socket. This data will be retrieved by the server device.
-             */
+            // Create a byte stream from a JPEG file and pipe it to the output stream of the socket. This data will be retrieved by the server device.
             OutputStream outputStream = socket.getOutputStream();
             ContentResolver cr = context.getContentResolver();
             InputStream inputStream = cr.openInputStream(Uri.parse("path/to/picture.jpg"));
@@ -116,10 +108,8 @@ public class FileServerAsync extends AsyncTask<Void, Void, String> {
             //catch logic
         }
 
-        /*
-        Clean up any open sockets when done
-        transferring or if an exception occurred.
-        */ finally {
+        // Clean up any open sockets when done transferring or if an exception occurred.
+        finally {
             if (socket.isConnected()) {
                 try {
                     socket.close();
