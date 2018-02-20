@@ -102,12 +102,11 @@ public class WifiP2PHelper extends BroadcastReceiver {
                 if (wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner) {
                     // Do whatever tasks are specific to the group owner.
                     // One common case is creating a group owner thread and accepting incoming connections.
-                    Toast.makeText(mActivity, "I am the grouper owner: " + groupOwnerAddress, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mActivity, "I am the grouper owner.", Toast.LENGTH_LONG).show();
                 } else if (wifiP2pInfo.groupFormed) {
                     // The other device acts as the peer (client).
                     // In this case, you'll want to create a peer thread that connects to the group owner.
-                    // One common case is creating a group owner thread and accepting incoming connections.
-                    Toast.makeText(mActivity, "I am the grouper member: " + groupOwnerAddress, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mActivity, "I am the grouper member of " + groupOwnerAddress, Toast.LENGTH_LONG).show();
                 }
             }
         };

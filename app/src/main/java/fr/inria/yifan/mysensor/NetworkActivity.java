@@ -42,7 +42,7 @@ public class NetworkActivity extends AppCompatActivity {
     // Initially bind all views
     private void bindViews() {
 
-        TextView welcomeView = findViewById(R.id.welcome_view);
+        final TextView welcomeView = findViewById(R.id.welcome_view);
         welcomeView.setText(R.string.hint_network);
 
         Button startButton = findViewById(R.id.start_button);
@@ -52,6 +52,7 @@ public class NetworkActivity extends AppCompatActivity {
             public void onClick(View view) {
                 //mWifiDirectHelper.startService(record);
                 mWifiP2PHelper.startService();
+                welcomeView.setText(R.string.open_network);
             }
         });
 
