@@ -6,15 +6,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
+
+import java.net.InetAddress;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
 
@@ -33,6 +37,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
     private Activity mActivity;
     private IntentFilter mIntentFilter;
     private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
+    private WifiP2pManager.ConnectionInfoListener mConnectionListener;
 
     // Constructor.
     public WifiP2PHelper(Activity activity) {
@@ -61,19 +66,7 @@ public class WifiP2PHelper extends BroadcastReceiver {
             mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
             // Register the broadcast receiver with the intent values to be matched
             mActivity.registerReceiver(this, mIntentFilter);
-
-            mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-                // Declare Wifi Direct discover peer action listener
-                @Override
-                public void onSuccess() {
-                    // Success!
-                    Toast.makeText(mActivity, "Discovery success", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFailure(int reasonCode) {
-                }
-            });
+            discoverService();
         } else {
             try {
                 Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
@@ -86,6 +79,40 @@ public class WifiP2PHelper extends BroadcastReceiver {
         }
     }
 
+    // Start to discovery neighbors for services
+    private void discoverService() {
+        mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+            // Declare Wifi Direct discover peer action listener
+            @Override
+            public void onSuccess() {
+                // Success!
+                Toast.makeText(mActivity, "Discovery success", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(int reasonCode) {
+            }
+        });
+        mConnectionListener = new WifiP2pManager.ConnectionInfoListener() {
+            @Override
+            public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
+                // Inet Address from WifiP2pInfo struct.
+                InetAddress groupOwnerAddress = wifiP2pInfo.groupOwnerAddress;
+                // After the group negotiation, we can determine the group owner (server).
+                if (wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner) {
+                    // Do whatever tasks are specific to the group owner.
+                    // One common case is creating a group owner thread and accepting incoming connections.
+                    Toast.makeText(mActivity, "I am the grouper owner: " + groupOwnerAddress, Toast.LENGTH_SHORT).show();
+                } else if (wifiP2pInfo.groupFormed) {
+                    // The other device acts as the peer (client).
+                    // In this case, you'll want to create a peer thread that connects to the group owner.
+                    // One common case is creating a group owner thread and accepting incoming connections.
+                    Toast.makeText(mActivity, "I am the grouper member: " + groupOwnerAddress, Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+    }
+
     // Connecting to a peer
     public void connectTo(final WifiP2pDevice device) {
         //obtain a peer from the WifiP2pDeviceList
@@ -95,13 +122,13 @@ public class WifiP2PHelper extends BroadcastReceiver {
             // Declare Wifi Direct connect peer action listener
             @Override
             public void onSuccess() {
-                //success logic
+                // Success logic
                 Toast.makeText(mActivity, "Connected to " + device.deviceAddress, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onFailure(int reason) {
-                //failure logic
+                // Failure logic
             }
         });
     }
@@ -140,6 +167,11 @@ public class WifiP2PHelper extends BroadcastReceiver {
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
                 // Respond to new connection or disconnections
+                NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+                if (networkInfo.isConnected()) {
+                    // We are connected with the other device, request connection info to find group owner IP
+                    mManager.requestConnectionInfo(mChannel, mConnectionListener);
+                }
                 break;
             case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:
                 // Respond to this device's wifi state changing
