@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -37,6 +38,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
     // To store information from the peer
     private final HashMap<String, String> buddies = new HashMap<>();
     private Activity mActivity;
+    private IntentFilter mIntentFilter;
     private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
 
     // Declare channel and Wifi Direct manager
@@ -99,6 +101,13 @@ public class WifiDirectHelper extends BroadcastReceiver {
                     Toast.makeText(mActivity, "Registration failed", Toast.LENGTH_SHORT).show();
                 }
             });
+            mIntentFilter = new IntentFilter();
+            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+            // Register the broadcast receiver with the intent values to be matched
+            mActivity.registerReceiver(this, mIntentFilter);
         } else {
             try {
                 Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
