@@ -38,6 +38,7 @@ public class FilesIOHelper {
             FileOutputStream output = new FileOutputStream(filename);
             output.write(filecontent.getBytes());
             output.close();
+            Toast.makeText(context, "Success in writing file", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(context, "Failed in writing file", Toast.LENGTH_LONG).show();
         }

@@ -1,16 +1,18 @@
 package fr.inria.yifan.mysensor;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -158,18 +160,32 @@ public class SensingActivity extends AppCompatActivity {
         mSensorHelper.stop();
         isGetSenseRun = false;
         if (mSwitchLog.isChecked()) {
-            String time = String.valueOf(System.currentTimeMillis());
-            StringBuilder text = new StringBuilder();
-            for (String line : mSensingData.subList(1, mSensingData.size())) {
-                text.append(line).append("\n");
-            }
-            //Log.d(TAG, "Now is " + time);
-            try {
-                mFilesIOHelper.saveFile(time, text.toString());
-                Toast.makeText(this, "Sensing data saved to file", Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+            final EditText editName = new EditText(this);
+            editName.setText(String.valueOf(System.currentTimeMillis()));
+            dialog.setTitle("Enter file name: ");
+            dialog.setView(editName);
+            dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    StringBuilder content = new StringBuilder();
+                    for (String line : mSensingData.subList(1, mSensingData.size())) {
+                        content.append(line).append("\n");
+                    }
+                    //Log.d(TAG, "Now is " + time);
+                    try {
+                        mFilesIOHelper.saveFile(String.valueOf(editName.getText()), content.toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                }
+            });
+            dialog.show();
         }
     }
 
