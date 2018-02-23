@@ -28,6 +28,6 @@ public class Configuration implements Serializable {
     static final String STORAGE_FILE_PATH = "/Download";
 
     // For sound level calibration, initially 0, 1
-    static final double INTERCEPT = 10.82005655;
-    static final double SLOPE = 0.99760061;
+    static final double INTERCEPT = 0;
+    static final double SLOPE = 1;
 }
