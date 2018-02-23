@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.inria.yifan.mysensor.Support.WifiP2PHelper;
+import fr.inria.yifan.mysensor.Support.WifiDirectHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
 import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
@@ -35,8 +35,7 @@ public class NetworkActivity extends AppCompatActivity {
     private ArrayList<WifiP2pDevice> mDeviceList;
 
     // Wifi Direct helper
-    //private WifiDirectHelper mWifiDirectHelper;
-    private WifiP2PHelper mWifiP2PHelper;
+    private WifiDirectHelper mWifiDirectHelper;
     private Map<String, String> record;
 
     // Initially bind all views
@@ -50,8 +49,7 @@ public class NetworkActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onClick(View view) {
-                //mWifiDirectHelper.startService(record);
-                mWifiP2PHelper.startService();
+                mWifiDirectHelper.startService(record);
                 welcomeView.setText(R.string.open_network);
             }
         });
@@ -68,8 +66,7 @@ public class NetworkActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 WifiP2pDevice device = mAdapterWifi.getItem(position);
-                //mWifiDirectHelper.connectTo(device);
-                mWifiP2PHelper.connectTo(device);
+                mWifiDirectHelper.connectTo(device);
             }
         });
     }
@@ -81,10 +78,8 @@ public class NetworkActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_network);
         bindViews();
-        //mWifiDirectHelper = new WifiDirectHelper(this);
-        //mWifiDirectHelper.setAdapterWifi(mAdapterWifi);
-        mWifiP2PHelper = new WifiP2PHelper(this);
-        mWifiP2PHelper.setAdapterWifi(mAdapterWifi);
+        mWifiDirectHelper = new WifiDirectHelper(this);
+        mWifiDirectHelper.setAdapterWifi(mAdapterWifi);
 
         //  Create a string map containing information about your service.
         record = new HashMap<>();
@@ -121,8 +116,7 @@ public class NetworkActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_WIFI: {
-                //mWifiDirectHelper.startService(record);
-                mWifiP2PHelper.startService();
+                mWifiDirectHelper.startService(record);
             }
         }
     }

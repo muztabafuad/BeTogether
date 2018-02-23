@@ -42,8 +42,8 @@ public class WifiDirectHelper extends BroadcastReceiver {
     private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
 
     // Declare channel and Wifi Direct manager
-    private WifiP2pManager.Channel mChannel;
     private WifiP2pManager mManager;
+    private WifiP2pManager.Channel mChannel;
     private WifiP2pManager.ConnectionInfoListener mConnectionListener = new WifiP2pManager.ConnectionInfoListener() {
         @Override
         public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
@@ -64,6 +64,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
 
     // Constructor
     public WifiDirectHelper(Activity activity) {
+        super();
         mActivity = activity;
     }
 
@@ -81,7 +82,6 @@ public class WifiDirectHelper extends BroadcastReceiver {
         if (wifi.isWifiEnabled()) {
             // Initialize Wifi direct components
             mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
-            Log.d(TAG, String.valueOf(mManager == null));
             mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
             // Service information
             WifiP2pDnsSdServiceInfo serviceInfo;
@@ -198,6 +198,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
             @Override
             public void onFailure(int reason) {
                 //failure logic
+                Toast.makeText(mActivity, "Failed in connecting " + device.deviceAddress, Toast.LENGTH_SHORT).show();
             }
         });
     }
