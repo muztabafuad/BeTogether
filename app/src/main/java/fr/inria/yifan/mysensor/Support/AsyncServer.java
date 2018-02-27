@@ -6,16 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,13 +27,12 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
 public class AsyncServer extends AsyncTask<Void, Void, String> {
 
     @SuppressLint("StaticFieldLeak")
-    private Context context;
-    @SuppressLint("StaticFieldLeak")
-    private TextView statusText;
+    private Context mContext;
+    private Socket mClientSocket;
+    private ServerSocket mServerSocket;
 
-    public AsyncServer(Context context, View statusText) {
-        this.context = context;
-        this.statusText = (TextView) statusText;
+    public AsyncServer(Context context) {
+        this.mContext = context;
     }
 
     @Override
@@ -46,58 +42,43 @@ public class AsyncServer extends AsyncTask<Void, Void, String> {
               Create a server socket and wait for client connections. This
               call blocks until a connection is accepted from a client
              */
-            ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
-            Socket client = serverSocket.accept();
+            mServerSocket = new ServerSocket(SERVER_PORT);
+            Socket client = mServerSocket.accept();
 
-            /*
-              If this code is reached, a client has connected and transferred data
-              Save the input stream from the client as a JPEG file
-             */
-            final File f = new File(Environment.getExternalStorageDirectory() + "/" + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis() + ".jpg");
-
-            File dirs = new File(f.getParent());
-            if (!dirs.exists()) {
-                final boolean mkdirs = dirs.mkdirs();
-            }
-            final boolean newFile = f.createNewFile();
             InputStream inputstream = client.getInputStream();
-            //copyFile(inputstream, new FileOutputStream(f));
-            serverSocket.close();
-            return f.getAbsolutePath();
+            mServerSocket.close();
+            return null;
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
             return null;
         }
     }
 
-    @SuppressLint("SetTextI18n")
     @Override
     protected void onPostExecute(String result) {
         if (result != null) {
-            statusText.setText("File copied - " + result);
             Intent intent = new Intent();
             intent.setAction(android.content.Intent.ACTION_VIEW);
             intent.setDataAndType(Uri.parse("file://" + result), "image/*");
-            context.startActivity(intent);
+            mContext.startActivity(intent);
         }
     }
 
-    public void clientAction() {
-        String host;
-        int len;
-        Socket socket = new Socket();
+    public void connectTo(InetAddress host) {
+        mClientSocket = new Socket();
         byte buf[] = new byte[1024];
         try {
             // Create a client socket with the host, port, and timeout information.
-            socket.bind(null);
-            socket.connect((new InetSocketAddress("192.168.1.1", SERVER_PORT)), 500);
+            mClientSocket.bind(null);
+            mClientSocket.connect((new InetSocketAddress(host, SERVER_PORT)), 500);
 
             // Create a byte stream from a JPEG file and pipe it to the output stream of the socket. This data will be retrieved by the server device.
-            OutputStream outputStream = socket.getOutputStream();
-            ContentResolver cr = context.getContentResolver();
+            OutputStream outputStream = mClientSocket.getOutputStream();
+            ContentResolver cr = mContext.getContentResolver();
             InputStream inputStream = cr.openInputStream(Uri.parse("path/to/picture.jpg"));
             assert inputStream != null;
-            while ((len = inputStream.read(buf)) != -1) {
+            int len = inputStream.read(buf);
+            while (len != -1) {
                 outputStream.write(buf, 0, len);
             }
             outputStream.close();
@@ -110,12 +91,23 @@ public class AsyncServer extends AsyncTask<Void, Void, String> {
 
         // Clean up any open sockets when done transferring or if an exception occurred.
         finally {
-            if (socket.isConnected()) {
+            if (mClientSocket.isConnected()) {
                 try {
-                    socket.close();
+                    mClientSocket.close();
                 } catch (IOException e) {
                     //catch logic
                 }
+            }
+        }
+    }
+
+    public void close() {
+        if (mClientSocket.isConnected()) {
+            try {
+                mClientSocket.close();
+                mServerSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
