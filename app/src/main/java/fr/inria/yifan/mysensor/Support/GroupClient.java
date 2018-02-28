@@ -1,10 +1,12 @@
 package fr.inria.yifan.mysensor.Support;
 
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
@@ -15,51 +17,52 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
 
 public class GroupClient {
 
+    private static final String TAG = "Group client";
+
+    // Socket and thread flag
     private Socket mClientSocket;
+    private boolean isClientRun;
 
-    public void connectTo(InetAddress host) {
-        mClientSocket = new Socket();
-        byte buf[] = new byte[1024];
-        try {
-            // Create a client socket with the host, port, and timeout information.
-            mClientSocket.bind(null);
-            mClientSocket.connect((new InetSocketAddress(host, SERVER_PORT)), 500);
+    // Buffer and reader for socket
+    private BufferedReader in;
+    private PrintWriter out;
 
-            // Create a byte stream from a JPEG file and pipe it to the output stream of the socket. This data will be retrieved by the server device.
-            OutputStream outputStream = mClientSocket.getOutputStream();
-            /*
-            InputStream inputStream = null;
-            int len = inputStream.read(buf);
-            while (len != -1) {
-                outputStream.write(buf, 0, len);
-            }
-            outputStream.close();
-            inputStream.close();
-            */
-        } catch (FileNotFoundException e) {
-            //catch logic
-        } catch (IOException e) {
-            //catch logic
-        }
+    // Declare content string
+    private String mContent;
 
-        // Clean up any open sockets when done transferring or if an exception occurred.
-        finally {
-            if (mClientSocket.isConnected()) {
+    public GroupClient(final InetAddress server) {
+        isClientRun = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
                 try {
-                    mClientSocket.close();
+                    mClientSocket = new Socket(server, SERVER_PORT);
+                    in = new BufferedReader(new InputStreamReader(mClientSocket.getInputStream(), "UTF-8"));
+                    out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(mClientSocket.getOutputStream())), true);
+                    while (isClientRun) {
+                        if (mClientSocket.isConnected()) {
+                            if (!mClientSocket.isInputShutdown()) {
+                                if ((mContent = in.readLine()) != null) {
+                                    mContent += "\n";
+                                }
+                            }
+                        }
+                    }
                 } catch (IOException e) {
-                    //catch logic
+                    e.printStackTrace();
                 }
             }
-        }
+        }).start();
     }
 
-    public void close() {
+    public String refreshMessage() {
+        return mContent;
+    }
+
+    public void sendMessage(String msg) {
         if (mClientSocket.isConnected()) {
-            try {
-                mClientSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (!mClientSocket.isOutputShutdown()) {
+                out.println(msg);
             }
         }
     }
