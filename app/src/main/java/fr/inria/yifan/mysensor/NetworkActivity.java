@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import fr.inria.yifan.mysensor.Support.GroupServer;
 import fr.inria.yifan.mysensor.Support.WifiDirectHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
@@ -92,6 +93,10 @@ public class NetworkActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+    }
+
+    public void callbackConnect() {
+        GroupServer server = new GroupServer(this);
     }
 
     // Go to the detection activity

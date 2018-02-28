@@ -56,8 +56,6 @@ public class WifiDirectHelper extends BroadcastReceiver {
                 // Do whatever tasks are specific to the group owner.
                 // One common case is creating a group owner thread and accepting incoming connections.
                 Toast.makeText(mActivity, "I am the grouper owner.", Toast.LENGTH_LONG).show();
-                mAsynServer = new GroupServer();
-
             } else if (wifiP2pInfo.groupFormed) {
                 // The other device acts as the peer (client).
                 // In this case, you'll want to create a peer thread that connects to the group owner.

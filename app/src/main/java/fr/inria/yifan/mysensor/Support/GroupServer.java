@@ -1,5 +1,7 @@
 package fr.inria.yifan.mysensor.Support;
 
+import android.content.Context;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -22,32 +24,37 @@ public class GroupServer {
 
     private static final String TAG = "Group server";
 
+    private Context mContext;
+    private boolean isServerRun;
+
     // Declare client socket list and server socket
-    private ArrayList<Socket> mList = new ArrayList<Socket>();
+    private ArrayList<Socket> mList = new ArrayList<>();
 
-    public GroupServer() {
-        try {
-            ServerSocket server = new ServerSocket(SERVER_PORT);
-            ExecutorService mExecutorService = Executors.newCachedThreadPool();
-            Socket client;
-            while (true) {
-                client = server.accept();
-                mList.add(client);
-                mExecutorService.execute(new Service(client));
+    public GroupServer(Context context) {
+        mContext = context;
+        isServerRun = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ServerSocket server = new ServerSocket(SERVER_PORT);
+                    ExecutorService mExecutorService = Executors.newCachedThreadPool();
+                    while (isServerRun) {
+                        Socket client = server.accept();
+                        mList.add(client);
+                        mExecutorService.execute(new Service(client));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void main(String[] args) {
-        new GroupServer();
+        }).start();
     }
 
     class Service implements Runnable {
+        private String msg;
         private Socket socket;
         private BufferedReader in;
-        private String msg;
 
         Service(Socket socket) {
             this.socket = socket;
@@ -69,9 +76,9 @@ public class GroupServer {
                         if (msg.equals("bye")) {
                             mList.remove(socket);
                             in.close();
+                            socket.close();
                             msg = "Member " + socket.getInetAddress() + " quited group, "
                                     + "current members: " + mList.size();
-                            socket.close();
                             this.broadCastMsg();
                             break;
                         } else {
