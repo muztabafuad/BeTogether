@@ -37,8 +37,10 @@ public class WifiDirectHelper extends BroadcastReceiver {
 
     // To store information from the peer
     private final HashMap<String, String> buddies = new HashMap<>();
+
+    // Declare references and variables
     private Activity mActivity;
-    private IntentFilter mIntentFilter;
+    private GroupServer mAsynServer;
     private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
 
     // Declare channel and Wifi Direct manager
@@ -54,6 +56,8 @@ public class WifiDirectHelper extends BroadcastReceiver {
                 // Do whatever tasks are specific to the group owner.
                 // One common case is creating a group owner thread and accepting incoming connections.
                 Toast.makeText(mActivity, "I am the grouper owner.", Toast.LENGTH_LONG).show();
+                mAsynServer = new GroupServer();
+
             } else if (wifiP2pInfo.groupFormed) {
                 // The other device acts as the peer (client).
                 // In this case, you'll want to create a peer thread that connects to the group owner.
@@ -101,7 +105,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
                     Toast.makeText(mActivity, "Registration failed", Toast.LENGTH_SHORT).show();
                 }
             });
-            mIntentFilter = new IntentFilter();
+            IntentFilter mIntentFilter = new IntentFilter();
             mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
             mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
             mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
