@@ -23,7 +23,7 @@ public class GroupClient {
     private Socket mClientSocket;
     private boolean isClientRun;
 
-    // Buffer and reader for socket
+    // Buffer in and out for socket
     private BufferedReader in;
     private PrintWriter out;
 
@@ -40,11 +40,9 @@ public class GroupClient {
                     in = new BufferedReader(new InputStreamReader(mClientSocket.getInputStream(), "UTF-8"));
                     out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(mClientSocket.getOutputStream())), true);
                     while (isClientRun) {
-                        if (mClientSocket.isConnected()) {
-                            if (!mClientSocket.isInputShutdown()) {
-                                if ((mContent = in.readLine()) != null) {
-                                    mContent += "\n";
-                                }
+                        if (mClientSocket.isConnected() && !mClientSocket.isInputShutdown()) {
+                            if ((mContent = in.readLine()) != null) {
+                                mContent += "\n";
                             }
                         }
                     }
@@ -55,15 +53,13 @@ public class GroupClient {
         }).start();
     }
 
-    public String refreshMessage() {
+    public String readMessage() {
         return mContent;
     }
 
     public void sendMessage(String msg) {
-        if (mClientSocket.isConnected()) {
-            if (!mClientSocket.isOutputShutdown()) {
-                out.println(msg);
-            }
+        if (mClientSocket.isConnected() && !mClientSocket.isOutputShutdown()) {
+            out.println(msg);
         }
     }
 }

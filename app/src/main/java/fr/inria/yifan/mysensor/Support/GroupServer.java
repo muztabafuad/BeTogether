@@ -1,7 +1,5 @@
 package fr.inria.yifan.mysensor.Support;
 
-import android.content.Context;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -24,25 +22,24 @@ public class GroupServer {
 
     private static final String TAG = "Group server";
 
-    private Context mContext;
+    // Server socket loop thread flag
     private boolean isServerRun;
 
-    // Declare client socket list and server socket
-    private ArrayList<Socket> mList = new ArrayList<>();
+    // Declare client sockets in list
+    private ArrayList<Socket> mClientList = new ArrayList<>();
 
-    public GroupServer(Context context) {
-        mContext = context;
+    public GroupServer() {
         isServerRun = true;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     ServerSocket server = new ServerSocket(SERVER_PORT);
-                    ExecutorService mExecutorService = Executors.newCachedThreadPool();
+                    ExecutorService executorService = Executors.newCachedThreadPool();
                     while (isServerRun) {
                         Socket client = server.accept();
-                        mList.add(client);
-                        mExecutorService.execute(new Service(client));
+                        mClientList.add(client);
+                        executorService.execute(new Service(client));
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -60,8 +57,7 @@ public class GroupServer {
             this.socket = socket;
             try {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                msg = "Member " + this.socket.getInetAddress() + " has joined group, "
-                        + "current members: " + mList.size();
+                msg = "Member " + this.socket.getInetAddress() + " has joined group, " + "current members: " + mClientList.size();
                 this.broadCastMsg();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -71,16 +67,14 @@ public class GroupServer {
         @Override
         public void run() {
             try {
-                while (true) {
+                while (isServerRun) {
                     if ((msg = in.readLine()) != null) {
                         if (msg.equals("bye")) {
-                            mList.remove(socket);
+                            mClientList.remove(socket);
                             in.close();
                             socket.close();
-                            msg = "Member " + socket.getInetAddress() + " quited group, "
-                                    + "current members: " + mList.size();
+                            msg = "Member " + socket.getInetAddress() + " quited group, " + "current members: " + mClientList.size();
                             this.broadCastMsg();
-                            break;
                         } else {
                             msg = socket.getInetAddress() + " said: " + msg;
                             this.broadCastMsg();
@@ -93,13 +87,13 @@ public class GroupServer {
         }
 
         // Send message to all clients
-        void broadCastMsg() {
-            int num = mList.size();
+        private void broadCastMsg() {
+            int num = mClientList.size();
             for (int index = 0; index < num; index++) {
-                Socket mSocket = mList.get(index);
+                Socket client = mClientList.get(index);
                 PrintWriter pout;
                 try {
-                    pout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(mSocket.getOutputStream(), "UTF-8")), true);
+                    pout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(client.getOutputStream(), "UTF-8")), true);
                     pout.println(msg);
                 } catch (IOException e) {
                     e.printStackTrace();
