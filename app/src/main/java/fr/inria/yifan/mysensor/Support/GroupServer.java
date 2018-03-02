@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class GroupServer {
     // Declare client sockets in list
     private ArrayList<Socket> mClientList = new ArrayList<>();
 
+    // Constructor
     public GroupServer() {
         isServerRun = true;
         new Thread(new Runnable() {
@@ -48,6 +50,24 @@ public class GroupServer {
         }).start();
     }
 
+    // Send message to a specific client
+    public boolean sendMsgTo(String msg, InetAddress destination) {
+        for (Socket client : mClientList) {
+            if (client.getInetAddress() == destination) {
+                PrintWriter pout;
+                try {
+                    pout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(client.getOutputStream(), "UTF-8")), true);
+                    pout.println(msg);
+                    return true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
+    // Thread for each client socket
     class Service implements Runnable {
         private String msg;
         private Socket socket;

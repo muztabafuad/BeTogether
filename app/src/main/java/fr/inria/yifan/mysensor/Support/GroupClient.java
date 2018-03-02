@@ -30,6 +30,7 @@ public class GroupClient {
     // Declare content string
     private String mContent;
 
+    // Constructor
     public GroupClient(final InetAddress server) {
         isClientRun = true;
         new Thread(new Runnable() {
@@ -53,11 +54,13 @@ public class GroupClient {
         }).start();
     }
 
+    // Read current message in memory
     public String readMessage() {
         return mContent;
     }
 
-    public void sendMessage(String msg) {
+    // Upload a message to server
+    public void uploadMessage(String msg) {
         if (mClientSocket.isConnected() && !mClientSocket.isOutputShutdown()) {
             out.println(msg);
         }
