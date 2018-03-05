@@ -40,12 +40,16 @@ public class WifiDirectHelper extends BroadcastReceiver {
 
     // Declare references and variables
     private Activity mActivity;
-    private GroupServer mAsynServer;
+    private GroupServer mGroupServer;
+    private GroupClient mGroupClient;
     private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
 
     // Declare channel and Wifi Direct manager
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
+    // Service information
+    private WifiP2pDnsSdServiceInfo mServiceInfo;
+    private WifiP2pDnsSdServiceRequest mServiceRequest;
     private WifiP2pManager.ConnectionInfoListener mConnectionListener = new WifiP2pManager.ConnectionInfoListener() {
         @Override
         public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
@@ -55,11 +59,13 @@ public class WifiDirectHelper extends BroadcastReceiver {
             if (wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner) {
                 // Do whatever tasks are specific to the group owner.
                 // One common case is creating a group owner thread and accepting incoming connections.
-                Toast.makeText(mActivity, "I am the grouper owner.", Toast.LENGTH_LONG).show();
+                Toast.makeText(mActivity, "I am the group owner.", Toast.LENGTH_LONG).show();
+                mGroupServer = new GroupServer();
             } else if (wifiP2pInfo.groupFormed) {
                 // The other device acts as the peer (client).
                 // In this case, you'll want to create a peer thread that connects to the group owner.
-                Toast.makeText(mActivity, "I am the grouper member of " + groupOwnerAddress, Toast.LENGTH_LONG).show();
+                Toast.makeText(mActivity, "I am the group member of " + groupOwnerAddress, Toast.LENGTH_LONG).show();
+                mGroupClient = new GroupClient(groupOwnerAddress);
             }
         }
     };
@@ -68,6 +74,13 @@ public class WifiDirectHelper extends BroadcastReceiver {
     public WifiDirectHelper(Activity activity) {
         super();
         mActivity = activity;
+        IntentFilter mIntentFilter = new IntentFilter();
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        // Register the broadcast receiver with the intent values to be matched
+        mActivity.registerReceiver(this, mIntentFilter);
     }
 
     // Add to the custom adapter defined specifically for showing wifi devices.
@@ -85,11 +98,10 @@ public class WifiDirectHelper extends BroadcastReceiver {
             // Initialize Wifi direct components
             mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
             mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
-            // Service information
-            WifiP2pDnsSdServiceInfo serviceInfo;
-            serviceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);
+
+            mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);
             // Add the local service, sending the service info, network channel and listener
-            mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
+            mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
                 @Override
                 public void onSuccess() {
                     // Command successful! Code isn't necessarily needed here,
@@ -103,13 +115,6 @@ public class WifiDirectHelper extends BroadcastReceiver {
                     Toast.makeText(mActivity, "Registration failed", Toast.LENGTH_SHORT).show();
                 }
             });
-            IntentFilter mIntentFilter = new IntentFilter();
-            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-            mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-            // Register the broadcast receiver with the intent values to be matched
-            mActivity.registerReceiver(this, mIntentFilter);
         } else {
             try {
                 Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
@@ -119,6 +124,18 @@ public class WifiDirectHelper extends BroadcastReceiver {
                 Log.e(TAG, String.valueOf(e));
                 Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    // Close all registered services related to Wifi Direct
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    public void stopService() {
+        mActivity.unregisterReceiver(this);
+        if (mServiceInfo != null) {
+            mManager.removeLocalService(mChannel, mServiceInfo, null);
+        }
+        if (mServiceRequest != null) {
+            mManager.removeServiceRequest(mChannel, mServiceRequest, null);
         }
     }
 
@@ -146,8 +163,8 @@ public class WifiDirectHelper extends BroadcastReceiver {
         };
         mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
 
-        WifiP2pDnsSdServiceRequest serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
-        mManager.addServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
+        mServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
+        mManager.addServiceRequest(mChannel, mServiceRequest, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 // Success!
@@ -211,6 +228,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
         assert action != null;
         switch (action) {
             case WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION:
+                Log.d(TAG, "WIFI_P2P_STATE_CHANGED_ACTION");
                 // Check to see if Wi-Fi is enabled and notify appropriate activity
                 int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
                 switch (state) {
@@ -223,6 +241,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
                 }
                 break;
             case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
+                Log.d(TAG, "WIFI_P2P_PEERS_CHANGED_ACTION");
                 // Call WifiP2pManager.requestPeers() to get a list of current peers
                 // request available peers from the wifi p2p manager. This is an
                 // asynchronous call and the calling activity is notified with a
@@ -237,6 +256,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
                 });
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
+                Log.d(TAG, "WIFI_P2P_CONNECTION_CHANGED_ACTION");
                 // Respond to new connection or disconnections
                 NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
                 if (networkInfo.isConnected()) {
@@ -245,6 +265,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
                 }
                 break;
             case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:
+                Log.d(TAG, "WIFI_P2P_THIS_DEVICE_CHANGED_ACTION");
                 // Respond to this device's wifi state changing
                 break;
         }
