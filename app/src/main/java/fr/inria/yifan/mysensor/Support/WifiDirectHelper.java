@@ -47,9 +47,6 @@ public class WifiDirectHelper extends BroadcastReceiver {
     // Declare channel and Wifi Direct manager
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
-    // Service information
-    private WifiP2pDnsSdServiceInfo mServiceInfo;
-    private WifiP2pDnsSdServiceRequest mServiceRequest;
     private WifiP2pManager.ConnectionInfoListener mConnectionListener = new WifiP2pManager.ConnectionInfoListener() {
         @Override
         public void onConnectionInfoAvailable(WifiP2pInfo wifiP2pInfo) {
@@ -71,6 +68,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
     };
 
     // Constructor
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public WifiDirectHelper(Activity activity) {
         super();
         mActivity = activity;
@@ -79,6 +77,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
         // Register the broadcast receiver with the intent values to be matched
         mActivity.registerReceiver(this, mIntentFilter);
     }
@@ -99,7 +98,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
             mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
             mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
 
-            mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);
+            WifiP2pDnsSdServiceInfo mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);
             // Add the local service, sending the service info, network channel and listener
             mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
                 @Override
@@ -131,12 +130,9 @@ public class WifiDirectHelper extends BroadcastReceiver {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void stopService() {
         mActivity.unregisterReceiver(this);
-        if (mServiceInfo != null) {
-            mManager.removeLocalService(mChannel, mServiceInfo, null);
-        }
-        if (mServiceRequest != null) {
-            mManager.removeServiceRequest(mChannel, mServiceRequest, null);
-        }
+        mManager.stopPeerDiscovery(mChannel, null);
+        mManager.clearLocalServices(mChannel, null);
+        mManager.clearServiceRequests(mChannel, null);
     }
 
     // Start to discovery neighbors for services
@@ -163,7 +159,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
         };
         mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
 
-        mServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
+        WifiP2pDnsSdServiceRequest mServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
         mManager.addServiceRequest(mChannel, mServiceRequest, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -267,6 +263,9 @@ public class WifiDirectHelper extends BroadcastReceiver {
             case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:
                 Log.d(TAG, "WIFI_P2P_THIS_DEVICE_CHANGED_ACTION");
                 // Respond to this device's wifi state changing
+                break;
+            case WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION:
+                Log.d(TAG, "WIFI_P2P_DISCOVERY_CHANGED_ACTION");
                 break;
         }
     }
