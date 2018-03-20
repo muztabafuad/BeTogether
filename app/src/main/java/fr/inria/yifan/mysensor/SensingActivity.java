@@ -2,7 +2,9 @@ package fr.inria.yifan.mysensor;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,7 +17,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import fr.inria.yifan.mysensor.Support.DeviceContext;
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
@@ -45,6 +49,7 @@ public class SensingActivity extends AppCompatActivity {
 
     // Sensors helper for sensor and GPS
     private SensorsHelper mSensorHelper;
+    private DeviceContext mContext;
 
     // Constructor initializes locker
     public SensingActivity() {
@@ -90,6 +95,7 @@ public class SensingActivity extends AppCompatActivity {
     }
 
     // Main activity initialization
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,6 +103,7 @@ public class SensingActivity extends AppCompatActivity {
         bindViews();
         mSensorHelper = new SensorsHelper(this);
         mFilesIOHelper = new FilesIOHelper(this);
+        mContext = new DeviceContext(this);
     }
 
     // Resume the sensing service
@@ -139,7 +146,8 @@ public class SensingActivity extends AppCompatActivity {
                                     mSensorHelper.isInDoor() + ", " +
                                     mSensorHelper.getTemperature() + ", " +
                                     mSensorHelper.getPressure() + ", " +
-                                    mSensorHelper.getHumidity());
+                                    mSensorHelper.getHumidity() + ", " +
+                                    Arrays.toString(mSensorHelper.getMagnet()));
                         }
                     });
                     // sample times per second

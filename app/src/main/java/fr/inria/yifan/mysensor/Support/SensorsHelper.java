@@ -46,6 +46,7 @@ public class SensorsHelper {
     private Sensor mSensorTemp;
     private Sensor mSensorPress;
     private Sensor mSensorHumid;
+    private Sensor mSensorMagnet;
 
     // Declare sensing variables
     private float mLight;
@@ -53,6 +54,7 @@ public class SensorsHelper {
     private float mTemperature;
     private float mPressure;
     private float mHumidity;
+    private float[] mMagnet;
     private Location mLocation;
 
     private SensorManager mSensorManager;
@@ -123,6 +125,19 @@ public class SensorsHelper {
         }
     };
 
+    // Declare magnetic sensor listener
+    private SensorEventListener mListenerMagnet = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            mMagnet = sensorEvent.values;
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+            //PASS
+        }
+    };
+
     // Declare location service listener
     private LocationListener mListenerGPS = new LocationListener() {
         @Override
@@ -162,6 +177,7 @@ public class SensorsHelper {
         mSensorTemp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
         mSensorPress = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+        mSensorMagnet = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
     }
@@ -176,6 +192,7 @@ public class SensorsHelper {
         mSensorManager.registerListener(mListenerTemp, mSensorTemp, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerPress, mSensorPress, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerHumid, mSensorHumid, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerMagnet, mSensorMagnet, SensorManager.SENSOR_DELAY_UI);
         // Check GPS enable switch
         if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             // Start GPS and location service
@@ -195,6 +212,7 @@ public class SensorsHelper {
         mSensorManager.unregisterListener(mListenerTemp);
         mSensorManager.unregisterListener(mListenerPress);
         mSensorManager.unregisterListener(mListenerHumid);
+        mSensorManager.unregisterListener(mListenerMagnet);
         mLocationManager.removeUpdates(mListenerGPS);
     }
 
@@ -240,6 +258,11 @@ public class SensorsHelper {
     // Get the most recent humidity
     public float getHumidity() {
         return mHumidity;
+    }
+
+    // Get the most recent magnet field
+    public float[] getMagnet() {
+        return mMagnet;
     }
 
     // Simple In/Out-pocket detection function
