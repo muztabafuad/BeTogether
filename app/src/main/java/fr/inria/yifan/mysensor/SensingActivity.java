@@ -77,7 +77,8 @@ public class SensingActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mAdapterSensing.clear();
-                mAdapterSensing.add("Timestamp, light density (lx), magnetic strength (μT), GPS accuracy (m), proximity (bit), sound level (dB), temperature (C), pressure (hPa), humidity (%):");
+                mAdapterSensing.add("Timestamp, daytime, light density (lx), magnetic strength (μT), " +
+                        "GPS accuracy (m), proximity (bit), sound level (dB), temperature (C), pressure (hPa), humidity (%):");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
@@ -140,6 +141,7 @@ public class SensingActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             mAdapterSensing.add(System.currentTimeMillis() + ", " +
+                                    mSensorHelper.isDaytime() + ", " +
                                     mSensorHelper.getLightDensity() + ", " +
                                     mSensorHelper.getMagnet() + ", " +
                                     mSensorHelper.getLocation().getAccuracy() + ", " +

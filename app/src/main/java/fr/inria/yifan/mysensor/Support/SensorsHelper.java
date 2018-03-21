@@ -274,6 +274,13 @@ public class SensorsHelper {
         return mMagnet;
     }
 
+    // Detection in daytime or night
+    public boolean isDaytime() {
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        return hour > 6 && hour < 18;
+    }
+
     // Simple In/Out-pocket detection function
     public boolean isInPocket() {
         //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
@@ -285,13 +292,10 @@ public class SensorsHelper {
     public boolean isInDoor() {
         //Toast.makeText(this, "Indoor", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "Outdoor", Toast.LENGTH_SHORT).show();
-        // Detection on day or night
-        Calendar cal = Calendar.getInstance();
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        if (hour < 6 || hour > 18) {
-            return mLight > 10;
-        } else {
+        if (isDaytime()) {
             return mLight < 1500;
+        } else {
+            return mLight > 10;
         }
     }
 
