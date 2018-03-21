@@ -3,7 +3,9 @@ package fr.inria.yifan.mysensor;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -131,6 +133,7 @@ public class DetectionActivity extends AppCompatActivity {
             public void run() {
                 while (isSensingRun) {
                     runOnUiThread(new Runnable() {
+                        @RequiresApi(api = Build.VERSION_CODES.N)
                         @Override
                         public void run() {
                             float proximity = mSensorHelper.getProximity();

@@ -8,6 +8,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.GpsSatellite;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -54,7 +55,7 @@ public class SensorsHelper {
     private float mTemperature;
     private float mPressure;
     private float mHumidity;
-    private float[] mMagnet;
+    private float mMagnet;
     private Location mLocation;
 
     private SensorManager mSensorManager;
@@ -65,6 +66,19 @@ public class SensorsHelper {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
             mLight = sensorEvent.values[0];
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+            //PASS
+        }
+    };
+
+    // Declare magnetic sensor listener
+    private SensorEventListener mListenerMagnet = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            mMagnet = (float) Math.sqrt(Math.pow(sensorEvent.values[0], 2) + Math.pow(sensorEvent.values[1], 2) + Math.pow(sensorEvent.values[2], 2));
         }
 
         @Override
@@ -86,7 +100,7 @@ public class SensorsHelper {
         }
     };
 
-    // Declare proximity sensor listener
+    // Declare temperature sensor listener
     private SensorEventListener mListenerTemp = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -99,7 +113,7 @@ public class SensorsHelper {
         }
     };
 
-    // Declare proximity sensor listener
+    // Declare pressure sensor listener
     private SensorEventListener mListenerPress = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -112,7 +126,7 @@ public class SensorsHelper {
         }
     };
 
-    // Declare proximity sensor listener
+    // Declare humidity sensor listener
     private SensorEventListener mListenerHumid = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -125,21 +139,8 @@ public class SensorsHelper {
         }
     };
 
-    // Declare magnetic sensor listener
-    private SensorEventListener mListenerMagnet = new SensorEventListener() {
-        @Override
-        public void onSensorChanged(SensorEvent sensorEvent) {
-            mMagnet = sensorEvent.values;
-        }
-
-        @Override
-        public void onAccuracyChanged(Sensor sensor, int i) {
-            //PASS
-        }
-    };
-
     // Declare location service listener
-    private LocationListener mListenerGPS = new LocationListener() {
+    private LocationListener mListenerLoc = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
             mLocation = location;
@@ -165,6 +166,13 @@ public class SensorsHelper {
     // Register the broadcast receiver with the intent values to be matched
     public SensorsHelper(Activity activity) {
         mActivity = activity;
+        mLight = 0;
+        mProximity = 0;
+        mTemperature = 0;
+        mPressure = 0;
+        mHumidity = 0;
+        mMagnet = 0;
+        mLocation = new Location("null");
 
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
         mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
@@ -173,11 +181,11 @@ public class SensorsHelper {
         mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
         assert mSensorManager != null;
         mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        mSensorMagnet = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         mSensorTemp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
         mSensorPress = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
-        mSensorMagnet = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
     }
@@ -188,15 +196,16 @@ public class SensorsHelper {
         mAudioRecord.startRecording();
         // Register listeners for all environmental sensors
         mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(mListenerMagnet, mSensorMagnet, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerTemp, mSensorTemp, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerPress, mSensorPress, SensorManager.SENSOR_DELAY_UI);
         mSensorManager.registerListener(mListenerHumid, mSensorHumid, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerMagnet, mSensorMagnet, SensorManager.SENSOR_DELAY_UI);
+
         // Check GPS enable switch
         if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             // Start GPS and location service
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_TIME, LOCATION_UPDATE_DISTANCE, mListenerGPS);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_TIME, LOCATION_UPDATE_DISTANCE, mListenerLoc);
         } else {
             Toast.makeText(mActivity, "Please enable the GPS", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
@@ -208,12 +217,12 @@ public class SensorsHelper {
     public void stop() {
         mAudioRecord.stop();
         mSensorManager.unregisterListener(mListenerLight);
+        mSensorManager.unregisterListener(mListenerMagnet);
         mSensorManager.unregisterListener(mListenerProxy);
         mSensorManager.unregisterListener(mListenerTemp);
         mSensorManager.unregisterListener(mListenerPress);
         mSensorManager.unregisterListener(mListenerHumid);
-        mSensorManager.unregisterListener(mListenerMagnet);
-        mLocationManager.removeUpdates(mListenerGPS);
+        mLocationManager.removeUpdates(mListenerLoc);
     }
 
     // Get the most recent sound level
@@ -231,7 +240,7 @@ public class SensorsHelper {
         // Square sum divide by data length to get volume
         double mean = v / (double) r;
         final double volume = 10 * Math.log10(mean);
-        Log.d(TAG, "Sound dB value: " + volume);
+        //Log.d(TAG, "Sound dB value: " + volume);
         return (int) (volume * SLOPE + INTERCEPT);
     }
 
@@ -261,7 +270,7 @@ public class SensorsHelper {
     }
 
     // Get the most recent magnet field
-    public float[] getMagnet() {
+    public float getMagnet() {
         return mMagnet;
     }
 
@@ -287,8 +296,12 @@ public class SensorsHelper {
     }
 
     // Get location information from GPS
+    @SuppressLint("MissingPermission")
     public Location getLocation() {
-        Log.d(TAG, "Location information: " + mLocation);
+        for (GpsSatellite satellite : mLocationManager.getGpsStatus(null).getSatellites()) {
+            Log.d(TAG, satellite.toString());
+        }
+        //Log.d(TAG, "Location information: " + mLocation);
         return mLocation;
     }
 }

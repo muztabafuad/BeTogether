@@ -17,7 +17,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import fr.inria.yifan.mysensor.Support.DeviceContext;
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
@@ -78,7 +77,7 @@ public class SensingActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mAdapterSensing.clear();
-                mAdapterSensing.add("Timestamp, sound level (dB), in-pocket, indoor, temperature (C), pressure (hPa), humidity (%):");
+                mAdapterSensing.add("Timestamp, light density (lx), magnetic strength (μT), GPS accuracy (m), proximity (bit), sound level (dB), temperature (C), pressure (hPa), humidity (%):");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
@@ -141,13 +140,14 @@ public class SensingActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             mAdapterSensing.add(System.currentTimeMillis() + ", " +
+                                    mSensorHelper.getLightDensity() + ", " +
+                                    mSensorHelper.getMagnet() + ", " +
+                                    mSensorHelper.getLocation().getAccuracy() + ", " +
+                                    mSensorHelper.getProximity() + ", " +
                                     mSensorHelper.getSoundLevel() + ", " +
-                                    mSensorHelper.isInPocket() + ", " +
-                                    mSensorHelper.isInDoor() + ", " +
                                     mSensorHelper.getTemperature() + ", " +
                                     mSensorHelper.getPressure() + ", " +
-                                    mSensorHelper.getHumidity() + ", " +
-                                    Arrays.toString(mSensorHelper.getMagnet()));
+                                    mSensorHelper.getHumidity());
                         }
                     });
                     // sample times per second
