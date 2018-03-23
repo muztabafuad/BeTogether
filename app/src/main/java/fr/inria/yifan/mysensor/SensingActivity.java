@@ -35,12 +35,14 @@ public class SensingActivity extends AppCompatActivity {
     // Thread locker and running flag
     private final Object mLock;
     private boolean isGetSenseRun;
+    private int mSenseRound;
 
     // Declare all related views
+    private TextView mWelcomeView;
     private Button mStartButton;
     private Button mStopButton;
-    private ArrayAdapter<String> mAdapterSensing;
     private Switch mSwitchLog;
+    private ArrayAdapter<String> mAdapterSensing;
 
     // File helper and string data
     private FilesIOHelper mFilesIOHelper;
@@ -61,8 +63,7 @@ public class SensingActivity extends AppCompatActivity {
         mStopButton = findViewById(R.id.stop_button);
         mStopButton.setVisibility(View.INVISIBLE);
         mSwitchLog = findViewById(R.id.switch_log);
-
-        TextView mWelcomeView = findViewById(R.id.welcome_view);
+        mWelcomeView = findViewById(R.id.welcome_view);
         mWelcomeView.setText(R.string.hint_sensing);
 
         // Build an adapter to feed the list with the content of an array of strings
@@ -78,7 +79,7 @@ public class SensingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mAdapterSensing.clear();
                 mAdapterSensing.add("Timestamp, daytime, light density (lx), magnetic strength (μT), " +
-                        "GPS accuracy (m), proximity (bit), sound level (dB), temperature (C), pressure (hPa), humidity (%):");
+                        "GPS accuracy (m), proximity (bit), sound level (dB), temperature (C), pressure (hPa), humidity (%)");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
@@ -133,6 +134,7 @@ public class SensingActivity extends AppCompatActivity {
         }
         mSensorHelper.run();
         isGetSenseRun = true;
+        mSenseRound = 0;
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -150,6 +152,9 @@ public class SensingActivity extends AppCompatActivity {
                                     mSensorHelper.getTemperature() + ", " +
                                     mSensorHelper.getPressure() + ", " +
                                     mSensorHelper.getHumidity());
+                            mSenseRound += 1;
+                            mWelcomeView.setText(String.valueOf(mSenseRound));
+                            Log.d(TAG, String.valueOf(mSenseRound));
                         }
                     });
                     // sample times per second
@@ -179,7 +184,7 @@ public class SensingActivity extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     StringBuilder content = new StringBuilder();
-                    for (String line : mSensingData.subList(1, mSensingData.size())) {
+                    for (String line : mSensingData) {
                         content.append(line).append("\n");
                     }
                     //Log.d(TAG, "Now is " + time);

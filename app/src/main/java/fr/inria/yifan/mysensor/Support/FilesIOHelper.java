@@ -33,7 +33,7 @@ public class FilesIOHelper {
             if (!folder.exists()) {
                 boolean mkdir = folder.mkdir();
             }
-            filename = folder + "/" + filename + ".txt";
+            filename = folder + "/" + filename;
             //Log.d(TAG, filename);
             FileOutputStream output = new FileOutputStream(filename);
             output.write(filecontent.getBytes());

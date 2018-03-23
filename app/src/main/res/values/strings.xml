@@ -13,4 +13,5 @@
     <string name="hint_sensing">Press start to enable environmental sensors, and stop to save the log (if checked).</string>
     <string name="hint_network">Press start to discover Wifi Direct neighbors providing services.</string>
     <string name="open_network">Discovering Wifi Direct neighbors providing services …</string>
+    <string name="count_sensing">Sensing count: </string>
 </resources>

@@ -166,13 +166,6 @@ public class SensorsHelper {
     // Register the broadcast receiver with the intent values to be matched
     public SensorsHelper(Activity activity) {
         mActivity = activity;
-        mLight = 0;
-        mProximity = 0;
-        mTemperature = 0;
-        mPressure = 0;
-        mHumidity = 0;
-        mMagnet = 0;
-        mLocation = new Location("null");
 
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
         mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
@@ -193,6 +186,14 @@ public class SensorsHelper {
     // Check if location service on system is enabled
     @SuppressLint("MissingPermission")
     public void run() {
+        mLight = 0;
+        mProximity = 0;
+        mTemperature = 0;
+        mPressure = 0;
+        mHumidity = 0;
+        mMagnet = 0;
+        mLocation = new Location("null");
+
         mAudioRecord.startRecording();
         // Register listeners for all environmental sensors
         mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
