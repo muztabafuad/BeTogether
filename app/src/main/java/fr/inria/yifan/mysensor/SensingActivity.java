@@ -112,7 +112,7 @@ public class SensingActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (mSensorHelper != null) {
-            mSensorHelper.run();
+            mSensorHelper.start();
         }
     }
 
@@ -132,7 +132,7 @@ public class SensingActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing and recording");
             return;
         }
-        mSensorHelper.run();
+        mSensorHelper.start();
         isGetSenseRun = true;
         mSenseRound = 0;
         new Thread(new Runnable() {

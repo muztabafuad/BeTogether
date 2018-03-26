@@ -106,7 +106,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
         mAdapterWifi = adapter;
     }
 
-    // Set the service record information and run thr service
+    // Set the service record information and start thr service
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void startService(Map<String, String> record) {
         WifiP2pDnsSdServiceInfo mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);

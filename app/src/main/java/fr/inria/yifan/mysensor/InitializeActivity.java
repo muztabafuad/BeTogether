@@ -19,7 +19,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_RECORD
 import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_STORAGE;
 
 /**
- * This activity has to be run in the beginning of the application to ensure all user permissions are enabled.
+ * This activity has to be start in the beginning of the application to ensure all user permissions are enabled.
  */
 
 public class InitializeActivity extends AppCompatActivity {
@@ -44,7 +44,7 @@ public class InitializeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_initialize);
 
         TextView welcomeView = findViewById(R.id.welcome_view);
-        welcomeView.setText("Please select a function below to run after permission checked.");
+        welcomeView.setText("Please select a function below to start after permission checked.");
 
         checkPermission();
     }

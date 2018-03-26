@@ -105,7 +105,7 @@ public class DetectionActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (mSensorHelper != null) {
-            mSensorHelper.run();
+            mSensorHelper.start();
         }
     }
 
@@ -126,7 +126,7 @@ public class DetectionActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing state");
             return;
         }
-        mSensorHelper.run();
+        mSensorHelper.start();
         isSensingRun = true;
         new Thread(new Runnable() {
             @Override
@@ -208,7 +208,7 @@ public class DetectionActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_LOCATION: {
-                mSensorHelper.run();
+                mSensorHelper.start();
             }
         }
     }

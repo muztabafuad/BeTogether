@@ -36,9 +36,11 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
 public class SensorsHelper {
 
     private static final String TAG = "Sensors helper";
+
     // Audio recorder parameters for sampling
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
     private Activity mActivity;
+
     // Declare sensors and recorder
     private AudioRecord mAudioRecord;
     private AWeighting mAWeighting;
@@ -48,6 +50,8 @@ public class SensorsHelper {
     private Sensor mSensorPress;
     private Sensor mSensorHumid;
     private Sensor mSensorMagnet;
+    private SensorManager mSensorManager;
+    private LocationManager mLocationManager;
 
     // Declare sensing variables
     private float mLight;
@@ -57,9 +61,6 @@ public class SensorsHelper {
     private float mHumidity;
     private float mMagnet;
     private Location mLocation;
-
-    private SensorManager mSensorManager;
-    private LocationManager mLocationManager;
 
     // Declare light sensor listener
     private SensorEventListener mListenerLight = new SensorEventListener() {
@@ -169,7 +170,7 @@ public class SensorsHelper {
 
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
         mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
-        Log.d(TAG, "Buffer size = " + BUFFER_SIZE);
+        //Log.d(TAG, "Buffer size = " + BUFFER_SIZE);
 
         mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
         assert mSensorManager != null;
@@ -185,7 +186,7 @@ public class SensorsHelper {
 
     // Check if location service on system is enabled
     @SuppressLint("MissingPermission")
-    public void run() {
+    public void start() {
         mLight = 0;
         mProximity = 0;
         mTemperature = 0;
