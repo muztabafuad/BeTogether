@@ -21,7 +21,7 @@ public class DeviceContext {
     // Declare references
     private Activity mActivity;
 
-    // Declare all contexts
+    // Declare all context variables
     private int rssiDbm;
     private boolean isInPocket;
     private boolean isInDoor;
@@ -44,7 +44,6 @@ public class DeviceContext {
         mActivity = activity;
 
         mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
-        assert mTelephonyManager != null;
 
         //IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         //Intent batteryStatus = mActivity.registerReceiver(null, filter);
@@ -64,6 +63,7 @@ public class DeviceContext {
 
     // Start the context service
     public void start() {
+        assert mTelephonyManager != null;
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
     }
 
