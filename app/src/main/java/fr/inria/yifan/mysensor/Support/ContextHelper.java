@@ -1,6 +1,5 @@
 package fr.inria.yifan.mysensor.Support;
 
-import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.os.Build;
@@ -9,17 +8,18 @@ import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.util.ArrayMap;
+import android.util.Log;
 
 /**
  * This class represents the context map set of a sensing device.
  */
 
-public class DeviceContext {
+public class ContextHelper {
 
     private static final String TAG = "Device context";
 
     // Declare references
-    private Activity mActivity;
+    private Context mActivity;
 
     // Declare all contexts
     private int rssiDbm;
@@ -28,24 +28,23 @@ public class DeviceContext {
     private float hasBattery;
     private long locationTime;
     private ArrayMap<Sensor, Boolean> sensorArray;
-    private TelephonyManager mTelephonyManager;
-
-    // Declare phone state listener
-    private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
-        @Override
-        public void onSignalStrengthsChanged(SignalStrength signalStrength) {
-            super.onSignalStrengthsChanged(signalStrength);
-            rssiDbm = signalStrength.getGsmSignalStrength() * 2 - 113; // -> dBm
-        }
-    };
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public DeviceContext(Activity activity) {
+    public ContextHelper(Context activity) {
         mActivity = activity;
 
-        mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
         assert mTelephonyManager != null;
 
+        PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+                super.onSignalStrengthsChanged(signalStrength);
+                rssiDbm = signalStrength.getGsmSignalStrength() * 2 - 113; // -> dBm
+                Log.d(TAG, String.valueOf(rssiDbm));
+            }
+        };
+        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         //IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         //Intent batteryStatus = mActivity.registerReceiver(null, filter);
 
@@ -64,11 +63,14 @@ public class DeviceContext {
 
     // Start the context service
     public void start() {
-        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
     }
 
     // Unregister the listeners
     public void stop() {
+    }
 
+    // Get the most recent RSSI
+    public int getRssiDbm() {
+        return rssiDbm;
     }
 }
