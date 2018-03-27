@@ -18,7 +18,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import fr.inria.yifan.mysensor.Support.DeviceContext;
+import fr.inria.yifan.mysensor.Support.ContextHelper;
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
@@ -50,7 +50,7 @@ public class SensingActivity extends AppCompatActivity {
 
     // Sensors helper for sensor and GPS
     private SensorsHelper mSensorHelper;
-    private DeviceContext mContext;
+    private ContextHelper mContextHelper;
 
     // Constructor initializes locker
     public SensingActivity() {
@@ -79,7 +79,8 @@ public class SensingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mAdapterSensing.clear();
                 mAdapterSensing.add("Timestamp, daytime, light density (lx), magnetic strength (μT), " +
-                        "GPS accuracy (m), proximity (bit), sound level (dB), temperature (C), pressure (hPa), humidity (%)");
+                        "GSM RSSI (dBm), GPS accuracy (m), proximity (bit), sound level (dB), " +
+                        "temperature (C), pressure (hPa), humidity (%)");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
@@ -104,7 +105,7 @@ public class SensingActivity extends AppCompatActivity {
         bindViews();
         mSensorHelper = new SensorsHelper(this);
         mFilesIOHelper = new FilesIOHelper(this);
-        mContext = new DeviceContext(this);
+        mContextHelper = new ContextHelper(this);
     }
 
     // Resume the sensing service
@@ -146,6 +147,7 @@ public class SensingActivity extends AppCompatActivity {
                                     mSensorHelper.isDaytime() + ", " +
                                     mSensorHelper.getLightDensity() + ", " +
                                     mSensorHelper.getMagnet() + ", " +
+                                    mContextHelper.getRssiDbm() + ", " +
                                     mSensorHelper.getLocation().getAccuracy() + ", " +
                                     mSensorHelper.getProximity() + ", " +
                                     mSensorHelper.getSoundLevel() + ", " +
