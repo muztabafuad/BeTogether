@@ -70,26 +70,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
     // Constructor
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public WifiDirectHelper(Activity activity) {
-        super();
         mActivity = activity;
-
-        WifiManager wifi = (WifiManager) mActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        // Check if Wifi service on system is enabled
-        assert wifi != null;
-        if (wifi.isWifiEnabled()) {
-            // Initialize Wifi direct components
-            mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
-            mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
-        } else {
-            try {
-                Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
-                Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
-                mActivity.startActivityForResult(intent, ENABLE_REQUEST_WIFI);
-            } catch (Exception e) {
-                Log.e(TAG, String.valueOf(e));
-                Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
-            }
-        }
 
         IntentFilter mIntentFilter = new IntentFilter();
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -106,31 +87,46 @@ public class WifiDirectHelper extends BroadcastReceiver {
         mAdapterWifi = adapter;
     }
 
-    // Set the service record information and start thr service
+    // Set the service record information and startService thr service
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void startService(Map<String, String> record) {
-        WifiP2pDnsSdServiceInfo mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);
-        // Add the local service, sending the service info, network channel and listener
-        mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // Command successful! Code isn't necessarily needed here,
-                Toast.makeText(mActivity, "Registration success", Toast.LENGTH_SHORT).show();
-                discoverService();
-            }
 
-            @Override
-            public void onFailure(int arg0) {
-                // Command failed.
-                Toast.makeText(mActivity, "Registration failed", Toast.LENGTH_SHORT).show();
-            }
-        });
+        WifiManager wifi = (WifiManager) mActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        // Check if Wifi service on system is enabled
+        assert wifi != null;
+        if (!wifi.isWifiEnabled()) {
+            Toast.makeText(mActivity, "Please enable the WiFi", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
+            mActivity.startActivityForResult(intent, ENABLE_REQUEST_WIFI);
+        } else {
+            // Initialize Wifi direct components
+            mManager = (WifiP2pManager) mActivity.getSystemService(Context.WIFI_P2P_SERVICE);
+            mChannel = mManager.initialize(mActivity, mActivity.getMainLooper(), null);
+
+            WifiP2pDnsSdServiceInfo mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance("_connect", "_presence._tcp", record);
+            // Add the local service, sending the service info, network channel and listener
+            mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    // Command successful! Code isn't necessarily needed here,
+                    Toast.makeText(mActivity, "Registration success", Toast.LENGTH_SHORT).show();
+                    discoverService();
+                }
+
+                @Override
+                public void onFailure(int arg0) {
+                    // Command failed.
+                    Toast.makeText(mActivity, "Registration failed", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     // Close all registered services related to Wifi Direct
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void stopService() {
         mActivity.unregisterReceiver(this);
+        assert mManager != null;
         mManager.stopPeerDiscovery(mChannel, null);
         mManager.clearLocalServices(mChannel, null);
         mManager.clearServiceRequests(mChannel, null);

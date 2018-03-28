@@ -40,7 +40,6 @@ public class NetworkActivity extends AppCompatActivity {
 
     // Initially bind all views
     private void bindViews() {
-
         final TextView welcomeView = findViewById(R.id.welcome_view);
         welcomeView.setText(R.string.hint_network);
 

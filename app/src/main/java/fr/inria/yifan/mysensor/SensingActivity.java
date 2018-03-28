@@ -22,6 +22,7 @@ import fr.inria.yifan.mysensor.Support.ContextHelper;
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
+import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
 
 /*
@@ -30,7 +31,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
 
 public class SensingActivity extends AppCompatActivity {
 
-    private static final String TAG = "Sound activity";
+    private static final String TAG = "Sensing activity";
 
     // Thread locker and running flag
     private final Object mLock;
@@ -48,7 +49,7 @@ public class SensingActivity extends AppCompatActivity {
     private FilesIOHelper mFilesIOHelper;
     private ArrayList<String> mSensingData;
 
-    // Sensors helper for sensor and GPS
+    // Sensors helper for sensor and context
     private SensorsHelper mSensorHelper;
     private ContextHelper mContextHelper;
 
@@ -79,8 +80,8 @@ public class SensingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mAdapterSensing.clear();
                 mAdapterSensing.add("Timestamp, daytime, light density (lx), magnetic strength (μT), " +
-                        "GSM RSSI (dBm), GPS accuracy (m), proximity (bit), sound level (dB), " +
-                        "temperature (C), pressure (hPa), humidity (%)");
+                        "GSM RSSI (dBm), GPS accuracy (m), GPS speed (m/s), proximity (bit), " +
+                        "sound level (dB), temperature (C), pressure (hPa), humidity (%)");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
@@ -113,7 +114,10 @@ public class SensingActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (mSensorHelper != null) {
-            mSensorHelper.start();
+            mSensorHelper.startService();
+        }
+        if (mContextHelper != null) {
+            mContextHelper.startService();
         }
     }
 
@@ -123,7 +127,10 @@ public class SensingActivity extends AppCompatActivity {
         isGetSenseRun = false;
         super.onPause();
         if (mSensorHelper != null) {
-            mSensorHelper.stop();
+            mSensorHelper.stopService();
+        }
+        if (mContextHelper != null) {
+            mContextHelper.stopService();
         }
     }
 
@@ -133,7 +140,7 @@ public class SensingActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing and recording");
             return;
         }
-        mSensorHelper.start();
+        mSensorHelper.startService();
         isGetSenseRun = true;
         mSenseRound = 0;
         new Thread(new Runnable() {
@@ -148,7 +155,8 @@ public class SensingActivity extends AppCompatActivity {
                                     mSensorHelper.getLightDensity() + ", " +
                                     mSensorHelper.getMagnet() + ", " +
                                     mContextHelper.getRssiDbm() + ", " +
-                                    mSensorHelper.getLocation().getAccuracy() + ", " +
+                                    mContextHelper.getLocation().getAccuracy() + ", " +
+                                    mContextHelper.getLocation().getSpeed() + ", " +
                                     mSensorHelper.getProximity() + ", " +
                                     mSensorHelper.getSoundLevel() + ", " +
                                     mSensorHelper.getTemperature() + ", " +
@@ -156,7 +164,7 @@ public class SensingActivity extends AppCompatActivity {
                                     mSensorHelper.getHumidity());
                             mSenseRound += 1;
                             mWelcomeView.setText(String.valueOf(mSenseRound));
-                            Log.d(TAG, String.valueOf(mSenseRound));
+                            //Log.d(TAG, String.valueOf(mSenseRound));
                         }
                     });
                     // sample times per second
@@ -174,7 +182,7 @@ public class SensingActivity extends AppCompatActivity {
 
     // Stop the sound sensing
     private void stopRecord() {
-        mSensorHelper.stop();
+        mSensorHelper.stopService();
         isGetSenseRun = false;
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -220,6 +228,16 @@ public class SensingActivity extends AppCompatActivity {
         goToNetwork.setClass(this, NetworkActivity.class);
         startActivity(goToNetwork);
         finish();
+    }
+
+    // Callback for user enabling GPS switch
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case ENABLE_REQUEST_LOCATION: {
+                mContextHelper.startService();
+            }
+        }
     }
 
 }

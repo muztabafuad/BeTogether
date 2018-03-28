@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import fr.inria.yifan.mysensor.Support.ContextHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
@@ -40,8 +41,9 @@ public class DetectionActivity extends AppCompatActivity {
     private Button mStartButton;
     private Button mStopButton;
 
-    // Sensors helper for sensor and GPS
+    // Sensors helper for sensor and context
     private SensorsHelper mSensorHelper;
+    private ContextHelper mContextHelper;
 
     // Constructor initializes locker
     public DetectionActivity() {
@@ -91,6 +93,7 @@ public class DetectionActivity extends AppCompatActivity {
     }
 
     // Main activity initialization
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,6 +101,7 @@ public class DetectionActivity extends AppCompatActivity {
         bindViews();
         cleanView();
         mSensorHelper = new SensorsHelper(this);
+        mContextHelper = new ContextHelper(this);
     }
 
     // Resume the sensing service
@@ -105,7 +109,10 @@ public class DetectionActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (mSensorHelper != null) {
-            mSensorHelper.start();
+            mSensorHelper.startService();
+        }
+        if (mContextHelper != null) {
+            mContextHelper.startService();
         }
     }
 
@@ -115,7 +122,10 @@ public class DetectionActivity extends AppCompatActivity {
         isSensingRun = false;
         super.onPause();
         if (mSensorHelper != null) {
-            mSensorHelper.stop();
+            mSensorHelper.stopService();
+        }
+        if (mContextHelper != null) {
+            mContextHelper.stopService();
         }
     }
 
@@ -126,7 +136,7 @@ public class DetectionActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing state");
             return;
         }
-        mSensorHelper.start();
+        mSensorHelper.startService();
         isSensingRun = true;
         new Thread(new Runnable() {
             @Override
@@ -153,7 +163,7 @@ public class DetectionActivity extends AppCompatActivity {
                                 mIndoorView.setText("Detection result: Out-door");
                             }
 
-                            Location location = mSensorHelper.getLocation();
+                            Location location = mContextHelper.getLocation();
                             if (location != null) {
                                 String loc = "Current location information：\n" +
                                         " - Longitude：" + location.getLongitude() + "\n" +
@@ -182,9 +192,9 @@ public class DetectionActivity extends AppCompatActivity {
 
     // Stop the sensing detection
     private void stopSensing() {
-        mSensorHelper.stop();
+        mSensorHelper.stopService();
         isSensingRun = false;
-        cleanView();
+        //cleanView();
     }
 
     // Go to the sensing activity
@@ -208,7 +218,7 @@ public class DetectionActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_LOCATION: {
-                mSensorHelper.start();
+                mContextHelper.startService();
             }
         }
     }
