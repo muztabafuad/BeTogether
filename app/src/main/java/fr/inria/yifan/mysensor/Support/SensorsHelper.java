@@ -1,31 +1,18 @@
 package fr.inria.yifan.mysensor.Support;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.GpsSatellite;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.os.Bundle;
-import android.provider.Settings;
-import android.util.Log;
-import android.widget.Toast;
 
 import java.util.Calendar;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
-import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
-import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
 
@@ -51,7 +38,6 @@ public class SensorsHelper {
     private Sensor mSensorHumid;
     private Sensor mSensorMagnet;
     private SensorManager mSensorManager;
-    private LocationManager mLocationManager;
 
     // Declare sensing variables
     private float mLight;
@@ -60,7 +46,6 @@ public class SensorsHelper {
     private float mPressure;
     private float mHumidity;
     private float mMagnet;
-    private Location mLocation;
 
     // Declare light sensor listener
     private SensorEventListener mListenerLight = new SensorEventListener() {
@@ -140,30 +125,6 @@ public class SensorsHelper {
         }
     };
 
-    // Declare location service listener
-    private LocationListener mListenerLoc = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-            mLocation = location;
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            //PASS
-        }
-
-        @SuppressLint("MissingPermission")
-        @Override
-        public void onProviderEnabled(String provider) {
-            mLocation = mLocationManager.getLastKnownLocation(provider);
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-            //PASS
-        }
-    };
-
     // Register the broadcast receiver with the intent values to be matched
     public SensorsHelper(Activity activity) {
         mActivity = activity;
@@ -180,43 +141,29 @@ public class SensorsHelper {
         mSensorTemp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
         mSensorPress = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
-
-        mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
     }
 
     // Check if location service on system is enabled
-    @SuppressLint("MissingPermission")
-    public void start() {
+    public void startService() {
         mLight = 0;
+        mMagnet = 0;
         mProximity = 0;
         mTemperature = 0;
         mPressure = 0;
         mHumidity = 0;
-        mMagnet = 0;
-        mLocation = new Location("null");
 
         mAudioRecord.startRecording();
         // Register listeners for all environmental sensors
-        mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerMagnet, mSensorMagnet, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerTemp, mSensorTemp, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerPress, mSensorPress, SensorManager.SENSOR_DELAY_UI);
-        mSensorManager.registerListener(mListenerHumid, mSensorHumid, SensorManager.SENSOR_DELAY_UI);
-
-        // Check GPS enable switch
-        if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            // Start GPS and location service
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_UPDATE_TIME, LOCATION_UPDATE_DISTANCE, mListenerLoc);
-        } else {
-            Toast.makeText(mActivity, "Please enable the GPS", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            mActivity.startActivityForResult(intent, ENABLE_REQUEST_LOCATION);
-        }
+        mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_FASTEST);
+        mSensorManager.registerListener(mListenerMagnet, mSensorMagnet, SensorManager.SENSOR_DELAY_FASTEST);
+        mSensorManager.registerListener(mListenerProxy, mSensorProxy, SensorManager.SENSOR_DELAY_FASTEST);
+        mSensorManager.registerListener(mListenerTemp, mSensorTemp, SensorManager.SENSOR_DELAY_FASTEST);
+        mSensorManager.registerListener(mListenerPress, mSensorPress, SensorManager.SENSOR_DELAY_FASTEST);
+        mSensorManager.registerListener(mListenerHumid, mSensorHumid, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     // Unregister the broadcast receiver and listeners
-    public void stop() {
+    public void stopService() {
         mAudioRecord.stop();
         mSensorManager.unregisterListener(mListenerLight);
         mSensorManager.unregisterListener(mListenerMagnet);
@@ -224,7 +171,6 @@ public class SensorsHelper {
         mSensorManager.unregisterListener(mListenerTemp);
         mSensorManager.unregisterListener(mListenerPress);
         mSensorManager.unregisterListener(mListenerHumid);
-        mLocationManager.removeUpdates(mListenerLoc);
     }
 
     // Get the most recent sound level
@@ -299,15 +245,5 @@ public class SensorsHelper {
         } else {
             return mLight > 10;
         }
-    }
-
-    // Get location information from GPS
-    @SuppressLint("MissingPermission")
-    public Location getLocation() {
-        for (GpsSatellite satellite : mLocationManager.getGpsStatus(null).getSatellites()) {
-            Log.d(TAG, satellite.toString());
-        }
-        //Log.d(TAG, "Location information: " + mLocation);
-        return mLocation;
     }
 }
