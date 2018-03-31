@@ -20,6 +20,8 @@ import android.util.ArrayMap;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
+
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
@@ -45,6 +47,8 @@ public class ContextHelper {
     private boolean isInDoor;
     private ArrayMap<Sensor, Boolean> sensorArray;
     private Location mLocation;
+
+    private TensorFlowInferenceInterface inferenceInterface;
 
     // Declare GSM RSSI state listener
     private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
@@ -101,6 +105,8 @@ public class ContextHelper {
         //int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         //int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
         //float batteryPct = level / (float) scale;
+
+        //inferenceInterface = new TensorFlowInferenceInterface(mActivity.getAssets(), MODEL_FILE);
     }
 
 
