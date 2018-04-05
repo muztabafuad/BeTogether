@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class Configuration implements Serializable {
 
     // Parameters for sensing sampling
-    public static final int SAMPLE_DELAY_IN_MS = 100;
+    public static final int SAMPLE_DELAY_IN_MS = 200;
     // Permission request indicator code
     public static final int PERMS_REQUEST_RECORD = 1000;
     public static final int PERMS_REQUEST_STORAGE = 1001;
@@ -25,11 +25,11 @@ public class Configuration implements Serializable {
     // Minimum distance between location updates (meters)
     static final int LOCATION_UPDATE_DISTANCE = 5;
     // Storage path for the sensing data file
-    static final String STORAGE_FILE_PATH = "/Download";
+    static final String STORAGE_FILE_PATH = "/Download/MySensor";
 
     // For sound level calibration, initially 0, 1
     static final double INTERCEPT = 0;
     static final double SLOPE = 1;
-
+    // Load the TensorFlow model file from this path
     public static final String MODEL_FILE = "file:///android_asset/optimized_tfdroid.pb";
 }
