@@ -147,7 +147,7 @@ public class SensorsHelper {
     public void startService() {
         mLight = 0;
         mMagnet = 0;
-        mProximity = 0;
+        mProximity = 1;
         mTemperature = 0;
         mPressure = 0;
         mHumidity = 0;
