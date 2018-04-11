@@ -1,16 +1,27 @@
 package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
+import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import java.util.List;
 
@@ -21,8 +32,8 @@ import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCAT
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
 
 /*
-* This activity provides functions including in-pocket detection and GPS location service.
-*/
+ * This activity provides functions including in-pocket detection and GPS location service.
+ */
 
 public class DetectionActivity extends AppCompatActivity {
 
@@ -93,6 +104,7 @@ public class DetectionActivity extends AppCompatActivity {
     }
 
     // Main activity initialization
+    @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +114,43 @@ public class DetectionActivity extends AppCompatActivity {
         cleanView();
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
+
+        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
+        // Get the last known location
+        client.getLastLocation().addOnCompleteListener(this, new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                Log.d(TAG, String.valueOf(task.getResult()));
+            }
+        });
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this, "channel")
+                        .setContentTitle("My notification")
+                        .setContentText("Hello World!");
+// Creates an explicit intent for an Activity in your app
+        Intent resultIntent = new Intent(this, DetectionActivity.class);
+
+// The stack builder object will contain an artificial back stack for the
+// started Activity.
+// This ensures that navigating backward from the Activity leads out of
+// your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+// Adds the back stack for the Intent (but not the Intent itself)
+        stackBuilder.addParentStack(DetectionActivity.class);
+// Adds the Intent that starts the Activity to the top of the stack
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// mId allows you to update the notification later on.
+        assert mNotificationManager != null;
+        mNotificationManager.notify(0, mBuilder.build());
+
     }
 
     // Resume the sensing service
