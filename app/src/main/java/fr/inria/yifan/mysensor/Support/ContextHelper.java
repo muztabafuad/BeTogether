@@ -1,9 +1,11 @@
 package fr.inria.yifan.mysensor.Support;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.location.GpsSatellite;
 import android.location.Location;
@@ -13,6 +15,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.telephony.CellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -21,6 +25,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
+
+import java.util.List;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
@@ -55,7 +61,7 @@ public class ContextHelper {
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
             rssiDbm = signalStrength.getGsmSignalStrength() * 2 - 113; // -> dBm
-            Log.d(TAG, String.valueOf(rssiDbm));
+            //Log.d(TAG, String.valueOf(rssiDbm));
         }
     };
 
@@ -83,6 +89,7 @@ public class ContextHelper {
         }
     };
 
+    @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public ContextHelper(Activity activity) {
         mActivity = activity;
@@ -90,6 +97,12 @@ public class ContextHelper {
 
         mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
+        List<CellInfo> cellList = mTelephonyManager.getAllCellInfo();
+        /*
+        for(CellInfo cellInfo: cellList){
+            Log.d(TAG, String.valueOf(cellInfo));
+        }
+        */
 
         //IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         //Intent batteryStatus = mActivity.registerReceiver(null, filter);

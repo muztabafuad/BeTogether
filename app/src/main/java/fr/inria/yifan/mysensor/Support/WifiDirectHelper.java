@@ -126,10 +126,11 @@ public class WifiDirectHelper extends BroadcastReceiver {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void stopService() {
         mActivity.unregisterReceiver(this);
-        assert mManager != null;
-        mManager.stopPeerDiscovery(mChannel, null);
-        mManager.clearLocalServices(mChannel, null);
-        mManager.clearServiceRequests(mChannel, null);
+        if(mManager != null && mChannel != null){
+            mManager.stopPeerDiscovery(mChannel, null);
+            mManager.clearLocalServices(mChannel, null);
+            mManager.clearServiceRequests(mChannel, null);
+        }
     }
 
     // Start to discovery neighbors for services
