@@ -1,27 +1,16 @@
 package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
-import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 
 import java.util.List;
 
@@ -48,7 +37,7 @@ public class DetectionActivity extends AppCompatActivity {
     private TextView mLightView;
     private TextView mPocketView;
     private TextView mLocationView;
-    private TextView mIndoorView;
+    private TextView mActivityView;
     private Button mStartButton;
     private Button mStopButton;
 
@@ -69,7 +58,7 @@ public class DetectionActivity extends AppCompatActivity {
         mProximityView = findViewById(R.id.proximity_view);
         mLightView = findViewById(R.id.light_view);
         mPocketView = findViewById(R.id.pocket_view);
-        mIndoorView = findViewById(R.id.indoor_view);
+        mActivityView = findViewById(R.id.activity_view);
         mLocationView = findViewById(R.id.location_view);
         mStartButton = findViewById(R.id.start_button);
         mStopButton = findViewById(R.id.stop_button);
@@ -99,12 +88,11 @@ public class DetectionActivity extends AppCompatActivity {
         mProximityView.setText(null);
         mLightView.setText(null);
         mPocketView.setText(null);
-        mIndoorView.setText(null);
+        mActivityView.setText(null);
         mLocationView.setText(null);
     }
 
     // Main activity initialization
-    @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,43 +102,6 @@ public class DetectionActivity extends AppCompatActivity {
         cleanView();
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
-
-        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
-        // Get the last known location
-        client.getLastLocation().addOnCompleteListener(this, new OnCompleteListener<Location>() {
-            @Override
-            public void onComplete(@NonNull Task<Location> task) {
-                Log.d(TAG, String.valueOf(task.getResult()));
-            }
-        });
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this, "channel")
-                        .setContentTitle("My notification")
-                        .setContentText("Hello World!");
-// Creates an explicit intent for an Activity in your app
-        Intent resultIntent = new Intent(this, DetectionActivity.class);
-
-// The stack builder object will contain an artificial back stack for the
-// started Activity.
-// This ensures that navigating backward from the Activity leads out of
-// your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-// Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(DetectionActivity.class);
-// Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-        mBuilder.setContentIntent(resultPendingIntent);
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-// mId allows you to update the notification later on.
-        assert mNotificationManager != null;
-        mNotificationManager.notify(0, mBuilder.build());
-
     }
 
     // Resume the sensing service
@@ -205,13 +156,7 @@ public class DetectionActivity extends AppCompatActivity {
                             } else {
                                 mPocketView.setText("Detection result: Out-pocket");
                             }
-
-                            if (mSensorHelper.isInDoor()) {
-                                mIndoorView.setText("Detection result: In-door");
-                            } else {
-                                mIndoorView.setText("Detection result: Out-door");
-                            }
-
+                            mActivityView.setText(mContextHelper.getUserActivity());
                             Location location = mContextHelper.getLocation();
                             if (location != null) {
                                 String loc = "Current location information：\n" +

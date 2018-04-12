@@ -1,11 +1,12 @@
 package fr.inria.yifan.mysensor.Support;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.location.GpsSatellite;
 import android.location.Location;
@@ -15,8 +16,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.telephony.CellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -24,9 +23,11 @@ import android.util.ArrayMap;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityRecognitionClient;
+import com.google.android.gms.location.ActivityRecognitionResult;
 
-import java.util.List;
+import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
@@ -36,7 +37,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME
  * This class represents the context map set of a sensing device.
  */
 
-public class ContextHelper {
+public class ContextHelper extends BroadcastReceiver {
 
     private static final String TAG = "Device context";
 
@@ -48,13 +49,15 @@ public class ContextHelper {
     // Declare all contexts
     private int rssiDbm;
     private float hasBattery;
-    private long locationTime;
-    private boolean isInPocket;
-    private boolean isInDoor;
+    private long localTime;
+    private boolean inPocket;
+    private boolean inDoor;
+    private boolean underGround;
     private ArrayMap<Sensor, Boolean> sensorArray;
     private Location mLocation;
+    private String userActivity;
 
-    private TensorFlowInferenceInterface inferenceInterface;
+    //private TensorFlowInferenceInterface inferenceInterface;
 
     // Declare GSM RSSI state listener
     private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
@@ -97,7 +100,8 @@ public class ContextHelper {
 
         mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
-        List<CellInfo> cellList = mTelephonyManager.getAllCellInfo();
+
+        //List<CellInfo> cellList = mTelephonyManager.getAllCellInfo();
         /*
         for(CellInfo cellInfo: cellList){
             Log.d(TAG, String.valueOf(cellInfo));
@@ -122,10 +126,18 @@ public class ContextHelper {
         //inferenceInterface = new TensorFlowInferenceInterface(mActivity.getAssets(), MODEL_FILE);
     }
 
-
     // Start the context service
     @SuppressLint("MissingPermission")
     public void startService() {
+        rssiDbm = 0;
+        hasBattery = 0;
+        localTime = 0;
+        inPocket = false;
+        inDoor = false;
+        underGround =false;
+        mLocation = null;
+        userActivity = null;
+
         assert mTelephonyManager != null;
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
 
@@ -139,11 +151,18 @@ public class ContextHelper {
             Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             mActivity.startActivityForResult(intent, ENABLE_REQUEST_LOCATION);
         }
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, 1,
+                new Intent("ActivityRecognitionResult"), PendingIntent.FLAG_UPDATE_CURRENT);
+        ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(mActivity);
+        activityRecognitionClient.requestActivityUpdates(LOCATION_UPDATE_TIME, pendingIntent);
+        mActivity.registerReceiver(this, new IntentFilter("ActivityRecognitionResult"));
     }
 
     // Unregister the listeners
     public void stopService() {
         mLocationManager.removeUpdates(mListenerLoc);
+        mActivity.unregisterReceiver(this);
     }
 
     // Get the most recent RSSI
@@ -159,5 +178,20 @@ public class ContextHelper {
         }
         //Log.d(TAG, "Location information: " + mLocation);
         return mLocation;
+    }
+
+    // Get the most recent user activity
+    public String getUserActivity(){
+        return userActivity;
+    }
+
+    // Intent receiver for activity recognition result callback
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (ActivityRecognitionResult.hasResult(intent)) {
+            ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
+            userActivity = result.getMostProbableActivity().toString();
+            //Log.e(TAG, "Received intent: " + result.getMostProbableActivity().toString());
+        }
     }
 }
