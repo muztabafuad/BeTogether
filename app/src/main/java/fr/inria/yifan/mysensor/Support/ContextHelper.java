@@ -48,11 +48,11 @@ public class ContextHelper extends BroadcastReceiver {
 
     // Declare all contexts
     private int rssiDbm;
-    private float hasBattery;
-    private long localTime;
-    private boolean inPocket;
-    private boolean inDoor;
-    private boolean underGround;
+    //private float hasBattery;
+    //private long localTime;
+    //private boolean inPocket;
+    //private boolean inDoor;
+    //private boolean underGround;
     private ArrayMap<Sensor, Boolean> sensorArray;
     private Location mLocation;
     private String userActivity;
@@ -96,6 +96,14 @@ public class ContextHelper extends BroadcastReceiver {
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public ContextHelper(Activity activity) {
         mActivity = activity;
+
+        rssiDbm = 0;
+        //hasBattery = 0;
+        //localTime = 0;
+        //inPocket = false;
+        //inDoor = false;
+        //underGround =false;
+        userActivity = null;
         mLocation = new Location("null");
 
         mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
@@ -129,14 +137,6 @@ public class ContextHelper extends BroadcastReceiver {
     // Start the context service
     @SuppressLint("MissingPermission")
     public void startService() {
-        rssiDbm = 0;
-        hasBattery = 0;
-        localTime = 0;
-        inPocket = false;
-        inDoor = false;
-        underGround =false;
-        mLocation = null;
-        userActivity = null;
 
         assert mTelephonyManager != null;
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
