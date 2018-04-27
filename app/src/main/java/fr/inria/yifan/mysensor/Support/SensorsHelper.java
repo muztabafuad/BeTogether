@@ -223,10 +223,10 @@ public class SensorsHelper {
     }
 
     // Detection in daytime or night
-    public boolean isDaytime() {
+    public int isDaytime() {
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
-        return hour > 6 && hour < 18;
+        return (hour > 6 && hour < 18) ? 1 : 0;
     }
 
     // Simple In/Out-pocket detection function
@@ -240,7 +240,7 @@ public class SensorsHelper {
     public boolean isInDoor() {
         //Toast.makeText(this, "Indoor", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "Outdoor", Toast.LENGTH_SHORT).show();
-        if (isDaytime()) {
+        if (isDaytime() == 1) {
             return mLight < 1500;
         } else {
             return mLight > 10;

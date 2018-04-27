@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor;
+package fr.inria.yifan.mysensor.Backup;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -9,6 +9,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
+
+import fr.inria.yifan.mysensor.R;
 
 public class MainActivity extends AppCompatActivity {
 
