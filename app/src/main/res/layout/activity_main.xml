@@ -8,7 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="fr.inria.yifan.mysensor.Backup.MainActivity">
+    tools:context="fr.inria.yifan.mysensor.TestBackup.MainActivity">
 
     <EditText
         android:id="@+id/editNum1"
@@ -22,7 +22,7 @@
         android:layout_marginTop="24dp"
         android:ems="10"
         android:inputType="textPersonName"
-        android:text="2.3"
+        android:text="0"
         tools:ignore="HardcodedText,LabelFor" />
 
     <EditText
@@ -34,7 +34,7 @@
         android:layout_centerHorizontal="true"
         android:ems="10"
         android:inputType="textPersonName"
-        android:text="33"
+        android:text="0"
         tools:ignore="HardcodedText,LabelFor" />
 
     <Button
@@ -70,6 +70,6 @@
         android:layout_toRightOf="@+id/editNum2"
         android:ems="10"
         android:inputType="textPersonName"
-        android:text="12"
+        android:text="0"
         tools:ignore="HardcodedText,LabelFor" />
 </RelativeLayout>

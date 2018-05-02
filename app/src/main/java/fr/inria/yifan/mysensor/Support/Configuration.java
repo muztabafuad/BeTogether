@@ -30,6 +30,7 @@ public class Configuration implements Serializable {
     // For sound level calibration, initially 0, 1
     static final double INTERCEPT = 0;
     static final double SLOPE = 1;
-    // Load the TensorFlow model file from this path
-    public static final String MODEL_FILE = "file:///android_asset/optimized_tfdroid.pb";
+
+    // Load the AdaBoost model file from this path
+    public static final String MODEL_FILE = "AdaBoost.model";
 }

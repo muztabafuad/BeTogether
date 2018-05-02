@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Backup;
+package fr.inria.yifan.mysensor.TestBackup;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
@@ -8,31 +8,23 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
-
+import fr.inria.yifan.mysensor.Inference.InferHelper;
 import fr.inria.yifan.mysensor.R;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String MODEL_FILE = "file:///android_asset/optimized_tfdroid.pb";
     private static final String INPUT_NODE = "I";
     private static final String OUTPUT_NODE = "O";
 
     private static final int[] INPUT_SIZE = {1, 3};
-
-    static {
-        System.loadLibrary("tensorflow_inference");
-    }
-
-    private TensorFlowInferenceInterface inferenceInterface;
+    private InferHelper inferHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        inferenceInterface = new TensorFlowInferenceInterface();
-        inferenceInterface.initializeTensorFlow(getAssets(), MODEL_FILE);
+        inferHelper = new InferHelper(this);
 
         final Button button = findViewById(R.id.button);
 
@@ -50,12 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
                 float[] inputFloats = {num1, num2, num3};
 
-                inferenceInterface.fillNodeFloat(INPUT_NODE, INPUT_SIZE, inputFloats);
-
-                inferenceInterface.runInference(new String[]{OUTPUT_NODE});
-
                 float[] resu = {0, 0};
-                inferenceInterface.readNodeFloat(OUTPUT_NODE, resu);
 
                 final TextView textViewR = findViewById(R.id.txtViewResult);
                 textViewR.setText(Float.toString(resu[0]) + ", " + Float.toString(resu[1]));
