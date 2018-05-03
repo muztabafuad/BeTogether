@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class AdaBoost implements Serializable {
 
     private static final String TAG = "AdaBoost";
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1000L;
 
     // Weak learners and respective weights
     private int numLearn; // Number of weak learners (classifiers)

@@ -29,6 +29,8 @@ import com.google.android.gms.location.ActivityRecognitionResult;
 
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
+import java.util.Calendar;
+
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
@@ -183,6 +185,13 @@ public class ContextHelper extends BroadcastReceiver {
     // Get the most recent user activity
     public String getUserActivity(){
         return userActivity;
+    }
+
+    // Detection in daytime or night
+    public int isDaytime() {
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        return (hour > 6 && hour < 18) ? 1 : 0;
     }
 
     // Intent receiver for activity recognition result callback

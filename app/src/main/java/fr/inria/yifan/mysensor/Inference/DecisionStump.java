@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class DecisionStump implements Serializable {
 
     private static final String TAG = "Decision stump";
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1001L;
 
     private double error; // Minimal error of prediction
     private int index; // Index of feature attribute

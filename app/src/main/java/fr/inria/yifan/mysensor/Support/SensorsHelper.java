@@ -10,8 +10,6 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 
-import java.util.Calendar;
-
 import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
@@ -222,22 +220,15 @@ public class SensorsHelper {
         return mMagnet;
     }
 
-    // Detection in daytime or night
-    public int isDaytime() {
-        Calendar cal = Calendar.getInstance();
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        return (hour > 6 && hour < 18) ? 1 : 0;
-    }
-
     // Simple In/Out-pocket detection function
-    public boolean isInPocket() {
+    /*public boolean isInPocket() {
         //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "Out-pocket", Toast.LENGTH_SHORT).show();
         return mProximity == 0 && mLight < 10;
-    }
+    }*/
 
     // Simple Indoor/Outdoor detection function
-    public boolean isInDoor() {
+    /*public boolean isInDoor() {
         //Toast.makeText(this, "Indoor", Toast.LENGTH_SHORT).show();
         //Toast.makeText(this, "Outdoor", Toast.LENGTH_SHORT).show();
         if (isDaytime() == 1) {
@@ -245,5 +236,5 @@ public class SensorsHelper {
         } else {
             return mLight > 10;
         }
-    }
+    }*/
 }

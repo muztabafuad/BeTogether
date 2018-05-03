@@ -151,7 +151,7 @@ public class SensingActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             mAdapterSensing.add(System.currentTimeMillis() + ", " +
-                                    mSensorHelper.isDaytime() + ", " +
+                                    mContextHelper.isDaytime() + ", " +
                                     mSensorHelper.getLightDensity() + ", " +
                                     mSensorHelper.getMagnet() + ", " +
                                     mContextHelper.getRssiDbm() + ", " +

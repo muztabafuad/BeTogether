@@ -32,5 +32,7 @@ public class Configuration implements Serializable {
     static final double SLOPE = 1;
 
     // Load the AdaBoost model file from this path
-    public static final String MODEL_FILE = "AdaBoost.model";
+    public static final String MODEL_POCKET = "AdaBoostPocket.model";
+    public static final String MODEL_INDOOR = "AdaBoostIndoor.model";
+    public static final String MODEL_UNDERGROUND = "AdaBoostUnderground.model";
 }

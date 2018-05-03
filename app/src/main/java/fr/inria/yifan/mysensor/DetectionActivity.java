@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import fr.inria.yifan.mysensor.Inference.InferHelper;
 import fr.inria.yifan.mysensor.Support.ContextHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
@@ -44,6 +45,7 @@ public class DetectionActivity extends AppCompatActivity {
     // Sensors helper for sensor and context
     private SensorsHelper mSensorHelper;
     private ContextHelper mContextHelper;
+    private InferHelper mInferHelper;
 
     // Constructor initializes locker
     public DetectionActivity() {
@@ -102,6 +104,7 @@ public class DetectionActivity extends AppCompatActivity {
         cleanView();
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
+        mInferHelper = new InferHelper(this);
     }
 
     // Resume the sensing service
@@ -150,25 +153,27 @@ public class DetectionActivity extends AppCompatActivity {
                             float light = mSensorHelper.getLightDensity();
                             mProximityView.setText("Proximity：" + proximity + " in binary (near or far).");
                             mLightView.setText("Light：" + light + " of " + " in lux units.");
+                            Location location = mContextHelper.getLocation();
 
-                            if (mSensorHelper.isInPocket()) {
-                                mPocketView.setText("Detection result: In-pocket");
+                            // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
+                            double[] sample = new double[]{mContextHelper.isDaytime(), light, mSensorHelper.getMagnet(),
+                                    mContextHelper.getRssiDbm(), location.getAccuracy(), location.getSpeed(), proximity};
+                            if (mInferHelper.InferPocket(sample) == 1) {
+                                mPocketView.setText("Inference result: In-pocket");
                             } else {
-                                mPocketView.setText("Detection result: Out-pocket");
+                                mPocketView.setText("Inference result: Out-pocket");
                             }
                             mActivityView.setText(mContextHelper.getUserActivity());
-                            Location location = mContextHelper.getLocation();
-                            if (location != null) {
-                                String loc = "Current location information：\n" +
-                                        " - Longitude：" + location.getLongitude() + "\n" +
-                                        " - Latitude：" + location.getLatitude() + "\n" +
-                                        " - Altitude：" + location.getAltitude() + "\n" +
-                                        " - Speed：" + location.getSpeed() + "\n" +
-                                        " - Bearing：" + location.getBearing() + "\n" +
-                                        " - Accuracy：" + location.getAccuracy() + "\n" +
-                                        " - Time：" + location.getTime();
-                                mLocationView.setText(loc);
-                            }
+
+                            String loc = "Current location information：\n" +
+                                    " - Longitude：" + location.getLongitude() + "\n" +
+                                    " - Latitude：" + location.getLatitude() + "\n" +
+                                    " - Altitude：" + location.getAltitude() + "\n" +
+                                    " - Speed：" + location.getSpeed() + "\n" +
+                                    " - Bearing：" + location.getBearing() + "\n" +
+                                    " - Accuracy：" + location.getAccuracy() + "\n" +
+                                    " - Time：" + location.getTime();
+                            mLocationView.setText(loc);
                         }
                     });
                     // sample times per second
