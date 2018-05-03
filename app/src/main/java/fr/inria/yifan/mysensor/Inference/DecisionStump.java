@@ -17,8 +17,8 @@ public class DecisionStump implements Serializable {
     private double threshold; // Threshold value
     private double stepValue; // Threshold steps
 
+    // Something for constructor
     DecisionStump() {
-        // Something for constructor
         error = Double.MAX_VALUE;
         index = 0;
         operation = ' ';
@@ -26,6 +26,7 @@ public class DecisionStump implements Serializable {
         stepValue = 0d;
     }
 
+    // Search best decision stump from large samples
     public void BatchTrain(double[][] samples, double[] weight, int[] featureInd, int stepNum) {
         // Iteration for each possible feature
         for (int i : featureInd) {
@@ -72,6 +73,7 @@ public class DecisionStump implements Serializable {
         // Here the decision stump is found
     }
 
+    // The simple adjusting for threshold
     public void UpdateThreshold(double[] sample) {
         double temp = threshold;
         threshold = sample[index];
@@ -82,6 +84,7 @@ public class DecisionStump implements Serializable {
         }
     }
 
+    // The online AdaBoost method for update
     public void PoissonUpdate(double[] sample) {
         switch (operation) {
             case '<':
@@ -95,6 +98,7 @@ public class DecisionStump implements Serializable {
         }
     }
 
+    // Predict for one new sample
     public int Predict(double[] features) {
         switch (operation) {
             case '<':
@@ -106,10 +110,12 @@ public class DecisionStump implements Serializable {
         }
     }
 
+    // Get the error for this decision stump
     public double getError() {
         return error;
     }
 
+    // Upfate the error for this decision stump
     public void setError(double err) {
         error = err;
     }

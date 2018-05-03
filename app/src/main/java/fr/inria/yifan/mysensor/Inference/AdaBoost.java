@@ -18,6 +18,7 @@ public class AdaBoost implements Serializable {
     private DecisionStump[] dStumps; // An array of decision stumps
     private double[] alphas; // Alpha coefficient for each decision stump
 
+    // Initialization
     AdaBoost(int numLearner, int[] featureInd, int stepLearn) {
         numLearn = numLearner;
         features = featureInd;
@@ -26,6 +27,7 @@ public class AdaBoost implements Serializable {
         alphas = new double[numLearn];
     }
 
+    // Train model from a large samples array
     public void BatchTrain(double[][] samples) {
         // Initial the weights for all samples
         double[] weight = new double[samples.length];
@@ -49,7 +51,8 @@ public class AdaBoost implements Serializable {
         }
     }
 
-    public void OnlineUpdate(double[] sample) {
+    // Greedy update from one new sample
+    public void GreedyUpdate(double[] sample) {
         // Train all weak learners
         for (int i = 0; i < numLearn; i++) {
             // Found wrong predictor
@@ -59,7 +62,8 @@ public class AdaBoost implements Serializable {
         }
     }
 
-    public void PoissonUpdate(double[] sample) {
+    // Online AdaBoost from one new sample
+    public void OnlineUpdate(double[] sample) {
         double lambda = 1d;
         // Train all weak learners
         for (int i = 0; i < numLearn; i++) {
@@ -72,19 +76,18 @@ public class AdaBoost implements Serializable {
             if (dStumps[i].Predict(sample) == sample[sample.length - 1]) {
                 lambda_right = lambda_right + lambda;
                 double epsilon = lambda_wrong / (lambda_right + lambda_wrong);
-                dStumps[i].setError(epsilon);
                 lambda = lambda * (1 / (2 - 2 * epsilon));
                 alphas[i] = Math.log((1d - epsilon) / epsilon);
             } else {
                 lambda_wrong = lambda_wrong + lambda;
                 double epsilon = lambda_wrong / (lambda_right + lambda_wrong);
-                dStumps[i].setError(epsilon);
                 lambda = lambda * (1 / (2 * epsilon));
                 alphas[i] = Math.log((1d - epsilon) / epsilon);
             }
         }
     }
 
+    // Make inference for a new sample
     public int Predict(double[] feature) {
         // Predict new sample from all learners
         double result_1 = 0d;
@@ -101,7 +104,7 @@ public class AdaBoost implements Serializable {
         return result_1 > result_0 ? 1 : 0;
     }
 
-    // Generate Poisson number
+    // Generate a Poisson number
     private int Poisson(double lambda) {
         double L = Math.exp(-lambda);
         double p = 1d;
