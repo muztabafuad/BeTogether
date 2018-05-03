@@ -76,11 +76,13 @@ public class AdaBoost implements Serializable {
             if (dStumps[i].Predict(sample) == sample[sample.length - 1]) {
                 lambda_right = lambda_right + lambda;
                 double epsilon = lambda_wrong / (lambda_right + lambda_wrong);
+                dStumps[i].setError(epsilon);
                 lambda = lambda * (1 / (2 - 2 * epsilon));
                 alphas[i] = Math.log((1d - epsilon) / epsilon);
             } else {
                 lambda_wrong = lambda_wrong + lambda;
                 double epsilon = lambda_wrong / (lambda_right + lambda_wrong);
+                dStumps[i].setError(epsilon);
                 lambda = lambda * (1 / (2 * epsilon));
                 alphas[i] = Math.log((1d - epsilon) / epsilon);
             }
