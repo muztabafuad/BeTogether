@@ -35,4 +35,6 @@ public class Configuration implements Serializable {
     public static final String MODEL_INPOCKET = "AdaBoostPocket.model";
     public static final String MODEL_INDOOR = "AdaBoostIndoor.model";
     public static final String MODEL_UNDERGROUND = "AdaBoostUnderground.model";
+    // Divisor for threshold increase decrease
+    public static final int THRESHOLD_DIVISOR = 1;
 }

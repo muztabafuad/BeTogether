@@ -63,7 +63,7 @@ public class AdaBoost implements Serializable {
     }
 
     // Online AdaBoost from one new sample
-    public void OnlineUpdate(double[] sample) {
+    public void OnlineUpdate(double[] sample, int div) {
         double lambda = 1d;
         // Train all weak learners
         for (int i = 0; i < numLearn; i++) {
@@ -71,7 +71,7 @@ public class AdaBoost implements Serializable {
             double lambda_wrong = 0d;
             int k = Poisson(lambda);
             for (int j = 0; j < k; j++) {
-                dStumps[i].PoissonUpdate(sample);
+                dStumps[i].PoissonUpdate(sample, div);
             }
             if (dStumps[i].Predict(sample) == sample[sample.length - 1]) {
                 lambda_right = lambda_right + lambda;

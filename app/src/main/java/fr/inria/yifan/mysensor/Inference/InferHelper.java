@@ -16,6 +16,7 @@ import java.io.ObjectOutputStream;
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INDOOR;
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INPOCKET;
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_UNDERGROUND;
+import static fr.inria.yifan.mysensor.Support.Configuration.THRESHOLD_DIVISOR;
 
 // 1 daytime, 2 light, 3 magnetic, 4 GSM, 5 GPS accuracy, 6 GPS speed, 7 proximity
 
@@ -116,7 +117,7 @@ public class InferHelper {
         switch (model){
             case "Pocket":
                 if (mAdaBoostPocket.Predict(sample) != sample[sample.length - 1]) {
-                    mAdaBoostPocket.OnlineUpdate(sample);
+                    mAdaBoostPocket.OnlineUpdate(sample, THRESHOLD_DIVISOR);
                     // Save trained model
                     try {
                         FileOutputStream fileOutputStream = mContext.openFileOutput(MODEL_INPOCKET, Context.MODE_PRIVATE);
@@ -132,7 +133,7 @@ public class InferHelper {
                 break;
             case "Door":
                 if (mAdaBoostDoor.Predict(sample) != sample[sample.length - 1]) {
-                    mAdaBoostDoor.OnlineUpdate(sample);
+                    mAdaBoostDoor.OnlineUpdate(sample, THRESHOLD_DIVISOR);
                     // Save trained model
                     try {
                         FileOutputStream fileOutputStream = mContext.openFileOutput(MODEL_INDOOR, Context.MODE_PRIVATE);
@@ -148,7 +149,7 @@ public class InferHelper {
                 break;
             case "Ground":
                 if (mAdaBoostGround.Predict(sample) != sample[sample.length - 1]) {
-                    mAdaBoostGround.OnlineUpdate(sample);
+                    mAdaBoostGround.OnlineUpdate(sample, THRESHOLD_DIVISOR);
                     // Save trained model
                     try {
                         FileOutputStream fileOutputStream = mContext.openFileOutput(MODEL_UNDERGROUND, Context.MODE_PRIVATE);

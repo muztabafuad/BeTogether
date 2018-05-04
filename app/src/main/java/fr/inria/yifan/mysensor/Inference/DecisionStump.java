@@ -85,13 +85,13 @@ public class DecisionStump implements Serializable {
     }
 
     // The online AdaBoost method for update
-    public void PoissonUpdate(double[] sample) {
+    public void PoissonUpdate(double[] sample, int div) {
         switch (operation) {
             case '<':
-                threshold += stepValue;
+                threshold += stepValue / div;
                 break;
             case ')':
-                threshold -= stepValue;
+                threshold -= stepValue / div;
                 break;
             default:
                 throw new IllegalArgumentException("Illegal operation: " + operation);

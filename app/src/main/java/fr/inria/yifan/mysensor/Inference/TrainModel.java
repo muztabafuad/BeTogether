@@ -3,6 +3,7 @@ package fr.inria.yifan.mysensor.Inference;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
+import java.util.Random;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INDOOR;
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INPOCKET;
@@ -18,15 +19,15 @@ public class TrainModel {
         int numSamples = 40000; // Use how many samples for learning
 
         // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
-        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/InpocketOutpocket_binary.csv";
-        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
-        //int featuresUsed[] = {1, 2, 6}; // The index of features used for training
+        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/InpocketOutpocket_binary.csv";
+        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
+        int featuresUsed[] = {1, 2, 6}; // The index of features used for training
         //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/IndoorOutdoor_binary.csv";
         //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INDOOR;
         //int featuresUsed[] = {1, 2, 4}; // The index of features used for training
-        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/OngroundUnderground_binary.csv";
-        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
-        int featuresUsed[] = {2, 3, 4}; // The index of features used for training
+        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/OngroundUnderground_binary.csv";
+        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
+        //int featuresUsed[] = {2, 3, 4}; // The index of features used for training
 
         CSVParser parserSample = new CSVParser(fileLoad, numSamples, featuresInit);
         parserSample.shuffleSamples(); // Shuffle the samples
@@ -67,45 +68,75 @@ public class TrainModel {
 
         // Load samples for feedback and test
         int numTests = 1000; // Use how many samples for testing
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Pocket_Crosscall.csv";
+        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Pocket_Crosscall.csv";
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Door_Crosscall.csv";
-        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Ground_Crosscall.csv";
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Ground_Crosscall.csv";
         CSVParser parserTest = new CSVParser(fileTest, numTests, featuresInit);
-        parserTest.shuffleSamples(); // Shuffle the samples
-        double[][] tests = parserTest.getSampleArray();
 
-        // Online feedback and learning
-        System.out.println("Online tested on: " + tests.length);
-        StringBuilder logging = new StringBuilder();
-        for (double[] sample : tests) {
-            right = 0;
-            wrong = 0;
-            for (double[] test : tests) {
-                if (adaBoost.Predict(test) == test[test.length - 1]) {
-                    right++;
-                } else {
-                    wrong++;
+        for (int divisor = 1; divisor < 11; divisor++){
+            StringBuilder logging = new StringBuilder();
+
+            double[] ca_sum = new double[numTests];
+            for (int i =0; i < ca_sum.length; i++) {
+                ca_sum[i] = 0;
+            }
+
+            int run = 1;
+            for (int counter = 0; counter < run; counter++) {
+                parserTest.shuffleSamples(); // Shuffle the samples
+                double[][] tests = parserTest.getSampleArray();
+                // Online feedback and learning
+                System.out.println("Online tested on: " + tests.length);
+
+                for (int i =0; i < tests.length; i++) {
+                    right = 0;
+                    wrong = 0;
+                    for (double[] test : tests) {
+                        if (adaBoost.Predict(test) == test[test.length - 1]) {
+                            right++;
+                        } else {
+                            wrong++;
+                        }
+                    }
+                    ca = (double) right / (right + wrong);
+                    //System.out.println("Right inference: " + right + ", Wrong inference: " + wrong);
+                    //System.out.println("Classification accuracy: " + ca);
+                    ca_sum[i] += ca;
+
+                    // Opportunistic feedback on wrong inference
+                    Random r = new Random();
+                    int num = r.nextInt(100);
+                    int threshold = (int) (ca * 100);
+                    //System.out.println("Feedback possibility: " + (num > threshold));
+
+                    if (adaBoost.Predict(tests[i]) != tests[i][tests[i].length - 1] && (num > threshold)) {
+                        //System.out.println("Updated");
+                        //adaBoost.GreedyUpdate(sample);
+                        adaBoost.OnlineUpdate(tests[i], divisor);
+                    }
                 }
+
             }
-            ca = (double) right / (right + wrong);
-            System.out.println("Right inference: " + right + ", Wrong inference: " + wrong);
-            System.out.println("Classification accuracy: " + ca);
-            logging.append("Right inference, ").append(right).append(", Wrong inference, ").append(wrong).append(", Classification accuracy, ").append(ca).append("\n");
-            // Feedback on wrong inference
-            if (adaBoost.Predict(sample) != sample[sample.length - 1]) {
-                adaBoost.OnlineUpdate(sample);
+
+            for (int i =0; i < ca_sum.length; i++) {
+                ca_sum[i] /= run;
+                logging.append(ca_sum[i]).append("\n");
+            }
+            //System.out.println(Arrays.toString(ca_sum));
+
+            // Save the log file
+            String logfile = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy" + divisor;
+            try {
+                FileOutputStream output = new FileOutputStream(logfile);
+                output.write(logging.toString().getBytes());
+                output.close();
+            } catch (Exception e) {
+                System.out.println("Error when saving to file: " + e);
             }
         }
 
-        // Save the log file
-        String logfile = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy.log";
-        try {
-            FileOutputStream output = new FileOutputStream(logfile);
-            output.write(logging.toString().getBytes());
-            output.close();
-        } catch (Exception e) {
-            System.out.println("Error when saving to file: " + e);
-        }
+
+
+
     }
-
 }
