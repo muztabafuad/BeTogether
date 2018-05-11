@@ -11,6 +11,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
 
@@ -38,18 +39,18 @@ public class SensorsHelper {
     private SensorManager mSensorManager;
 
     // Declare sensing variables
-    private float mLight;
-    private float mProximity;
-    private float mTemperature;
-    private float mPressure;
-    private float mHumidity;
-    private float mMagnet;
+    private SlideWindow mLight;
+    private SlideWindow mProximity;
+    private SlideWindow mTemperature;
+    private SlideWindow mPressure;
+    private SlideWindow mHumidity;
+    private SlideWindow mMagnet;
 
     // Declare light sensor listener
     private SensorEventListener mListenerLight = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mLight = sensorEvent.values[0];
+            mLight.putValue(sensorEvent.values[0]);
         }
 
         @Override
@@ -62,7 +63,7 @@ public class SensorsHelper {
     private SensorEventListener mListenerMagnet = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mMagnet = (float) Math.sqrt(Math.pow(sensorEvent.values[0], 2) + Math.pow(sensorEvent.values[1], 2) + Math.pow(sensorEvent.values[2], 2));
+            mMagnet.putValue((float) Math.sqrt(Math.pow(sensorEvent.values[0], 2) + Math.pow(sensorEvent.values[1], 2) + Math.pow(sensorEvent.values[2], 2)));
         }
 
         @Override
@@ -75,7 +76,7 @@ public class SensorsHelper {
     private SensorEventListener mListenerProxy = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mProximity = sensorEvent.values[0];
+            mProximity.putValue(sensorEvent.values[0]);
         }
 
         @Override
@@ -88,7 +89,7 @@ public class SensorsHelper {
     private SensorEventListener mListenerTemp = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mTemperature = sensorEvent.values[0];
+            mTemperature.putValue(sensorEvent.values[0]);
         }
 
         @Override
@@ -101,7 +102,7 @@ public class SensorsHelper {
     private SensorEventListener mListenerPress = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mPressure = sensorEvent.values[0];
+            mPressure.putValue(sensorEvent.values[0]);
         }
 
         @Override
@@ -114,7 +115,7 @@ public class SensorsHelper {
     private SensorEventListener mListenerHumid = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mHumidity = sensorEvent.values[0];
+            mHumidity.putValue(sensorEvent.values[0]);
         }
 
         @Override
@@ -127,7 +128,6 @@ public class SensorsHelper {
     public SensorsHelper(Activity activity) {
         mActivity = activity;
 
-        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
         mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
         //Log.d(TAG, "Buffer size = " + BUFFER_SIZE);
 
@@ -143,12 +143,13 @@ public class SensorsHelper {
 
     // Check if location service on system is enabled
     public void startService() {
-        mLight = 0;
-        mMagnet = 0;
-        mProximity = 1;
-        mTemperature = 0;
-        mPressure = 0;
-        mHumidity = 0;
+        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
+        mLight = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mMagnet = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mProximity = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mTemperature = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mPressure = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mHumidity = new SlideWindow(SAMPLE_NUM_WINDOW);
 
         mAudioRecord.startRecording();
         // Register listeners for all environmental sensors
@@ -192,32 +193,32 @@ public class SensorsHelper {
 
     // Get the most recent light density
     public float getLightDensity() {
-        return mLight;
+        return mLight.getMean();
     }
 
     // Get thr most recent proximity value
     public float getProximity() {
-        return mProximity;
+        return mProximity.getMean();
     }
 
     // Get the most recent temperature
     public float getTemperature() {
-        return mTemperature;
+        return mTemperature.getMean();
     }
 
     // Get the most recent pressure
     public float getPressure() {
-        return mPressure;
+        return mPressure.getMean();
     }
 
     // Get the most recent humidity
     public float getHumidity() {
-        return mHumidity;
+        return mHumidity.getMean();
     }
 
     // Get the most recent magnet field
     public float getMagnet() {
-        return mMagnet;
+        return mMagnet.getMean();
     }
 
     // Simple In/Out-pocket detection function

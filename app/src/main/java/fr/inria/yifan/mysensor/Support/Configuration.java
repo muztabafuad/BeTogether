@@ -9,7 +9,8 @@ import java.io.Serializable;
 public class Configuration implements Serializable {
 
     // Parameters for sensing sampling
-    public static final int SAMPLE_DELAY_IN_MS = 100;
+    public static final int SAMPLE_WINDOW_IN_MS = 1000;
+    public static final int SAMPLE_NUM_WINDOW = 10;
     // Permission request indicator code
     public static final int PERMS_REQUEST_RECORD = 1000;
     public static final int PERMS_REQUEST_STORAGE = 1001;
@@ -21,7 +22,7 @@ public class Configuration implements Serializable {
     // Parameters for audio sound signal sampling
     static final int SAMPLE_RATE_IN_HZ = 44100;
     // Minimum time interval between location updates (milliseconds)
-    static final int LOCATION_UPDATE_TIME = 100;
+    static final int LOCATION_UPDATE_TIME = 10;
     // Minimum distance between location updates (meters)
     static final int LOCATION_UPDATE_DISTANCE = 5;
     // Storage path for the sensing data file

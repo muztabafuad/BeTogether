@@ -1,6 +1,8 @@
 package fr.inria.yifan.mysensor.Inference;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Random;
@@ -72,71 +74,71 @@ public class TrainModel {
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Door_Crosscall.csv";
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Ground_Crosscall.csv";
         CSVParser parserTest = new CSVParser(fileTest, numTests, featuresInit);
+        StringBuilder logging = new StringBuilder();
 
-        for (int divisor = 1; divisor < 11; divisor++){
-            StringBuilder logging = new StringBuilder();
+        // Run multiple times
+        int run = 1000;
+        for(int count = 0; count < run; count ++){
 
-            double[] ca_sum = new double[numTests];
-            for (int i =0; i < ca_sum.length; i++) {
-                ca_sum[i] = 0;
+            // Load trained model
+            try {
+                FileInputStream fileInputStream = new FileInputStream(fileSave);
+                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+                adaBoost = (AdaBoost) objectInputStream.readObject();
+                objectInputStream.close();
+            } catch (Exception e) {
+                System.out.println("Error when loading the file: " + e);
             }
+            parserTest.shuffleSamples(); // Shuffle the samples
+            double[][] tests = parserTest.getSampleArray();
 
-            int run = 1;
-            for (int counter = 0; counter < run; counter++) {
-                parserTest.shuffleSamples(); // Shuffle the samples
-                double[][] tests = parserTest.getSampleArray();
-                // Online feedback and learning
-                System.out.println("Online tested on: " + tests.length);
+            // Online feedback and learning
+            System.out.println("Online tested on: " + tests.length);
+            double ca_max = Double.NEGATIVE_INFINITY;
+            int i_min = Integer.MAX_VALUE;
 
-                for (int i =0; i < tests.length; i++) {
-                    right = 0;
-                    wrong = 0;
-                    for (double[] test : tests) {
-                        if (adaBoost.Predict(test) == test[test.length - 1]) {
-                            right++;
-                        } else {
-                            wrong++;
-                        }
-                    }
-                    ca = (double) right / (right + wrong);
-                    //System.out.println("Right inference: " + right + ", Wrong inference: " + wrong);
-                    //System.out.println("Classification accuracy: " + ca);
-                    ca_sum[i] += ca;
-
-                    // Opportunistic feedback on wrong inference
-                    Random r = new Random();
-                    int num = r.nextInt(100);
-                    int threshold = (int) (ca * 100);
-                    //System.out.println("Feedback possibility: " + (num > threshold));
-
-                    if (adaBoost.Predict(tests[i]) != tests[i][tests[i].length - 1] && (num > threshold)) {
-                        //System.out.println("Updated");
-                        //adaBoost.GreedyUpdate(sample);
-                        adaBoost.OnlineUpdate(tests[i], divisor);
+            for (int i = 0; i < tests.length; i++) {
+                right = 0;
+                wrong = 0;
+                for (double[] test : tests) {
+                    if (adaBoost.Predict(test) == test[test.length - 1]) {
+                        right++;
+                    } else {
+                        wrong++;
                     }
                 }
+                ca = (double) right / (right + wrong);
+                //System.out.println("Right inference: " + right + ", Wrong inference: " + wrong);
+                //System.out.println("Classification accuracy: " + ca);
+                if (ca > ca_max){
+                    ca_max = ca;
+                    i_min = i + 1;
+                }
 
-            }
+                // Opportunistic feedback on wrong inference
+                Random r = new Random();
+                int num = r.nextInt(100);
+                int threshold = (int) (ca * 100);
+                //System.out.println("Feedback possibility: " + num + " " + threshold);
 
-            for (int i =0; i < ca_sum.length; i++) {
-                ca_sum[i] /= run;
-                logging.append(ca_sum[i]).append("\n");
+                if (adaBoost.Predict(tests[i]) != tests[i][tests[i].length - 1] & num >threshold) {
+                    //System.out.println("Updated");
+                    //adaBoost.GreedyUpdate(sample);
+                    adaBoost.OnlineUpdate(tests[i]);
+                }
             }
-            //System.out.println(Arrays.toString(ca_sum));
-
-            // Save the log file
-            String logfile = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy" + divisor;
-            try {
-                FileOutputStream output = new FileOutputStream(logfile);
-                output.write(logging.toString().getBytes());
-                output.close();
-            } catch (Exception e) {
-                System.out.println("Error when saving to file: " + e);
-            }
+            System.out.println("Iteration: " + (i_min) + ", Maximum CA: " +ca_max);
+            logging.append(i_min).append(", ").append(ca_max).append("\n");
         }
 
-
-
-
+        // Save the log file
+        String logfile = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy";
+        try {
+            FileOutputStream output = new FileOutputStream(logfile);
+            output.write(logging.toString().getBytes());
+            output.close();
+        } catch (Exception e) {
+            System.out.println("Error when saving to file: " + e);
+        }
     }
 }

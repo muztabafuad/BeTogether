@@ -19,7 +19,7 @@ import fr.inria.yifan.mysensor.Support.ContextHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_IN_MS;
 
 /*
  * This activity provides functions including in-pocket detection and GPS location service.
@@ -145,6 +145,14 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void run() {
                 while (isSensingRun) {
+                    // Sampling time delay
+                    synchronized (mLock) {
+                        try {
+                            mLock.wait(SAMPLE_WINDOW_IN_MS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     runOnUiThread(new Runnable() {
                         @RequiresApi(api = Build.VERSION_CODES.N)
                         @Override
@@ -176,14 +184,6 @@ public class DetectionActivity extends AppCompatActivity {
                             mLocationView.setText(loc);
                         }
                     });
-                    // sample times per second
-                    synchronized (mLock) {
-                        try {
-                            mLock.wait(SAMPLE_DELAY_IN_MS);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
                 }
             }
         }).start();

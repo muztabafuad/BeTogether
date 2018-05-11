@@ -23,7 +23,7 @@ import fr.inria.yifan.mysensor.Support.FilesIOHelper;
 import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_DELAY_IN_MS;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_IN_MS;
 
 /*
 * This activity provides functions including showing sensor and logging sensing data.
@@ -147,6 +147,14 @@ public class SensingActivity extends AppCompatActivity {
             @Override
             public void run() {
                 while (isGetSenseRun) {
+                    // Sampling time delay
+                    synchronized (mLock) {
+                        try {
+                            mLock.wait(SAMPLE_WINDOW_IN_MS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -155,8 +163,8 @@ public class SensingActivity extends AppCompatActivity {
                                     mSensorHelper.getLightDensity() + ", " +
                                     mSensorHelper.getMagnet() + ", " +
                                     mContextHelper.getRssiDbm() + ", " +
-                                    mContextHelper.getLocation().getAccuracy() + ", " +
-                                    mContextHelper.getLocation().getSpeed() + ", " +
+                                    mContextHelper.getGPSAccuracy() + ", " +
+                                    mContextHelper.getGPSSpeed() + ", " +
                                     mSensorHelper.getProximity() + ", " +
                                     mSensorHelper.getSoundLevel() + ", " +
                                     mSensorHelper.getTemperature() + ", " +
@@ -167,14 +175,6 @@ public class SensingActivity extends AppCompatActivity {
                             //Log.d(TAG, String.valueOf(mSenseRound));
                         }
                     });
-                    // sample times per second
-                    synchronized (mLock) {
-                        try {
-                            mLock.wait(SAMPLE_DELAY_IN_MS);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
                 }
             }
         }).start();

@@ -117,7 +117,7 @@ public class InferHelper {
         switch (model){
             case "Pocket":
                 if (mAdaBoostPocket.Predict(sample) != sample[sample.length - 1]) {
-                    mAdaBoostPocket.OnlineUpdate(sample, THRESHOLD_DIVISOR);
+                    mAdaBoostPocket.OnlineUpdate(sample);
                     // Save trained model
                     try {
                         FileOutputStream fileOutputStream = mContext.openFileOutput(MODEL_INPOCKET, Context.MODE_PRIVATE);
@@ -133,7 +133,7 @@ public class InferHelper {
                 break;
             case "Door":
                 if (mAdaBoostDoor.Predict(sample) != sample[sample.length - 1]) {
-                    mAdaBoostDoor.OnlineUpdate(sample, THRESHOLD_DIVISOR);
+                    mAdaBoostDoor.OnlineUpdate(sample);
                     // Save trained model
                     try {
                         FileOutputStream fileOutputStream = mContext.openFileOutput(MODEL_INDOOR, Context.MODE_PRIVATE);
@@ -149,7 +149,7 @@ public class InferHelper {
                 break;
             case "Ground":
                 if (mAdaBoostGround.Predict(sample) != sample[sample.length - 1]) {
-                    mAdaBoostGround.OnlineUpdate(sample, THRESHOLD_DIVISOR);
+                    mAdaBoostGround.OnlineUpdate(sample);
                     // Save trained model
                     try {
                         FileOutputStream fileOutputStream = mContext.openFileOutput(MODEL_UNDERGROUND, Context.MODE_PRIVATE);

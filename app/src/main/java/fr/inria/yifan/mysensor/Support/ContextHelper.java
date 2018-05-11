@@ -27,13 +27,12 @@ import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.ActivityRecognitionClient;
 import com.google.android.gms.location.ActivityRecognitionResult;
 
-import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
-
 import java.util.Calendar;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
 
 /**
  * This class represents the context map set of a sensing device.
@@ -49,7 +48,9 @@ public class ContextHelper extends BroadcastReceiver {
     private LocationManager mLocationManager;
 
     // Declare all contexts
-    private int rssiDbm;
+    private SlideWindow mRssiDbm;
+    private SlideWindow mAccuracy;
+    private SlideWindow mSpeed;
     //private float hasBattery;
     //private long localTime;
     //private boolean inPocket;
@@ -65,7 +66,7 @@ public class ContextHelper extends BroadcastReceiver {
     private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
-            rssiDbm = signalStrength.getGsmSignalStrength() * 2 - 113; // -> dBm
+            mRssiDbm.putValue(signalStrength.getGsmSignalStrength() * 2 - 113); // -> dBm
             //Log.d(TAG, String.valueOf(rssiDbm));
         }
     };
@@ -75,6 +76,8 @@ public class ContextHelper extends BroadcastReceiver {
         @Override
         public void onLocationChanged(Location location) {
             mLocation = location;
+            mAccuracy.putValue(location.getAccuracy());
+            mSpeed.putValue(location.getSpeed());
         }
 
         @Override
@@ -98,15 +101,6 @@ public class ContextHelper extends BroadcastReceiver {
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public ContextHelper(Activity activity) {
         mActivity = activity;
-
-        rssiDbm = 0;
-        //hasBattery = 0;
-        //localTime = 0;
-        //inPocket = false;
-        //inDoor = false;
-        //underGround =false;
-        userActivity = null;
-        mLocation = new Location("null");
 
         mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
@@ -140,10 +134,18 @@ public class ContextHelper extends BroadcastReceiver {
     @SuppressLint("MissingPermission")
     public void startService() {
 
-        assert mTelephonyManager != null;
-        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        mRssiDbm = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW);
+        //hasBattery = 0;
+        //localTime = 0;
+        //inPocket = false;
+        //inDoor = false;
+        //underGround =false;
+        userActivity = null;
+        mLocation = new Location("null");
 
-        assert mLocationManager != null;
+        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         // Check GPS enable switch
         if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             // Start GPS and location service
@@ -168,8 +170,8 @@ public class ContextHelper extends BroadcastReceiver {
     }
 
     // Get the most recent RSSI
-    public int getRssiDbm() {
-        return rssiDbm;
+    public float getRssiDbm() {
+        return mRssiDbm.getMean();
     }
 
     // Get location information from GPS
@@ -180,6 +182,16 @@ public class ContextHelper extends BroadcastReceiver {
         }
         //Log.d(TAG, "Location information: " + mLocation);
         return mLocation;
+    }
+
+    // Get the most recent GPS accuracy
+    public float getGPSAccuracy() {
+        return mAccuracy.getMean();
+    }
+
+    // Get the most recent GPS speed
+    public float getGPSSpeed() {
+        return mSpeed.getMean();
     }
 
     // Get the most recent user activity
