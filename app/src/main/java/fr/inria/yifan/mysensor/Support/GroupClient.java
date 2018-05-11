@@ -31,7 +31,7 @@ public class GroupClient {
     private String mContent;
 
     // Constructor
-    public GroupClient(final InetAddress server) {
+    GroupClient(final InetAddress server) {
         isClientRun = true;
         new Thread(new Runnable() {
             @Override
@@ -65,4 +65,5 @@ public class GroupClient {
             out.println(msg);
         }
     }
+
 }

@@ -16,10 +16,8 @@ import java.io.ObjectOutputStream;
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INDOOR;
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INPOCKET;
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_UNDERGROUND;
-import static fr.inria.yifan.mysensor.Support.Configuration.THRESHOLD_DIVISOR;
 
 // 1 daytime, 2 light, 3 magnetic, 4 GSM, 5 GPS accuracy, 6 GPS speed, 7 proximity
-
 public class InferHelper {
 
     private static final String TAG = "Inference helper";
@@ -41,6 +39,7 @@ public class InferHelper {
         ObjectInputStream objectInputStream;
         FileOutputStream fileOutputStream;
         ObjectOutputStream objectOutputStream;
+
         if (!filePocket.exists() || !fileDoor.exists() || !fileGround.exists()) {
             Log.d(TAG, "Local model does not exist.");
             // Initialize trained model
@@ -48,12 +47,15 @@ public class InferHelper {
                 fileInputStream = mContext.getAssets().openFd(MODEL_INPOCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 mAdaBoostPocket = (AdaBoost) objectInputStream.readObject();
+
                 fileInputStream = mContext.getAssets().openFd(MODEL_INDOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 mAdaBoostDoor = (AdaBoost) objectInputStream.readObject();
+
                 fileInputStream = mContext.getAssets().openFd(MODEL_UNDERGROUND).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 mAdaBoostGround = (AdaBoost) objectInputStream.readObject();
+
                 objectInputStream.close();
                 fileInputStream.close();
                 Log.d(TAG, "Success in loading from file.");
@@ -61,12 +63,15 @@ public class InferHelper {
                 fileOutputStream = mContext.openFileOutput(MODEL_INPOCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(mAdaBoostPocket);
+
                 fileOutputStream = mContext.openFileOutput(MODEL_INDOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(mAdaBoostDoor);
+
                 fileOutputStream = mContext.openFileOutput(MODEL_UNDERGROUND, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(mAdaBoostGround);
+
                 objectOutputStream.close();
                 fileOutputStream.close();
                 Log.d(TAG, "Success in saving into file.");
@@ -79,12 +84,15 @@ public class InferHelper {
                 fileInputStream = context.openFileInput(MODEL_INPOCKET);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 mAdaBoostPocket = (AdaBoost) objectInputStream.readObject();
+
                 fileInputStream = context.openFileInput(MODEL_INDOOR);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 mAdaBoostDoor = (AdaBoost) objectInputStream.readObject();
+
                 fileInputStream = context.openFileInput(MODEL_UNDERGROUND);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 mAdaBoostGround = (AdaBoost) objectInputStream.readObject();
+
                 objectInputStream.close();
                 fileInputStream.close();
                 Log.d(TAG, "Success in loading from file.");

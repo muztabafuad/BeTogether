@@ -215,4 +215,5 @@ public class ContextHelper extends BroadcastReceiver {
             //Log.e(TAG, "Received intent: " + result.getMostProbableActivity().toString());
         }
     }
+
 }

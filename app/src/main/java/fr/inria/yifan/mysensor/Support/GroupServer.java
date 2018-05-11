@@ -30,7 +30,7 @@ public class GroupServer {
     private ArrayList<Socket> mClientList = new ArrayList<>();
 
     // Constructor
-    public GroupServer() {
+    GroupServer() {
         isServerRun = true;
         new Thread(new Runnable() {
             @Override
@@ -121,4 +121,5 @@ public class GroupServer {
             }
         }
     }
+
 }

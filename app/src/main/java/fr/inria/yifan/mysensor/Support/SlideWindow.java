@@ -10,8 +10,14 @@ public class SlideWindow {
         storage = new float[size];
     }
 
-    public void putValue(float i) {
-        storage[ct % storage.length] = i;
+    public void putValue(float val) {
+        // Initial fill
+        if (ct == 0) {
+            for (int i = 0; i < storage.length; i++) {
+                storage[i] = val;
+            }
+        }
+        storage[ct % storage.length] = val;
         ct++;
         System.out.println(Arrays.toString(storage));
     }

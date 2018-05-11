@@ -84,7 +84,7 @@ public class DecisionStump implements Serializable {
         }
     }
 
-    // The online AdaBoost method for update
+    // The incremental method for threshold
     public void PoissonUpdate(double[] sample) {
         switch (operation) {
             case '<':
@@ -115,7 +115,7 @@ public class DecisionStump implements Serializable {
         return error;
     }
 
-    // Upfate the error for this decision stump
+    // Update the error for this decision stump
     public void setError(double err) {
         error = err;
     }
