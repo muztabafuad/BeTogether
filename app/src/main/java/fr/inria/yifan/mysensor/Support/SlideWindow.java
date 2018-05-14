@@ -1,17 +1,21 @@
 package fr.inria.yifan.mysensor.Support;
 
-import java.util.Arrays;
-
 public class SlideWindow {
     private int ct = 0;
     private float[] storage;
 
-    SlideWindow(int size) {
+    SlideWindow(int size, float initVal) {
         storage = new float[size];
+        // Initial fill
+        if (ct == 0) {
+            for (int i = 0; i < storage.length; i++) {
+                storage[i] = initVal;
+            }
+        }
     }
 
     public void putValue(float val) {
-        // Initial fill
+        // Initial update
         if (ct == 0) {
             for (int i = 0; i < storage.length; i++) {
                 storage[i] = val;
@@ -19,7 +23,7 @@ public class SlideWindow {
         }
         storage[ct % storage.length] = val;
         ct++;
-        System.out.println(Arrays.toString(storage));
+        //System.out.println(Arrays.toString(storage));
     }
 
     public float getMean() {

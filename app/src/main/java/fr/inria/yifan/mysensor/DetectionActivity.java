@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.Arrays;
 import java.util.List;
 
 import fr.inria.yifan.mysensor.Inference.InferHelper;
@@ -34,9 +35,9 @@ public class DetectionActivity extends AppCompatActivity {
     private boolean isSensingRun;
 
     // Declare all used views
-    private TextView mProximityView;
-    private TextView mLightView;
     private TextView mPocketView;
+    private TextView mDoorView;
+    private TextView mGroundView;
     private TextView mLocationView;
     private TextView mActivityView;
     private Button mStartButton;
@@ -57,9 +58,9 @@ public class DetectionActivity extends AppCompatActivity {
         TextView mWelcomeView = findViewById(R.id.welcome_view);
         mWelcomeView.setText(R.string.hint_detect);
 
-        mProximityView = findViewById(R.id.proximity_view);
-        mLightView = findViewById(R.id.light_view);
         mPocketView = findViewById(R.id.pocket_view);
+        mDoorView = findViewById(R.id.door_view);
+        mGroundView = findViewById(R.id.ground_view);
         mActivityView = findViewById(R.id.activity_view);
         mLocationView = findViewById(R.id.location_view);
         mStartButton = findViewById(R.id.start_button);
@@ -87,9 +88,9 @@ public class DetectionActivity extends AppCompatActivity {
     // Clean all text views
     @SuppressLint("SetTextI18n")
     private void cleanView() {
-        mProximityView.setText(null);
-        mLightView.setText(null);
         mPocketView.setText(null);
+        mDoorView.setText(null);
+        mGroundView.setText(null);
         mActivityView.setText(null);
         mLocationView.setText(null);
     }
@@ -157,20 +158,33 @@ public class DetectionActivity extends AppCompatActivity {
                         @RequiresApi(api = Build.VERSION_CODES.N)
                         @Override
                         public void run() {
-                            float proximity = mSensorHelper.getProximity();
-                            float light = mSensorHelper.getLightDensity();
-                            mProximityView.setText("Proximity：" + proximity + " in binary (near or far).");
-                            mLightView.setText("Light：" + light + " of " + " in lux units.");
                             Location location = mContextHelper.getLocation();
-
                             // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
-                            double[] sample = new double[]{mContextHelper.isDaytime(), light, mSensorHelper.getMagnet(),
-                                    mContextHelper.getRssiDbm(), location.getAccuracy(), location.getSpeed(), proximity};
+                            double[] sample = new double[]{mContextHelper.isDaytime(), mSensorHelper.getLightDensity(), mSensorHelper.getMagnet(),
+                                    mContextHelper.getRssiDbm(), mContextHelper.getGPSAccuracy(), mContextHelper.getGPSSpeed(), mSensorHelper.getProximity()};
+
+                            Log.d(TAG, Arrays.toString(sample));
+
                             if (mInferHelper.InferPocket(sample) == 1) {
                                 mPocketView.setText("Inference result: In-pocket");
                             } else {
                                 mPocketView.setText("Inference result: Out-pocket");
                             }
+
+                            Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
+                            if (mInferHelper.InferIndoor(sample) == 1) {
+                                mDoorView.setText("Inference result: In-door");
+                            } else {
+                                mDoorView.setText("Inference result: Out-door");
+                            }
+
+                            Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
+                            if (mInferHelper.InferUnderground(sample) == 1) {
+                                mGroundView.setText("Inference result: Under-ground");
+                            } else {
+                                mGroundView.setText("Inference result: On-ground");
+                            }
+
                             mActivityView.setText(mContextHelper.getUserActivity());
 
                             String loc = "Current location information：\n" +

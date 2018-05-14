@@ -40,7 +40,7 @@ public class SensorsHelper {
 
     // Declare sensing variables
     private SlideWindow mLight;
-    private SlideWindow mProximity;
+    private float mProximity;
     private SlideWindow mTemperature;
     private SlideWindow mPressure;
     private SlideWindow mHumidity;
@@ -76,7 +76,7 @@ public class SensorsHelper {
     private SensorEventListener mListenerProxy = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mProximity.putValue(sensorEvent.values[0]);
+            mProximity = sensorEvent.values[0];
         }
 
         @Override
@@ -144,12 +144,12 @@ public class SensorsHelper {
     // Check if location service on system is enabled
     public void startService() {
         mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
-        mLight = new SlideWindow(SAMPLE_NUM_WINDOW);
-        mMagnet = new SlideWindow(SAMPLE_NUM_WINDOW);
-        mProximity = new SlideWindow(SAMPLE_NUM_WINDOW);
-        mTemperature = new SlideWindow(SAMPLE_NUM_WINDOW);
-        mPressure = new SlideWindow(SAMPLE_NUM_WINDOW);
-        mHumidity = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mLight = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mMagnet = new SlideWindow(SAMPLE_NUM_WINDOW,0);
+        mProximity = 1;
+        mTemperature = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mPressure = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mHumidity = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
 
         mAudioRecord.startRecording();
         // Register listeners for all environmental sensors
@@ -198,7 +198,7 @@ public class SensorsHelper {
 
     // Get thr most recent proximity value
     public float getProximity() {
-        return mProximity.getMean();
+        return mProximity;
     }
 
     // Get the most recent temperature

@@ -24,12 +24,12 @@ public class TrainModel {
         //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/InpocketOutpocket_binary.csv";
         //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
         //int featuresUsed[] = {1, 2, 6}; // The index of features used for training
-        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/IndoorOutdoor_binary.csv";
-        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INDOOR;
-        //int featuresUsed[] = {1, 2, 4}; // The index of features used for training
-        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/OngroundUnderground_binary.csv";
-        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
-        int featuresUsed[] = {2, 3, 4}; // The index of features used for training
+        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/IndoorOutdoor_binary.csv";
+        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INDOOR;
+        int featuresUsed[] = {1, 2, 4}; // The index of features used for training
+        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/OngroundUnderground_binary.csv";
+        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
+        //int featuresUsed[] = {2, 3, 4}; // The index of features used for training
 
         CSVParser parserSample = new CSVParser(fileLoad, numSamples, featuresInit);
         parserSample.shuffleSamples(); // Shuffle the samples
@@ -71,13 +71,13 @@ public class TrainModel {
         // Load samples for feedback and test
         int numTests = 1000; // Use how many samples for testing
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Pocket_Crosscall.csv";
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Door_Crosscall.csv";
-        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Ground_Crosscall.csv";
+        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Door_Crosscall.csv";
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Ground_Crosscall.csv";
         CSVParser parserTest = new CSVParser(fileTest, numTests, featuresInit);
         StringBuilder logging = new StringBuilder();
 
         // Run multiple times
-        int run = 100;
+        int run = 1;
         for (int count = 0; count < run; count++) {
             // Load trained model
             try {
@@ -88,6 +88,7 @@ public class TrainModel {
             } catch (Exception e) {
                 System.out.println("Error when loading the file: " + e);
             }
+
             parserTest.shuffleSamples(); // Shuffle the samples
             double[][] tests = parserTest.getSampleArray();
 

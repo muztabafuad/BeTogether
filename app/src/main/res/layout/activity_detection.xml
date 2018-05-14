@@ -14,31 +14,31 @@
         android:textSize="@dimen/font_size_normal" />
 
     <TextView
-        android:id="@+id/proximity_view"
+        android:id="@+id/pocket_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/welcome_view"
         android:layout_margin="@dimen/activity_vertical_margin" />
 
     <TextView
-        android:id="@+id/light_view"
+        android:id="@+id/door_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/proximity_view"
+        android:layout_below="@id/pocket_view"
         android:layout_margin="@dimen/activity_vertical_margin" />
 
     <TextView
-        android:id="@+id/pocket_view"
+        android:id="@+id/ground_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/light_view"
+        android:layout_below="@id/door_view"
         android:layout_margin="@dimen/activity_vertical_margin" />
 
     <TextView
         android:id="@+id/activity_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/pocket_view"
+        android:layout_below="@id/ground_view"
         android:layout_margin="@dimen/activity_vertical_margin" />
 
     <TextView

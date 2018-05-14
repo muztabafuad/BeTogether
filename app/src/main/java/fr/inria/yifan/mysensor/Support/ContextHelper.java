@@ -134,9 +134,9 @@ public class ContextHelper extends BroadcastReceiver {
     @SuppressLint("MissingPermission")
     public void startService() {
 
-        mRssiDbm = new SlideWindow(SAMPLE_NUM_WINDOW);
-        mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW);
-        mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW);
+        mRssiDbm = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         //hasBattery = 0;
         //localTime = 0;
         //inPocket = false;
