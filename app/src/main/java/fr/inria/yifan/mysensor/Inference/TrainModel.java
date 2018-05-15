@@ -18,18 +18,25 @@ public class TrainModel {
 
         // 1 daytime, 2 light, 3 magnetic, 4 GSM, 5 GPS accuracy, 6 GPS speed, 7 proximity
         int featuresInit[] = {1, 2, 3, 4, 5, 6, 7}; // The index of features to construct samples
-        int numSamples = 40000; // Use how many samples for learning
+        int numSamples = 1000; // Use how many samples for learning
 
-        // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
         //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/InpocketOutpocket_binary.csv";
+        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_InPocket_labled.csv";
         //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
+        // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
         //int featuresUsed[] = {1, 2, 6}; // The index of features used for training
-        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/IndoorOutdoor_binary.csv";
-        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INDOOR;
-        int featuresUsed[] = {1, 2, 4}; // The index of features used for training
+
+        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/IndoorOutdoor_binary.csv";
+        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Indoor_labled.csv";
+        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INDOOR;
+        // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
+        //int featuresUsed[] = {1, 3, 4}; // The index of features used for training
+
         //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/OngroundUnderground_binary.csv";
-        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
-        //int featuresUsed[] = {2, 3, 4}; // The index of features used for training
+        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Underground_labled.csv";
+        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
+        // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
+        int featuresUsed[] = {1, 2, 3}; // The index of features used for training
 
         CSVParser parserSample = new CSVParser(fileLoad, numSamples, featuresInit);
         parserSample.shuffleSamples(); // Shuffle the samples
@@ -70,14 +77,24 @@ public class TrainModel {
 
         // Load samples for feedback and test
         int numTests = 1000; // Use how many samples for testing
+
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Pocket_Crosscall.csv";
-        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Door_Crosscall.csv";
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Door_Crosscall.csv";
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Ground_Crosscall.csv";
+
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Crosscall_InPocket_labled.csv";
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Crosscall_Indoor_labled.csv";
+        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Crosscall_Underground_labled.csv";
+
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_InPocket_labled.csv";
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Indoor_labled.csv";
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Underground_labled.csv";
+
         CSVParser parserTest = new CSVParser(fileTest, numTests, featuresInit);
         StringBuilder logging = new StringBuilder();
 
         // Run multiple times
-        int run = 1;
+        int run = 10;
         for (int count = 0; count < run; count++) {
             // Load trained model
             try {

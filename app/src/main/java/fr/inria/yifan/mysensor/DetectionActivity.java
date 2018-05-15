@@ -171,14 +171,14 @@ public class DetectionActivity extends AppCompatActivity {
                                 mPocketView.setText("Inference result: Out-pocket");
                             }
 
-                            Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
+                            //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
                             if (mInferHelper.InferIndoor(sample) == 1) {
                                 mDoorView.setText("Inference result: In-door");
                             } else {
                                 mDoorView.setText("Inference result: Out-door");
                             }
 
-                            Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
+                            //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
                             if (mInferHelper.InferUnderground(sample) == 1) {
                                 mGroundView.setText("Inference result: Under-ground");
                             } else {
