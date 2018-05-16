@@ -185,7 +185,7 @@ public class DetectionActivity extends AppCompatActivity {
                                 mGroundView.setText("Inference result: On-ground");
                             }
 
-                            mActivityView.setText(mContextHelper.getUserActivity());
+                            mActivityView.setText("Signal strength level: " + mContextHelper.getRssiLevel() + "\n\n" + mContextHelper.getUserActivity());
 
                             String loc = "Current location information：\n" +
                                     " - Longitude：" + location.getLongitude() + "\n" +

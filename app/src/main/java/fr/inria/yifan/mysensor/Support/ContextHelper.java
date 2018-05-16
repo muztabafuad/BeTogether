@@ -49,6 +49,7 @@ public class ContextHelper extends BroadcastReceiver {
 
     // Declare all contexts
     private SlideWindow mRssiDbm;
+    private float mRssiLevel;
     private SlideWindow mAccuracy;
     private SlideWindow mSpeed;
     //private float hasBattery;
@@ -64,10 +65,16 @@ public class ContextHelper extends BroadcastReceiver {
 
     // Declare GSM RSSI state listener
     private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
+        @RequiresApi(api = Build.VERSION_CODES.M)
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
             mRssiDbm.putValue(signalStrength.getGsmSignalStrength() * 2 - 113); // -> dBm
-            //Log.d(TAG, String.valueOf(rssiDbm));
+            Log.d(TAG, "CDMA: " + String.valueOf(signalStrength.getCdmaDbm()));
+            Log.d(TAG, "Evdo: " + String.valueOf(signalStrength.getEvdoDbm()));
+            Log.d(TAG, "GSM: " + String.valueOf(signalStrength.getGsmSignalStrength() * 2 - 113));
+            Log.d(TAG, "Is GSM: " + String.valueOf(signalStrength.isGsm()));
+            Log.d(TAG, "Level: " + signalStrength.getLevel());
+            mRssiLevel = signalStrength.getLevel();
         }
     };
 
@@ -135,6 +142,7 @@ public class ContextHelper extends BroadcastReceiver {
     public void startService() {
 
         mRssiDbm = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mRssiLevel = 4;
         mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         //hasBattery = 0;
@@ -172,6 +180,11 @@ public class ContextHelper extends BroadcastReceiver {
     // Get the most recent RSSI
     public float getRssiDbm() {
         return mRssiDbm.getMean();
+    }
+
+    // Get the most recent signal strength level
+    public float getRssiLevel() {
+        return mRssiLevel;
     }
 
     // Get location information from GPS
