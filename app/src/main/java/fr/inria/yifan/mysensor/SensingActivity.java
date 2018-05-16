@@ -1,9 +1,11 @@
 package fr.inria.yifan.mysensor;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -37,6 +39,7 @@ public class SensingActivity extends AppCompatActivity {
     private final Object mLock;
     private boolean isGetSenseRun;
     private int mSenseRound;
+    private PowerManager.WakeLock mWakeLock;
 
     // Declare all related views
     private TextView mWelcomeView;
@@ -113,6 +116,7 @@ public class SensingActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        acquireWakeLock();
         if (mSensorHelper != null) {
             mSensorHelper.startService();
         }
@@ -126,6 +130,7 @@ public class SensingActivity extends AppCompatActivity {
     protected void onPause() {
         isGetSenseRun = false;
         super.onPause();
+        releaseWakeLock();
         if (mSensorHelper != null) {
             mSensorHelper.stopService();
         }
@@ -237,6 +242,22 @@ public class SensingActivity extends AppCompatActivity {
             case ENABLE_REQUEST_LOCATION: {
                 mContextHelper.startService();
             }
+        }
+    }
+
+    private void acquireWakeLock() {
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            assert pm != null;
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getCanonicalName());
+            mWakeLock.acquire(100*60*1000L /*100 minutes*/);
+        }
+    }
+
+    private void releaseWakeLock() {
+        if (mWakeLock != null && mWakeLock.isHeld()) {
+            mWakeLock.release();
+            mWakeLock = null;
         }
     }
 

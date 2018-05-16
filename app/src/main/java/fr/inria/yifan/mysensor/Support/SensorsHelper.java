@@ -9,6 +9,7 @@ import android.hardware.SensorManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.util.Log;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
@@ -25,7 +26,6 @@ public class SensorsHelper {
 
     // Audio recorder parameters for sampling
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
-    private Activity mActivity;
 
     // Declare sensors and recorder
     private AudioRecord mAudioRecord;
@@ -126,12 +126,12 @@ public class SensorsHelper {
 
     // Register the broadcast receiver with the intent values to be matched
     public SensorsHelper(Activity activity) {
-        mActivity = activity;
 
+        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
         mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
         //Log.d(TAG, "Buffer size = " + BUFFER_SIZE);
 
-        mSensorManager = (SensorManager) mActivity.getSystemService(Context.SENSOR_SERVICE);
+        mSensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
         assert mSensorManager != null;
         mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         mSensorMagnet = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -143,7 +143,8 @@ public class SensorsHelper {
 
     // Check if location service on system is enabled
     public void startService() {
-        mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
+        mAudioRecord.startRecording();
+
         mLight = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mMagnet = new SlideWindow(SAMPLE_NUM_WINDOW,0);
         mProximity = 1;
@@ -151,7 +152,6 @@ public class SensorsHelper {
         mPressure = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mHumidity = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
 
-        mAudioRecord.startRecording();
         // Register listeners for all environmental sensors
         mSensorManager.registerListener(mListenerLight, mSensorLight, SensorManager.SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(mListenerMagnet, mSensorMagnet, SensorManager.SENSOR_DELAY_FASTEST);
@@ -186,6 +186,7 @@ public class SensorsHelper {
         }
         // Square sum divide by data length to get volume
         double mean = v / (double) r;
+        //Log.d(TAG, "Sound value: " + mean);
         final double volume = 10 * Math.log10(mean);
         //Log.d(TAG, "Sound dB value: " + volume);
         return (int) (volume * SLOPE + INTERCEPT);

@@ -9,7 +9,7 @@ import java.io.Serializable;
 public class Configuration implements Serializable {
 
     // Parameters for sensing sampling
-    public static final int SAMPLE_WINDOW_IN_MS = 500;
+    public static final int SAMPLE_WINDOW_IN_MS = 200;
     static final int SAMPLE_NUM_WINDOW = 10;
     // Permission request indicator code
     public static final int PERMS_REQUEST_RECORD = 1000;
@@ -24,7 +24,7 @@ public class Configuration implements Serializable {
     // Minimum time interval between location updates (milliseconds)
     static final int LOCATION_UPDATE_TIME = 10;
     // Minimum distance between location updates (meters)
-    static final int LOCATION_UPDATE_DISTANCE = 5;
+    static final int LOCATION_UPDATE_DISTANCE = 1;
     // Storage path for the sensing data file
     static final String STORAGE_FILE_PATH = "/Download/MySensor";
 
