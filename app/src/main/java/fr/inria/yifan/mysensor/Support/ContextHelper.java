@@ -48,8 +48,8 @@ public class ContextHelper extends BroadcastReceiver {
     private LocationManager mLocationManager;
 
     // Declare all contexts
-    private SlideWindow mRssiDbm;
-    private float mRssiLevel;
+    private SlideWindow mGSMFlag;
+    private SlideWindow mRssiLevel;
     private SlideWindow mAccuracy;
     private SlideWindow mSpeed;
     //private float hasBattery;
@@ -68,13 +68,14 @@ public class ContextHelper extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.M)
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
-            mRssiDbm.putValue(signalStrength.getGsmSignalStrength() * 2 - 113); // -> dBm
-            Log.d(TAG, "CDMA: " + String.valueOf(signalStrength.getCdmaDbm()));
-            Log.d(TAG, "Evdo: " + String.valueOf(signalStrength.getEvdoDbm()));
-            Log.d(TAG, "GSM: " + String.valueOf(signalStrength.getGsmSignalStrength() * 2 - 113));
-            Log.d(TAG, "Is GSM: " + String.valueOf(signalStrength.isGsm()));
-            Log.d(TAG, "Level: " + signalStrength.getLevel());
-            mRssiLevel = signalStrength.getLevel();
+            //mRssiDbm.putValue(signalStrength.getGsmSignalStrength() * 2 - 113); // -> dBm
+            mGSMFlag.putValue(signalStrength.isGsm() ? 1 : 0);
+            //Log.d(TAG, "CDMA: " + String.valueOf(signalStrength.getCdmaDbm()));
+            //Log.d(TAG, "Evdo: " + String.valueOf(signalStrength.getEvdoDbm()));
+            //Log.d(TAG, "GSM: " + String.valueOf(signalStrength.getGsmSignalStrength() * 2 - 113));
+            //Log.d(TAG, "Is GSM: " + String.valueOf(signalStrength.isGsm()));
+            //Log.d(TAG, "Level: " + signalStrength.getLevel());
+            mRssiLevel.putValue(signalStrength.getLevel());
         }
     };
 
@@ -141,8 +142,8 @@ public class ContextHelper extends BroadcastReceiver {
     @SuppressLint("MissingPermission")
     public void startService() {
 
-        mRssiDbm = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
-        mRssiLevel = 4;
+        mGSMFlag = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mRssiLevel = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         //hasBattery = 0;
@@ -177,14 +178,14 @@ public class ContextHelper extends BroadcastReceiver {
         mActivity.unregisterReceiver(this);
     }
 
-    // Get the most recent RSSI
-    public float getRssiDbm() {
-        return mRssiDbm.getMean();
+    // Get the most recent GSM RSSI
+    public float getGSMFlag() {
+        return mGSMFlag.getMean();
     }
 
     // Get the most recent signal strength level
     public float getRssiLevel() {
-        return mRssiLevel;
+        return mRssiLevel.getMean();
     }
 
     // Get location information from GPS
@@ -208,7 +209,7 @@ public class ContextHelper extends BroadcastReceiver {
     }
 
     // Get the most recent user activity
-    public String getUserActivity(){
+    public String getUserActivity() {
         return userActivity;
     }
 
@@ -227,6 +228,14 @@ public class ContextHelper extends BroadcastReceiver {
             userActivity = result.getMostProbableActivity().toString();
             //Log.e(TAG, "Received intent: " + result.getMostProbableActivity().toString());
         }
+    }
+
+    // Manually update sliding window
+    public void updateWindow(){
+        mGSMFlag.putValue(mGSMFlag.getLast());
+        mRssiLevel.putValue(mRssiLevel.getLast());
+        mAccuracy.putValue(mAccuracy.getLast());
+        mSpeed.putValue(mSpeed.getLast());
     }
 
 }

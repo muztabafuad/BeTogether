@@ -40,7 +40,7 @@ public class SensorsHelper {
 
     // Declare sensing variables
     private SlideWindow mLight;
-    private float mProximity;
+    private SlideWindow mProximity;
     private SlideWindow mTemperature;
     private SlideWindow mPressure;
     private SlideWindow mHumidity;
@@ -76,7 +76,7 @@ public class SensorsHelper {
     private SensorEventListener mListenerProxy = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            mProximity = sensorEvent.values[0];
+            mProximity.putValue(sensorEvent.values[0]);
         }
 
         @Override
@@ -146,8 +146,8 @@ public class SensorsHelper {
         mAudioRecord.startRecording();
 
         mLight = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
-        mMagnet = new SlideWindow(SAMPLE_NUM_WINDOW,0);
-        mProximity = 1;
+        mMagnet = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mProximity = new SlideWindow(SAMPLE_NUM_WINDOW, mSensorProxy.getMaximumRange());
         mTemperature = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mPressure = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mHumidity = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
@@ -199,7 +199,7 @@ public class SensorsHelper {
 
     // Get thr most recent proximity value
     public float getProximity() {
-        return mProximity;
+        return mProximity.getMean();
     }
 
     // Get the most recent temperature
@@ -220,6 +220,16 @@ public class SensorsHelper {
     // Get the most recent magnet field
     public float getMagnet() {
         return mMagnet.getMean();
+    }
+
+    // Manually update sliding window
+    public void updateWindow(){
+        mLight.putValue(mLight.getLast());
+        mMagnet.putValue(mMagnet.getLast());
+        mProximity.putValue(mProximity.getLast());
+        mTemperature.putValue(mTemperature.getLast());
+        mPressure.putValue(mPressure.getLast());
+        mHumidity.putValue(mHumidity.getLast());
     }
 
     // Simple In/Out-pocket detection function

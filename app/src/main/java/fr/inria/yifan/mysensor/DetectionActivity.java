@@ -158,10 +158,12 @@ public class DetectionActivity extends AppCompatActivity {
                         @RequiresApi(api = Build.VERSION_CODES.N)
                         @Override
                         public void run() {
+                            mSensorHelper.updateWindow();
+                            mContextHelper.updateWindow();
                             Location location = mContextHelper.getLocation();
                             // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
                             double[] sample = new double[]{mContextHelper.isDaytime(), mSensorHelper.getLightDensity(), mSensorHelper.getMagnet(),
-                                    mContextHelper.getRssiDbm(), mContextHelper.getGPSAccuracy(), mContextHelper.getGPSSpeed(), mSensorHelper.getProximity()};
+                                    mContextHelper.getGSMFlag(), mContextHelper.getGPSAccuracy(), mContextHelper.getGPSSpeed(), mSensorHelper.getProximity()};
 
                             Log.d(TAG, Arrays.toString(sample));
 

@@ -83,7 +83,7 @@ public class SensingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mAdapterSensing.clear();
                 mAdapterSensing.add("Timestamp, daytime, light density (lx), magnetic strength (μT), " +
-                        "GSM RSSI (dBm), RSSI level, GPS accuracy (m), GPS speed (m/s), proximity (bit), " +
+                        "GSM flag, RSSI level, GPS accuracy (m), GPS speed (m/s), proximity (bit), " +
                         "sound level (dB), temperature (C), pressure (hPa), humidity (%)");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
@@ -163,11 +163,13 @@ public class SensingActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            mSensorHelper.updateWindow();
+                            mContextHelper.updateWindow();
                             mAdapterSensing.add(System.currentTimeMillis() + ", " +
                                     mContextHelper.isDaytime() + ", " +
                                     mSensorHelper.getLightDensity() + ", " +
                                     mSensorHelper.getMagnet() + ", " +
-                                    mContextHelper.getRssiDbm() + ", " +
+                                    mContextHelper.getGSMFlag() + ", " +
                                     mContextHelper.getRssiLevel() + ", " +
                                     mContextHelper.getGPSAccuracy() + ", " +
                                     mContextHelper.getGPSSpeed() + ", " +
