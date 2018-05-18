@@ -55,6 +55,7 @@ public class SensingActivity extends AppCompatActivity {
     private FilesIOHelper mFilesIOHelper;
     private ArrayList<String> mSensingData;
     private String mSenseScene;
+    private int mSceneLabel;
 
     // Sensors helper for sensor and context
     private SensorsHelper mSensorHelper;
@@ -82,13 +83,15 @@ public class SensingActivity extends AppCompatActivity {
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(mAdapterSensing);
 
-        RadioGroup mRadioGroup = findViewById(R.id.scene_radio);
+        final RadioGroup mRadioGroup = findViewById(R.id.scene_radio);
         mRadioGroup.check(R.id.outpocket_radio);
         mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId != -1) {
                     mSenseScene = getSceneString(checkedId);
+                    mSceneLabel = getSceneLabel(checkedId);
+                    //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
                 }
             }
         });
@@ -97,12 +100,13 @@ public class SensingActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 mAdapterSensing.clear();
-                mAdapterSensing.add("Timestamp, daytime, light density (lx), magnetic strength (μT), " +
-                        "GSM flag, RSSI level, GPS accuracy (m), GPS speed (m/s), proximity (bit), " +
-                        "sound level (dB), temperature (C), pressure (hPa), humidity (%)");
+                mAdapterSensing.add("Timestamp, daytime (b), light density (lx), magnetic strength (μT), " +
+                        "GSM flag (b), RSSI level, GPS accuracy (m), GPS speed (m/s), proximity (b), " +
+                        "sound level (dBA), temperature (C), pressure (hPa), humidity (%), label");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
+                mRadioGroup.setVisibility(View.INVISIBLE);
             }
         });
         mStopButton.setOnClickListener(new View.OnClickListener() {
@@ -111,6 +115,7 @@ public class SensingActivity extends AppCompatActivity {
                 stopRecord();
                 mStartButton.setVisibility(View.VISIBLE);
                 mStopButton.setVisibility(View.INVISIBLE);
+                mRadioGroup.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -192,7 +197,8 @@ public class SensingActivity extends AppCompatActivity {
                                     mSensorHelper.getSoundLevel() + ", " +
                                     mSensorHelper.getTemperature() + ", " +
                                     mSensorHelper.getPressure() + ", " +
-                                    mSensorHelper.getHumidity());
+                                    mSensorHelper.getHumidity() + ", " +
+                                    mSceneLabel);
                             mSenseRound += 1;
                             mWelcomeView.setText(String.valueOf(mSenseRound));
                             //Log.d(TAG, String.valueOf(mSenseRound));
@@ -223,7 +229,7 @@ public class SensingActivity extends AppCompatActivity {
                     }
                     //Log.d(TAG, "Now is " + time);
                     try {
-                        mFilesIOHelper.saveFile(String.valueOf(editName.getText()), content.toString());
+                        mFilesIOHelper.saveFile(String.valueOf(editName.getText() + ".csv"), content.toString());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -280,9 +286,30 @@ public class SensingActivity extends AppCompatActivity {
         }
     }
 
+    // Get the string name of current scene
     private String getSceneString(int radioId) {
         RadioButton radio = findViewById(radioId);
-        return (String) radio.getText();
+        return String.valueOf(radio.getText());
+    }
+
+    // Get the binary label for this scene
+    private int getSceneLabel(int radioId) {
+        switch (radioId) {
+            case R.id.inpocket_radio:
+                return 1;
+            case R.id.outpocket_radio:
+                return 0;
+            case R.id.indoor_radio:
+                return 1;
+            case R.id.outdoor_radio:
+                return 0;
+            case R.id.underground_radio:
+                return 1;
+            case R.id.onground_radio:
+                return 0;
+            default:
+                return -1;
+        }
     }
 
 }
