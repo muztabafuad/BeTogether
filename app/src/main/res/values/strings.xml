@@ -15,4 +15,10 @@
     <string name="open_network">Discovering Wifi Direct neighbors providing services …</string>
     <string name="count_sensing">Sensing count: </string>
     <string name="feedback">Feedback "wrong"</string>
+    <string name="in_pocket">In-Pocket</string>
+    <string name="in_door">In-Door</string>
+    <string name="under_ground">Under-Ground</string>
+    <string name="out_pocket">Out-Pocket</string>
+    <string name="out_door">Out-Door</string>
+    <string name="on_ground">On-Ground</string>
 </resources>

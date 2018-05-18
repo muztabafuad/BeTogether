@@ -1,6 +1,6 @@
 package fr.inria.yifan.mysensor;
 
-import android.content.Context;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
@@ -15,6 +15,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -26,10 +28,11 @@ import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_IN_MS;
+import static java.lang.System.currentTimeMillis;
 
 /*
-* This activity provides functions including showing sensor and logging sensing data.
-*/
+ * This activity provides functions including showing sensor and logging sensing data.
+ */
 
 public class SensingActivity extends AppCompatActivity {
 
@@ -51,6 +54,7 @@ public class SensingActivity extends AppCompatActivity {
     // File helper and string data
     private FilesIOHelper mFilesIOHelper;
     private ArrayList<String> mSensingData;
+    private String mSenseScene;
 
     // Sensors helper for sensor and context
     private SensorsHelper mSensorHelper;
@@ -63,12 +67,12 @@ public class SensingActivity extends AppCompatActivity {
 
     // Initially bind all views
     private void bindViews() {
+        mWelcomeView = findViewById(R.id.welcome_view);
+        mWelcomeView.setText(R.string.hint_sensing);
         mStartButton = findViewById(R.id.start_button);
         mStopButton = findViewById(R.id.stop_button);
         mStopButton.setVisibility(View.INVISIBLE);
         mSwitchLog = findViewById(R.id.switch_log);
-        mWelcomeView = findViewById(R.id.welcome_view);
-        mWelcomeView.setText(R.string.hint_sensing);
 
         // Build an adapter to feed the list with the content of an array of strings
         mSensingData = new ArrayList<>();
@@ -77,6 +81,17 @@ public class SensingActivity extends AppCompatActivity {
         // Attache the adapter to the list view
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(mAdapterSensing);
+
+        RadioGroup mRadioGroup = findViewById(R.id.scene_radio);
+        mRadioGroup.check(R.id.outpocket_radio);
+        mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId != -1) {
+                    mSenseScene = getSceneString(checkedId);
+                }
+            }
+        });
 
         mStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,7 +180,7 @@ public class SensingActivity extends AppCompatActivity {
                         public void run() {
                             mSensorHelper.updateWindow();
                             mContextHelper.updateWindow();
-                            mAdapterSensing.add(System.currentTimeMillis() + ", " +
+                            mAdapterSensing.add(currentTimeMillis() + ", " +
                                     mContextHelper.isDaytime() + ", " +
                                     mSensorHelper.getLightDensity() + ", " +
                                     mSensorHelper.getMagnet() + ", " +
@@ -189,13 +204,14 @@ public class SensingActivity extends AppCompatActivity {
     }
 
     // Stop the sound sensing
+    @SuppressLint("SetTextI18n")
     private void stopRecord() {
         mSensorHelper.stopService();
         isGetSenseRun = false;
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             final EditText editName = new EditText(this);
-            editName.setText(String.valueOf(System.currentTimeMillis()));
+            editName.setText(mSenseScene + "_" + currentTimeMillis());
             dialog.setTitle("Enter file name: ");
             dialog.setView(editName);
             dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -253,7 +269,7 @@ public class SensingActivity extends AppCompatActivity {
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
             assert pm != null;
             mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getCanonicalName());
-            mWakeLock.acquire(100*60*1000L /*100 minutes*/);
+            mWakeLock.acquire(100 * 60 * 1000L /*100 minutes*/);
         }
     }
 
@@ -262,6 +278,11 @@ public class SensingActivity extends AppCompatActivity {
             mWakeLock.release();
             mWakeLock = null;
         }
+    }
+
+    private String getSceneString(int radioId) {
+        RadioButton radio = findViewById(radioId);
+        return (String) radio.getText();
     }
 
 }

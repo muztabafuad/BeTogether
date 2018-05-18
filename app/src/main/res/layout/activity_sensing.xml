@@ -31,31 +31,80 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <Switch
-            android:id="@+id/switch_log"
-            android:layout_width="wrap_content"
+        <RadioGroup
+            android:id="@+id/scene_radio"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/activity_vertical_margin"
-            android:layout_marginRight="@dimen/activity_vertical_margin"
-            android:text="@string/switch_log" />
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/start_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/activity_vertical_margin"
-            android:layout_marginRight="@dimen/activity_vertical_margin"
-            android:text="@string/start"
-            tools:ignore="ButtonStyle" />
+            <RadioButton
+                android:id="@+id/inpocket_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/in_pocket" />
 
-        <Button
-            android:id="@+id/stop_button"
-            android:layout_width="wrap_content"
+            <RadioButton
+                android:id="@+id/outpocket_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/out_pocket" />
+
+            <RadioButton
+                android:id="@+id/indoor_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/in_door" />
+
+            <RadioButton
+                android:id="@+id/outdoor_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/out_door" />
+
+            <RadioButton
+                android:id="@+id/underground_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/under_ground" />
+
+            <RadioButton
+                android:id="@+id/onground_radio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/on_ground" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="@dimen/activity_vertical_margin"
-            android:layout_marginStart="@dimen/activity_vertical_margin"
-            android:text="@string/stop"
-            tools:ignore="ButtonStyle" />
+            android:layout_weight="1"
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <Switch
+                android:id="@+id/switch_log"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/activity_horizontal_margin"
+                android:text="@string/switch_log" />
+
+            <Button
+                android:id="@+id/start_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/activity_horizontal_margin"
+                android:text="@string/start"
+                tools:ignore="ButtonStyle" />
+
+            <Button
+                android:id="@+id/stop_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/activity_horizontal_margin"
+                android:text="@string/stop"
+                tools:ignore="ButtonStyle" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
