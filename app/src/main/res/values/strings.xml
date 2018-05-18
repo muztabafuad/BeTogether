@@ -14,4 +14,5 @@
     <string name="hint_network">Press start to discover Wifi Direct neighbors providing services.</string>
     <string name="open_network">Discovering Wifi Direct neighbors providing services …</string>
     <string name="count_sensing">Sensing count: </string>
+    <string name="feedback">Feedback "wrong"</string>
 </resources>

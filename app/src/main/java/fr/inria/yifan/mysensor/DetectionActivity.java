@@ -40,6 +40,9 @@ public class DetectionActivity extends AppCompatActivity {
     private TextView mGroundView;
     private TextView mLocationView;
     private TextView mActivityView;
+    private Button mPocketButton;
+    private Button mDoorButton;
+    private Button mGroundButton;
     private Button mStartButton;
     private Button mStopButton;
 
@@ -58,11 +61,14 @@ public class DetectionActivity extends AppCompatActivity {
         TextView mWelcomeView = findViewById(R.id.welcome_view);
         mWelcomeView.setText(R.string.hint_detect);
 
-        mPocketView = findViewById(R.id.pocket_view);
-        mDoorView = findViewById(R.id.door_view);
-        mGroundView = findViewById(R.id.ground_view);
+        mPocketView = findViewById(R.id.pocket_text);
+        mDoorView = findViewById(R.id.door_text);
+        mGroundView = findViewById(R.id.ground_text);
         mActivityView = findViewById(R.id.activity_view);
         mLocationView = findViewById(R.id.location_view);
+        mPocketButton = findViewById(R.id.pocket_button);
+        mDoorButton = findViewById(R.id.door_button);
+        mGroundButton = findViewById(R.id.ground_button);
         mStartButton = findViewById(R.id.start_button);
         mStopButton = findViewById(R.id.stop_button);
         mStopButton.setVisibility(View.INVISIBLE);
@@ -71,6 +77,9 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 startSensing();
+                mPocketButton.setVisibility(View.VISIBLE);
+                mDoorButton.setVisibility(View.VISIBLE);
+                mGroundButton.setVisibility(View.VISIBLE);
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
             }
@@ -93,6 +102,9 @@ public class DetectionActivity extends AppCompatActivity {
         mGroundView.setText(null);
         mActivityView.setText(null);
         mLocationView.setText(null);
+        mPocketButton.setVisibility(View.INVISIBLE);
+        mDoorButton.setVisibility(View.INVISIBLE);
+        mGroundButton.setVisibility(View.INVISIBLE);
     }
 
     // Main activity initialization
@@ -187,7 +199,8 @@ public class DetectionActivity extends AppCompatActivity {
                                 mGroundView.setText("Inference result: On-ground");
                             }
 
-                            mActivityView.setText("Signal strength level: " + mContextHelper.getRssiLevel() + "\n\n" + mContextHelper.getUserActivity());
+                            mActivityView.setText(/*"Signal strength level: " + mContextHelper.getRssiLevel() + "\n\n" +*/
+                                    mContextHelper.getUserActivity());
 
                             String loc = "Current location information：\n" +
                                     " - Longitude：" + location.getLongitude() + "\n" +
