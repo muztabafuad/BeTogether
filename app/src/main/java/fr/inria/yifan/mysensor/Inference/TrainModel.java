@@ -16,7 +16,7 @@ public class TrainModel {
     // Main method for generating original model
     public static void main(String[] args) {
 
-        // 1 daytime, 2 light, 3 magnetic, 4 GSM, 5 GPS accuracy, 6 GPS speed, 7 proximity
+        // 1 daytime, 2 light, 3 magnetic, 4 GSM, 5 GPS accuracy, 6 GPS speed, 7 proximity, 12 label
         int featuresInit[] = {1, 2, 3, 4, 5, 6, 7}; // The index of features to construct samples
         int numSamples = 1000; // Use how many samples for learning
 
@@ -37,8 +37,9 @@ public class TrainModel {
         String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
         // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
         int featuresUsed[] = {1, 2, 3}; // The index of features used for training
+        int labelInit = 12;
 
-        CSVParser parserSample = new CSVParser(fileLoad, numSamples, featuresInit);
+        CSVParser parserSample = new CSVParser(fileLoad, numSamples, featuresInit, labelInit);
         parserSample.shuffleSamples(); // Shuffle the samples
         double[][] samples = parserSample.getSampleArray();
         // Initially 20% samples will be used for test
@@ -90,7 +91,7 @@ public class TrainModel {
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Indoor_labled.csv";
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Underground_labled.csv";
 
-        CSVParser parserTest = new CSVParser(fileTest, numTests, featuresInit);
+        CSVParser parserTest = new CSVParser(fileTest, numTests, featuresInit, labelInit);
         StringBuilder logging = new StringBuilder();
 
         // Run multiple times

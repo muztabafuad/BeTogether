@@ -9,7 +9,7 @@ class CSVParser {
 
     private double samples[][]; // All samples stored in an array
 
-    CSVParser(String filePath, int numSamples, int[] featureInd) {
+    CSVParser(String filePath, int numSamples, int[] featureInd, int labelInd) {
         // A sample has several features and only 1 label
         samples = new double[numSamples][featureInd.length + 1];
         // Read the CSV file into array of samples
@@ -28,7 +28,7 @@ class CSVParser {
                     j++;
                 }
                 // And extract the label into each sample
-                samples[i][samples[i].length - 1] = Double.parseDouble(item[item.length - 1]);
+                samples[i][samples[i].length - 1] = Double.parseDouble(item[labelInd]);
                 i++;
             }
             reader.close();
