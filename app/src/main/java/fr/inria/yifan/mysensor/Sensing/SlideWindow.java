@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Support;
+package fr.inria.yifan.mysensor.Sensing;
 
 import java.util.Arrays;
 

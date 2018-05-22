@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -22,42 +23,42 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import fr.inria.yifan.mysensor.Support.ContextHelper;
+import fr.inria.yifan.mysensor.Sensing.ContextHelper;
+import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
-import fr.inria.yifan.mysensor.Support.SensorsHelper;
 
+import static fr.inria.yifan.mysensor.Support.Configuration.DST_MAIL_ADDRESS;
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_IN_MS;
 import static java.lang.System.currentTimeMillis;
 
 /*
- * This activity provides functions including showing sensor and logging sensing data.
+ * This activity provides functions including labeling scene and logging sensing data.
  */
 
 public class SensingActivity extends AppCompatActivity {
 
     private static final String TAG = "Sensing activity";
 
-    // Thread locker and running flag
-    private final Object mLock;
-    private boolean isGetSenseRun;
-    private int mSenseRound;
-    private PowerManager.WakeLock mWakeLock;
+    private final Object mLock; // Thread locker
+    private boolean isGetSenseRun; // Running flag
+    private int mSenseRound; // Sensing counter
+    private PowerManager.WakeLock mWakeLock; // Awake locker
 
-    // Declare all related views
+    // Declare all related views in UI
     private TextView mWelcomeView;
     private Button mStartButton;
     private Button mStopButton;
     private Switch mSwitchLog;
     private ArrayAdapter<String> mAdapterSensing;
 
-    // File helper and string data
-    private FilesIOHelper mFilesIOHelper;
-    private ArrayList<String> mSensingData;
-    private String mSenseScene;
-    private int mSceneLabel;
+    private FilesIOHelper mFilesIOHelper; // File helper
+    private ArrayList<String> mSensingData; // Sensing data
+    private int mPocketLabel; // In-pocket binary label
+    private int mDoorLabel; // In-door binary label
+    private int mGroundLabel; // Under-ground binary label
 
-    // Sensors helper for sensor and context
+    // Helpers for sensors and context
     private SensorsHelper mSensorHelper;
     private ContextHelper mContextHelper;
 
@@ -75,26 +76,54 @@ public class SensingActivity extends AppCompatActivity {
         mStopButton.setVisibility(View.INVISIBLE);
         mSwitchLog = findViewById(R.id.switch_log);
 
-        // Build an adapter to feed the list with the content of an array of strings
+        // Build an adapter to feed the list with the content of a string array
         mSensingData = new ArrayList<>();
         mAdapterSensing = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mSensingData);
-
-        // Attache the adapter to the list view
+        // then attache the adapter to the list view
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(mAdapterSensing);
 
-        final RadioGroup mRadioGroup = findViewById(R.id.scene_radio);
-        mRadioGroup.check(R.id.outpocket_radio);
-        mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        // Radio group for scene selection
+        final RadioGroup mPocketRadioGroup = findViewById(R.id.pocket_radio);
+        mPocketRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId != -1) {
-                    mSenseScene = getSceneString(checkedId);
-                    mSceneLabel = getSceneLabel(checkedId);
+                    mPocketLabel = getSceneLabel(checkedId);
                     //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
                 }
             }
         });
+
+        // Radio group for scene selection
+        final RadioGroup mDoorRadioGroup = findViewById(R.id.door_radio);
+        mDoorRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId != -1) {
+                    mDoorLabel = getSceneLabel(checkedId);
+                    //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
+                }
+            }
+        });
+
+        // Radio group for scene selection
+        final RadioGroup mGroundRadioGroup = findViewById(R.id.ground_radio);
+        mGroundRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId != -1) {
+                    mGroundLabel = getSceneLabel(checkedId);
+                    //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
+                }
+            }
+        });
+
+        mPocketRadioGroup.check(R.id.outpocket_radio);
+        mDoorRadioGroup.check(R.id.indoor_radio);
+        mGroundRadioGroup.check(R.id.underground_radio);
+
+        final LinearLayout mRadioLayout = findViewById(R.id.scene_radios);
 
         mStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,11 +131,11 @@ public class SensingActivity extends AppCompatActivity {
                 mAdapterSensing.clear();
                 mAdapterSensing.add("Timestamp, daytime (b), light density (lx), magnetic strength (μT), " +
                         "GSM flag (b), RSSI level, GPS accuracy (m), GPS speed (m/s), proximity (b), " +
-                        "sound level (dBA), temperature (C), pressure (hPa), humidity (%), label");
+                        "sound level (dBA), temperature (C), pressure (hPa), humidity (%), in-pocket label, in-door label, under-ground label");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
-                mRadioGroup.setVisibility(View.INVISIBLE);
+                mRadioLayout.setVisibility(View.INVISIBLE);
             }
         });
         mStopButton.setOnClickListener(new View.OnClickListener() {
@@ -115,7 +144,7 @@ public class SensingActivity extends AppCompatActivity {
                 stopRecord();
                 mStartButton.setVisibility(View.VISIBLE);
                 mStopButton.setVisibility(View.INVISIBLE);
-                mRadioGroup.setVisibility(View.VISIBLE);
+                mRadioLayout.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -128,8 +157,8 @@ public class SensingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sensing);
         bindViews();
         mSensorHelper = new SensorsHelper(this);
-        mFilesIOHelper = new FilesIOHelper(this);
         mContextHelper = new ContextHelper(this);
+        mFilesIOHelper = new FilesIOHelper(this);
     }
 
     // Resume the sensing service
@@ -148,8 +177,8 @@ public class SensingActivity extends AppCompatActivity {
     // Stop thread when exit!
     @Override
     protected void onPause() {
-        isGetSenseRun = false;
         super.onPause();
+        isGetSenseRun = false;
         releaseWakeLock();
         if (mSensorHelper != null) {
             mSensorHelper.stopService();
@@ -165,7 +194,7 @@ public class SensingActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing and recording");
             return;
         }
-        mSensorHelper.startService();
+        //mSensorHelper.startService();
         isGetSenseRun = true;
         mSenseRound = 0;
         new Thread(new Runnable() {
@@ -198,7 +227,9 @@ public class SensingActivity extends AppCompatActivity {
                                     mSensorHelper.getTemperature() + ", " +
                                     mSensorHelper.getPressure() + ", " +
                                     mSensorHelper.getHumidity() + ", " +
-                                    mSceneLabel);
+                                    mPocketLabel + ", " +
+                                    mDoorLabel + ", " +
+                                    mGroundLabel);
                             mSenseRound += 1;
                             mWelcomeView.setText(String.valueOf(mSenseRound));
                             //Log.d(TAG, String.valueOf(mSenseRound));
@@ -212,12 +243,12 @@ public class SensingActivity extends AppCompatActivity {
     // Stop the sound sensing
     @SuppressLint("SetTextI18n")
     private void stopRecord() {
-        mSensorHelper.stopService();
+        //mSensorHelper.stopService();
         isGetSenseRun = false;
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             final EditText editName = new EditText(this);
-            editName.setText(mSenseScene + "_" + currentTimeMillis());
+            editName.setText(String.valueOf(currentTimeMillis()));
             dialog.setTitle("Enter file name: ");
             dialog.setView(editName);
             dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -229,7 +260,10 @@ public class SensingActivity extends AppCompatActivity {
                     }
                     //Log.d(TAG, "Now is " + time);
                     try {
-                        mFilesIOHelper.saveFile(String.valueOf(editName.getText() + ".csv"), content.toString());
+                        String filename = editName.getText() + ".csv";
+                        mFilesIOHelper.saveFile(filename, content.toString());
+                        Log.d(TAG, "File path is : " + mFilesIOHelper.getFileUri(filename));
+                        mFilesIOHelper.sendFile(DST_MAIL_ADDRESS, getString(R.string.email_title), mFilesIOHelper.getFileUri(filename));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -270,6 +304,7 @@ public class SensingActivity extends AppCompatActivity {
         }
     }
 
+    // Turn on the awake locker
     private void acquireWakeLock() {
         if (mWakeLock == null) {
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
@@ -279,6 +314,7 @@ public class SensingActivity extends AppCompatActivity {
         }
     }
 
+    // Turn off the awake locker
     private void releaseWakeLock() {
         if (mWakeLock != null && mWakeLock.isHeld()) {
             mWakeLock.release();

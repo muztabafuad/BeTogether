@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Support;
+package fr.inria.yifan.mysensor.Network;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

@@ -1,6 +1,8 @@
 package fr.inria.yifan.mysensor.Support;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Environment;
 import android.widget.Toast;
 
@@ -19,11 +21,11 @@ public class FilesIOHelper {
 
     private static final String TAG = "File IO helper";
 
-    private Context context;
+    private Context mContext;
 
     public FilesIOHelper(Context context) {
         super();
-        this.context = context;
+        this.mContext = context;
     }
 
     // Write file to storage
@@ -38,9 +40,9 @@ public class FilesIOHelper {
             FileOutputStream output = new FileOutputStream(filename);
             output.write(filecontent.getBytes());
             output.close();
-            Toast.makeText(context, "Success in writing file", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "Success in writing file", Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(context, "Failed in writing file", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "Failed in writing file", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -48,7 +50,7 @@ public class FilesIOHelper {
     public String readFile(String filename) throws IOException {
         StringBuilder sb = new StringBuilder("");
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            filename = Environment.getExternalStorageDirectory().getCanonicalPath() + STORAGE_FILE_PATH + filename;
+            filename = Environment.getExternalStorageDirectory().getCanonicalPath() + STORAGE_FILE_PATH + "/" + filename;
             FileInputStream input = new FileInputStream(filename);
             byte[] temp = new byte[1024];
             int len;
@@ -57,9 +59,26 @@ public class FilesIOHelper {
             }
             input.close();
         } else {
-            Toast.makeText(context, "Failed in reading file", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "Failed in reading file", Toast.LENGTH_LONG).show();
         }
         return sb.toString();
     }
 
+    public Uri getFileUri(String filename) throws IOException {
+        File file = new File(Environment.getExternalStorageDirectory().getCanonicalPath() + STORAGE_FILE_PATH + "/" + filename);
+        return Uri.fromFile(file);
+    }
+
+    // Send file via e-mail
+    public void sendFile(String address, String subject, Uri attachment) {
+        String[] addresses = new String[] {address};
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_EMAIL, addresses);
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        intent.putExtra(Intent.EXTRA_STREAM, attachment);
+        if (intent.resolveActivity(mContext.getPackageManager()) !=null){
+            mContext.startActivity(intent);
+        }
+    }
 }

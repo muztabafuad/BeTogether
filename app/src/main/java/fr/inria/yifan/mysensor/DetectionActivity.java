@@ -16,8 +16,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import fr.inria.yifan.mysensor.Inference.InferHelper;
-import fr.inria.yifan.mysensor.Support.ContextHelper;
-import fr.inria.yifan.mysensor.Support.SensorsHelper;
+import fr.inria.yifan.mysensor.Sensing.ContextHelper;
+import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_IN_MS;
@@ -152,7 +152,7 @@ public class DetectionActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing state");
             return;
         }
-        mSensorHelper.startService();
+        //mSensorHelper.startService();
         isSensingRun = true;
         new Thread(new Runnable() {
             @Override
@@ -220,7 +220,7 @@ public class DetectionActivity extends AppCompatActivity {
 
     // Stop the sensing detection
     private void stopSensing() {
-        mSensorHelper.stopService();
+        //mSensorHelper.stopService();
         isSensingRun = false;
         //cleanView();
     }

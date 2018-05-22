@@ -18,24 +18,22 @@
         android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/two_buttons"
+        android:layout_above="@id/scene_radios"
         android:layout_below="@id/welcome_view"
         android:transcriptMode="alwaysScroll" />
 
     <LinearLayout
-        android:id="@+id/two_buttons"
+        android:id="@+id/scene_radios"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/three_buttons"
-        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:layout_above="@id/two_buttons"
         android:gravity="center"
         android:orientation="horizontal">
 
         <RadioGroup
-            android:id="@+id/scene_radio"
-            android:layout_width="0dp"
+            android:id="@+id/pocket_radio"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:orientation="vertical">
 
             <RadioButton
@@ -49,6 +47,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/out_pocket" />
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/door_radio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <RadioButton
                 android:id="@+id/indoor_radio"
@@ -61,6 +66,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/out_door" />
+        </RadioGroup>
+
+        <RadioGroup
+            android:id="@+id/ground_radio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <RadioButton
                 android:id="@+id/underground_radio"
@@ -74,37 +86,38 @@
                 android:layout_height="wrap_content"
                 android:text="@string/on_ground" />
         </RadioGroup>
+    </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="0dp"
+    <LinearLayout
+        android:id="@+id/two_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/three_buttons"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/switch_log"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="end"
-            android:orientation="vertical">
+            android:layout_margin="@dimen/activity_horizontal_margin"
+            android:text="@string/switch_log" />
 
-            <Switch
-                android:id="@+id/switch_log"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/activity_horizontal_margin"
-                android:text="@string/switch_log" />
+        <Button
+            android:id="@+id/start_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_horizontal_margin"
+            android:text="@string/start"
+            tools:ignore="ButtonStyle" />
 
-            <Button
-                android:id="@+id/start_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/activity_horizontal_margin"
-                android:text="@string/start"
-                tools:ignore="ButtonStyle" />
-
-            <Button
-                android:id="@+id/stop_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="@dimen/activity_horizontal_margin"
-                android:text="@string/stop"
-                tools:ignore="ButtonStyle" />
-        </LinearLayout>
+        <Button
+            android:id="@+id/stop_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_horizontal_margin"
+            android:text="@string/stop"
+            tools:ignore="ButtonStyle" />
     </LinearLayout>
 
     <LinearLayout

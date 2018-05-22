@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Support;
+package fr.inria.yifan.mysensor.Network;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;

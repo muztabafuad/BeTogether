@@ -51,7 +51,13 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".SensingActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait" >
+            <intent-filter>
+                <action android:name="android.intent.action.SENDTO" />
+                <data android:scheme="mailto" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".NetworkActivity"
             android:screenOrientation="portrait" />

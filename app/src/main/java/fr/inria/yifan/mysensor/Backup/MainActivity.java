@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.TestBackup;
+package fr.inria.yifan.mysensor.Backup;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;

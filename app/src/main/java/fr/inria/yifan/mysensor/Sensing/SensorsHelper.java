@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Support;
+package fr.inria.yifan.mysensor.Sensing;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,7 +9,6 @@ import android.hardware.SensorManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.util.Log;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;

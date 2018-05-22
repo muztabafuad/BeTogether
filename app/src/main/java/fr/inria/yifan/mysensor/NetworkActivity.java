@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.inria.yifan.mysensor.Support.WifiDirectHelper;
+import fr.inria.yifan.mysensor.Network.WifiDirectHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
 import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;

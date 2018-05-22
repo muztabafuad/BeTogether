@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Support;
+package fr.inria.yifan.mysensor.Sensing;
 
 /**
  * This class implements the A-weighting for noise measurement.
@@ -12,7 +12,7 @@ public class AWeighting {
     private double[] conditions;
 
     // Constructor
-    public AWeighting(int sampleRate) {
+    AWeighting(int sampleRate) {
         switch (sampleRate) {
             //8000 Hz
             case 8000:
