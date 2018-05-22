@@ -248,7 +248,7 @@ public class SensingActivity extends AppCompatActivity {
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             final EditText editName = new EditText(this);
-            editName.setText(String.valueOf(currentTimeMillis()));
+            editName.setText(android.os.Build.MODEL + "_" + currentTimeMillis());
             dialog.setTitle("Enter file name: ");
             dialog.setView(editName);
             dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
