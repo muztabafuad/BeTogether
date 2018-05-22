@@ -121,7 +121,7 @@ public class SensingActivity extends AppCompatActivity {
 
         mPocketRadioGroup.check(R.id.outpocket_radio);
         mDoorRadioGroup.check(R.id.indoor_radio);
-        mGroundRadioGroup.check(R.id.underground_radio);
+        mGroundRadioGroup.check(R.id.onground_radio);
 
         final LinearLayout mRadioLayout = findViewById(R.id.scene_radios);
 
