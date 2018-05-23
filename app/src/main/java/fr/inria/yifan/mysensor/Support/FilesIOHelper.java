@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.STORAGE_FILE_PATH;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * This class provides functions including storing and reading sensing data file.
@@ -43,6 +44,22 @@ public class FilesIOHelper {
             Toast.makeText(mContext, "Success in writing file", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(mContext, "Failed in writing file", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // Automatically save the log into local file
+    public void autoSave(String filecontent)throws Exception {
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            File folder = new File(Environment.getExternalStorageDirectory().getCanonicalPath() + STORAGE_FILE_PATH);
+            if (!folder.exists()) {
+                boolean mkdir = folder.mkdir();
+            }
+            FileOutputStream output = new FileOutputStream(folder + "/" + android.os.Build.MODEL + "_" + currentTimeMillis() + "_AUTOSAVE.csv");
+            output.write(filecontent.getBytes());
+            output.close();
+            Toast.makeText(mContext, "Success auto saving file", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(mContext, "Failed auto saving file", Toast.LENGTH_LONG).show();
         }
     }
 

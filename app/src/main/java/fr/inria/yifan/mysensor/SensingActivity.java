@@ -176,6 +176,17 @@ public class SensingActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         isGetSenseRun = false;
+        if(mSwitchLog.isChecked()){
+            try {
+                StringBuilder content = new StringBuilder();
+                for (String line : mSensingData) {
+                    content.append(line).append("\n");
+                }
+                mFilesIOHelper.autoSave(content.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         //releaseWakeLock();
         if (mSensorHelper != null) {
             mSensorHelper.stopService();
