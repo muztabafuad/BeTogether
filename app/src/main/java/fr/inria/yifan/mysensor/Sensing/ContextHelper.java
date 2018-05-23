@@ -12,6 +12,8 @@ import android.location.GpsSatellite;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -46,6 +48,7 @@ public class ContextHelper extends BroadcastReceiver {
     private Activity mActivity;
     private TelephonyManager mTelephonyManager;
     private LocationManager mLocationManager;
+    private ConnectivityManager mConnectManager;
 
     // Declare all contexts
     private SlideWindow mGSMFlag;
@@ -112,6 +115,7 @@ public class ContextHelper extends BroadcastReceiver {
 
         mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
+        mConnectManager = (ConnectivityManager) mActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         //List<CellInfo> cellList = mTelephonyManager.getAllCellInfo();
         /*
@@ -218,6 +222,15 @@ public class ContextHelper extends BroadcastReceiver {
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         return (hour > 6 && hour < 18) ? 1 : 0;
+    }
+
+    // Detection on Wifi access
+    public int isWifiLink() {
+        NetworkInfo info = mConnectManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if (info != null){
+            Log.d(TAG, info.toString());
+        }
+        return 0;
     }
 
     // Intent receiver for activity recognition result callback

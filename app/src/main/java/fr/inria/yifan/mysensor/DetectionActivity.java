@@ -202,6 +202,8 @@ public class DetectionActivity extends AppCompatActivity {
                             mActivityView.setText(/*"Signal strength level: " + mContextHelper.getRssiLevel() + "\n\n" +*/
                                     mContextHelper.getUserActivity());
 
+                            mContextHelper.isWifiLink();
+
                             String loc = "Current location information：\n" +
                                     " - Longitude：" + location.getLongitude() + "\n" +
                                     " - Latitude：" + location.getLatitude() + "\n" +

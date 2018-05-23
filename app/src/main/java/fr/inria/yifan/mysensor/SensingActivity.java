@@ -50,6 +50,7 @@ public class SensingActivity extends AppCompatActivity {
     private Button mStartButton;
     private Button mStopButton;
     private Switch mSwitchLog;
+    private Switch mSwitchMail;
     private ArrayAdapter<String> mAdapterSensing;
 
     private FilesIOHelper mFilesIOHelper; // File helper
@@ -75,6 +76,7 @@ public class SensingActivity extends AppCompatActivity {
         mStopButton = findViewById(R.id.stop_button);
         mStopButton.setVisibility(View.INVISIBLE);
         mSwitchLog = findViewById(R.id.switch_log);
+        mSwitchMail = findViewById(R.id.switch_mail);
 
         // Build an adapter to feed the list with the content of a string array
         mSensingData = new ArrayList<>();
@@ -262,8 +264,10 @@ public class SensingActivity extends AppCompatActivity {
                     try {
                         String filename = editName.getText() + ".csv";
                         mFilesIOHelper.saveFile(filename, content.toString());
-                        Log.d(TAG, "File path is : " + mFilesIOHelper.getFileUri(filename));
-                        mFilesIOHelper.sendFile(DST_MAIL_ADDRESS, getString(R.string.email_title), mFilesIOHelper.getFileUri(filename));
+                        if (mSwitchMail.isChecked()) {
+                            Log.d(TAG, "File path is : " + mFilesIOHelper.getFileUri(filename));
+                            mFilesIOHelper.sendFile(DST_MAIL_ADDRESS, getString(R.string.email_title), mFilesIOHelper.getFileUri(filename));
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
