@@ -118,12 +118,6 @@ public class DetectionActivity extends AppCompatActivity {
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
         mInferHelper = new InferHelper(this);
-    }
-
-    // Resume the sensing service
-    @Override
-    protected void onResume() {
-        super.onResume();
         if (mSensorHelper != null) {
             mSensorHelper.startService();
         }
@@ -134,9 +128,9 @@ public class DetectionActivity extends AppCompatActivity {
 
     // Stop thread when exit!
     @Override
-    protected void onPause() {
+    protected void onDestroy() {
+        super.onDestroy();
         isSensingRun = false;
-        super.onPause();
         if (mSensorHelper != null) {
             mSensorHelper.stopService();
         }
@@ -176,8 +170,7 @@ public class DetectionActivity extends AppCompatActivity {
                             // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
                             double[] sample = new double[]{mContextHelper.isDaytime(), mSensorHelper.getLightDensity(), mSensorHelper.getMagnet(),
                                     mContextHelper.getGSMFlag(), mContextHelper.getGPSAccuracy(), mContextHelper.getGPSSpeed(), mSensorHelper.getProximity()};
-
-                            Log.d(TAG, Arrays.toString(sample));
+                            //Log.d(TAG, Arrays.toString(sample));
 
                             if (mInferHelper.InferPocket(sample) == 1) {
                                 mPocketView.setText("Inference result: In-pocket");

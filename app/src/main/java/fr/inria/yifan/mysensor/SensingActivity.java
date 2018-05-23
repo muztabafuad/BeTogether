@@ -161,13 +161,8 @@ public class SensingActivity extends AppCompatActivity {
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
         mFilesIOHelper = new FilesIOHelper(this);
-    }
 
-    // Resume the sensing service
-    @Override
-    protected void onResume() {
-        super.onResume();
-        acquireWakeLock();
+        //acquireWakeLock();
         if (mSensorHelper != null) {
             mSensorHelper.startService();
         }
@@ -178,10 +173,10 @@ public class SensingActivity extends AppCompatActivity {
 
     // Stop thread when exit!
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onDestroy() {
+        super.onDestroy();
         isGetSenseRun = false;
-        releaseWakeLock();
+        //releaseWakeLock();
         if (mSensorHelper != null) {
             mSensorHelper.stopService();
         }
