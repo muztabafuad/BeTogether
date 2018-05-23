@@ -132,8 +132,8 @@ public class SensingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 mAdapterSensing.clear();
                 mAdapterSensing.add("1 timestamp, 2 daytime (b), 3 light density (lx), 4 magnetic strength (μT), " +
-                        "5 GSM active (b), 6 RSSI level, 7 GPS accuracy (m), 8 Wifi active (b), 9 proximity (b), " +
-                        "10 sound level (dBA), 11 temperature (C), 12 pressure (hPa), 13 humidity (%), 14 in-pocket label, 15 in-door label, 16 under-ground label");
+                        "5 GSM active (b), 6 RSSI level, 7 GPS accuracy (m), 8 Wifi active (b), 9 Wifi RSSI (dBm), 10 proximity (b), " +
+                        "11 sound level (dBA), 12 temperature (C), 13 pressure (hPa), 14 humidity (%), 15 in-pocket label, 16 in-door label, 17 under-ground label");
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
@@ -215,10 +215,11 @@ public class SensingActivity extends AppCompatActivity {
                                     mContextHelper.isDaytime() + ", " +
                                     mSensorHelper.getLightDensity() + ", " +
                                     mSensorHelper.getMagnet() + ", " +
-                                    mContextHelper.getGSMFlag() + ", " +
+                                    mContextHelper.isGSMLink() + ", " +
                                     mContextHelper.getRssiLevel() + ", " +
                                     mContextHelper.getGPSAccuracy() + ", " +
                                     mContextHelper.isWifiLink() + ", " +
+                                    mContextHelper.getWifiRSSI() + ", " +
                                     mSensorHelper.getProximity() + ", " +
                                     mSensorHelper.getSoundLevel() + ", " +
                                     mSensorHelper.getTemperature() + ", " +

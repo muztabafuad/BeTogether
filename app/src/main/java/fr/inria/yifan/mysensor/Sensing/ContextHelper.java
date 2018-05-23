@@ -14,6 +14,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -49,12 +51,14 @@ public class ContextHelper extends BroadcastReceiver {
     private TelephonyManager mTelephonyManager;
     private LocationManager mLocationManager;
     private ConnectivityManager mConnectManager;
+    private WifiManager mWifiManager;
 
     // Declare all contexts
-    private SlideWindow mGSMFlag;
     private SlideWindow mRssiLevel;
     private SlideWindow mAccuracy;
     private SlideWindow mSpeed;
+    private int mGSMFlag;
+    private SlideWindow mWifiRssi;
     //private float hasBattery;
     //private long localTime;
     //private boolean inPocket;
@@ -72,7 +76,7 @@ public class ContextHelper extends BroadcastReceiver {
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
             //mRssiDbm.putValue(signalStrength.getGsmSignalStrength() * 2 - 113); // -> dBm
-            mGSMFlag.putValue(signalStrength.isGsm() ? 1 : 0);
+            mGSMFlag = signalStrength.isGsm() ? 1 : 0;
             //Log.d(TAG, "CDMA: " + String.valueOf(signalStrength.getCdmaDbm()));
             //Log.d(TAG, "Evdo: " + String.valueOf(signalStrength.getEvdoDbm()));
             //Log.d(TAG, "GSM: " + String.valueOf(signalStrength.getGsmSignalStrength() * 2 - 113));
@@ -116,6 +120,7 @@ public class ContextHelper extends BroadcastReceiver {
         mTelephonyManager = (TelephonyManager) mActivity.getSystemService(Context.TELEPHONY_SERVICE);
         mLocationManager = (LocationManager) mActivity.getSystemService(Context.LOCATION_SERVICE);
         mConnectManager = (ConnectivityManager) mActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mWifiManager = (WifiManager) mActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         //List<CellInfo> cellList = mTelephonyManager.getAllCellInfo();
         /*
@@ -146,10 +151,10 @@ public class ContextHelper extends BroadcastReceiver {
     @SuppressLint("MissingPermission")
     public void startService() {
 
-        mGSMFlag = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mRssiLevel = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mWifiRssi = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         //hasBattery = 0;
         //localTime = 0;
         //inPocket = false;
@@ -183,8 +188,8 @@ public class ContextHelper extends BroadcastReceiver {
     }
 
     // Get the most recent GSM RSSI
-    public float getGSMFlag() {
-        return mGSMFlag.getMean();
+    public int isGSMLink() {
+        return mGSMFlag;
     }
 
     // Get the most recent signal strength level
@@ -230,6 +235,21 @@ public class ContextHelper extends BroadcastReceiver {
         return info.isConnected() ? 1 : 0;
     }
 
+    // Detection on Wifi RSSI
+    public float getWifiRSSI() {
+        if (mWifiManager.isWifiEnabled()) {
+            WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
+            if (wifiInfo != null) {
+                mWifiRssi.putValue(wifiInfo.getRssi());
+            } else {
+                mWifiRssi.putValue(0);
+            }
+        } else {
+            mWifiRssi.putValue(0);
+        }
+        return mWifiRssi.getMean();
+    }
+
     // Intent receiver for activity recognition result callback
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -242,7 +262,6 @@ public class ContextHelper extends BroadcastReceiver {
 
     // Manually update sliding window
     public void updateWindow() {
-        mGSMFlag.putValue(mGSMFlag.getLast());
         mRssiLevel.putValue(mRssiLevel.getLast());
         mAccuracy.putValue(mAccuracy.getLast());
         mSpeed.putValue(mSpeed.getLast());
