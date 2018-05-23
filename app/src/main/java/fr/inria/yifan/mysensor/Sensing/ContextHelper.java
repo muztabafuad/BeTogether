@@ -227,10 +227,7 @@ public class ContextHelper extends BroadcastReceiver {
     // Detection on Wifi access
     public int isWifiLink() {
         NetworkInfo info = mConnectManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        if (info != null){
-            Log.d(TAG, info.toString());
-        }
-        return 0;
+        return info.isConnected() ? 1 : 0;
     }
 
     // Intent receiver for activity recognition result callback
@@ -244,7 +241,7 @@ public class ContextHelper extends BroadcastReceiver {
     }
 
     // Manually update sliding window
-    public void updateWindow(){
+    public void updateWindow() {
         mGSMFlag.putValue(mGSMFlag.getLast());
         mRssiLevel.putValue(mRssiLevel.getLast());
         mAccuracy.putValue(mAccuracy.getLast());

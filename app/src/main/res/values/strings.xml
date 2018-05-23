@@ -22,5 +22,5 @@
     <string name="out_door">Out-Door</string>
     <string name="on_ground">On-Ground</string>
     <string name="email_title">Sensing data from MySensor</string>
-    <string name="switch_mail">Mail log</string>
+    <string name="switch_mail">&amp; Mail log</string>
 </resources>

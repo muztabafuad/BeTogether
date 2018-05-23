@@ -34,6 +34,7 @@
             android:id="@+id/pocket_radio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_horizontal_margin"
             android:orientation="vertical">
 
             <RadioButton
@@ -53,6 +54,7 @@
             android:id="@+id/door_radio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_horizontal_margin"
             android:orientation="vertical">
 
             <RadioButton
@@ -72,6 +74,7 @@
             android:id="@+id/ground_radio"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_horizontal_margin"
             android:orientation="vertical">
 
             <RadioButton
@@ -99,20 +102,22 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:layout_margin="@dimen/activity_horizontal_margin"
+            android:orientation="vertical"
             android:gravity="center">
 
             <Switch
                 android:id="@+id/switch_log"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_margin="@dimen/activity_vertical_padding"
                 android:text="@string/switch_log" />
 
             <Switch
                 android:id="@+id/switch_mail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_margin="@dimen/activity_vertical_padding"
                 android:text="@string/switch_mail" />
         </LinearLayout>
 
