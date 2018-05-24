@@ -125,8 +125,6 @@ public class SensingActivity extends AppCompatActivity {
         mDoorRadioGroup.check(R.id.indoor_radio);
         mGroundRadioGroup.check(R.id.onground_radio);
 
-        final LinearLayout mRadioLayout = findViewById(R.id.scene_radios);
-
         mStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -137,7 +135,6 @@ public class SensingActivity extends AppCompatActivity {
                 startRecord();
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
-                mRadioLayout.setVisibility(View.INVISIBLE);
             }
         });
         mStopButton.setOnClickListener(new View.OnClickListener() {
@@ -146,7 +143,6 @@ public class SensingActivity extends AppCompatActivity {
                 stopRecord();
                 mStartButton.setVisibility(View.VISIBLE);
                 mStopButton.setVisibility(View.INVISIBLE);
-                mRadioLayout.setVisibility(View.VISIBLE);
             }
         });
     }
@@ -178,11 +174,7 @@ public class SensingActivity extends AppCompatActivity {
         isGetSenseRun = false;
         if(mSwitchLog.isChecked()){
             try {
-                StringBuilder content = new StringBuilder();
-                for (String line : mSensingData) {
-                    content.append(line).append("\n");
-                }
-                mFilesIOHelper.autoSave(content.toString());
+                mFilesIOHelper.autoSave(arrayToString(mSensingData));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -263,14 +255,10 @@ public class SensingActivity extends AppCompatActivity {
             dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    StringBuilder content = new StringBuilder();
-                    for (String line : mSensingData) {
-                        content.append(line).append("\n");
-                    }
                     //Log.d(TAG, "Now is " + time);
                     try {
                         String filename = editName.getText() + ".csv";
-                        mFilesIOHelper.saveFile(filename, content.toString());
+                        mFilesIOHelper.saveFile(filename, arrayToString(mSensingData));
                         if (mSwitchMail.isChecked()) {
                             Log.d(TAG, "File path is : " + mFilesIOHelper.getFileUri(filename));
                             mFilesIOHelper.sendFile(DST_MAIL_ADDRESS, getString(R.string.email_title), mFilesIOHelper.getFileUri(filename));
@@ -357,6 +345,15 @@ public class SensingActivity extends AppCompatActivity {
             default:
                 return -1;
         }
+    }
+
+    // Convert string array to single string
+    private String arrayToString(ArrayList<String> array){
+        StringBuilder content = new StringBuilder();
+        for (String line : array) {
+            content.append(line).append("\n");
+        }
+        return content.toString();
     }
 
 }
