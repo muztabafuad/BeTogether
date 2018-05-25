@@ -172,7 +172,7 @@ public class SensingActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         isGetSenseRun = false;
-        if(mSwitchLog.isChecked()){
+        if(mSwitchLog.isChecked() && isGetSenseRun){
             try {
                 mFilesIOHelper.autoSave(arrayToString(mSensingData));
             } catch (Exception e) {
