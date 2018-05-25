@@ -14,7 +14,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -171,7 +170,6 @@ public class SensingActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        isGetSenseRun = false;
         if(mSwitchLog.isChecked() && isGetSenseRun){
             try {
                 mFilesIOHelper.autoSave(arrayToString(mSensingData));
@@ -180,6 +178,7 @@ public class SensingActivity extends AppCompatActivity {
             }
         }
         //releaseWakeLock();
+        isGetSenseRun = false;
         if (mSensorHelper != null) {
             mSensorHelper.stopService();
         }
