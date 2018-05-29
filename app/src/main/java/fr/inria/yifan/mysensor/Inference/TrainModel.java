@@ -47,6 +47,9 @@ public class TrainModel {
         double[][] samples_test = Arrays.copyOfRange(samples, (int) (numSamples * 0.8), numSamples);
 
         // n features * 10 threshold = 10n classifiers
+
+
+        
         AdaBoost adaBoost = new AdaBoost(20, featuresUsed, 10);
         adaBoost.BatchTrain(samples_train);
 
