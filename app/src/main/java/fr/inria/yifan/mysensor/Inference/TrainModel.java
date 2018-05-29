@@ -16,44 +16,45 @@ public class TrainModel {
     // Main method for generating original model
     public static void main(String[] args) {
 
-        // 1 daytime, 2 light, 3 magnetic, 4 GSM, 5 GPS accuracy, 6 GPS speed, 7 proximity, 12 label
-        int featuresInit[] = {1, 2, 3, 4, 5, 6, 7}; // The index of features to construct samples
-        int numSamples = 1000; // Use how many samples for learning
+        /*
+        0 timestamp, 1 daytime (b), 2 light density (lx), 3 magnetic strength (μT), 4 GSM active (b),
+        5 RSSI level, 6 GPS accuracy (m), 7 Wifi active (b), 8 Wifi RSSI (dBm), 9 proximity (b),
+        10 sound level (dBA), 11 temperature (C), 12 pressure (hPa), 13 humidity (%),
+        14 in-pocket label, 15 in-door label, 16 under-ground label
+        */
+        int featuresInit[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // The index of features to construct samples
+        int labelInit = 14;
+        int numSamples = 20000; // Use how many samples for learning
 
-        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/InpocketOutpocket_binary.csv";
-        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_InPocket_labled.csv";
-        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
-        // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
-        //int featuresUsed[] = {1, 2, 6}; // The index of features used for training
+        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv";
+        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
+        int featuresUsed[] = {2, 9}; // The index of features used for training
 
         //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/IndoorOutdoor_binary.csv";
-        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Indoor_labled.csv";
         //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INDOOR;
-        // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
         //int featuresUsed[] = {1, 3, 4}; // The index of features used for training
 
         //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/OngroundUnderground_binary.csv";
-        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Underground_labled.csv";
-        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
-        // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
-        int featuresUsed[] = {1, 2, 3}; // The index of features used for training
-        int labelInit = 12;
+        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
+        //int featuresUsed[] = {1, 2, 3}; // The index of features used for training
 
         CSVParser parserSample = new CSVParser(fileLoad, numSamples, featuresInit, labelInit);
         parserSample.shuffleSamples(); // Shuffle the samples
         double[][] samples = parserSample.getSampleArray();
+        // Initially 80% samples will be used for train
+        double[][] samples_train = Arrays.copyOfRange(samples, 0, (int) (numSamples * 0.8));
         // Initially 20% samples will be used for test
         double[][] samples_test = Arrays.copyOfRange(samples, (int) (numSamples * 0.8), numSamples);
 
-        // 3 features * 20 threshold = 60 classifiers
-        AdaBoost adaBoost = new AdaBoost(60, featuresUsed, 20);
-        adaBoost.BatchTrain(samples);
+        // n features * 10 threshold = 10n classifiers
+        AdaBoost adaBoost = new AdaBoost(20, featuresUsed, 10);
+        adaBoost.BatchTrain(samples_train);
 
         int right = 0; // True counter
         int wrong = 0; // False counter
         double ca; // Classification accuracy
 
-        System.out.println("Trained from: " + samples.length);
+        System.out.println("Trained from: " + samples_train.length);
         System.out.println("Tested on: " + samples_test.length);
         for (double[] test : samples_test) {
             if (adaBoost.Predict(test) == test[test.length - 1]) {
@@ -79,17 +80,9 @@ public class TrainModel {
         // Load samples for feedback and test
         int numTests = 1000; // Use how many samples for testing
 
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Pocket_Crosscall.csv";
+        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv";
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Door_Crosscall.csv";
         //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Ground_Crosscall.csv";
-
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Crosscall_InPocket_labled.csv";
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Crosscall_Indoor_labled.csv";
-        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Crosscall_Underground_labled.csv";
-
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_InPocket_labled.csv";
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Indoor_labled.csv";
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180515/Samsung_Underground_labled.csv";
 
         CSVParser parserTest = new CSVParser(fileTest, numTests, featuresInit, labelInit);
         StringBuilder logging = new StringBuilder();
