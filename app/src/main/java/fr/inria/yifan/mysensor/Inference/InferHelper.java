@@ -122,7 +122,7 @@ public class InferHelper {
 
     // Feedback on wrong inference
     public void FeedBack(double[] sample, String model) {
-        switch (model){
+        switch (model) {
             case "Pocket":
                 if (mAdaBoostPocket.Predict(sample) != sample[sample.length - 1]) {
                     mAdaBoostPocket.OnlineUpdate(sample);

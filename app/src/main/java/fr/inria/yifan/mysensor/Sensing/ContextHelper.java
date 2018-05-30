@@ -152,9 +152,9 @@ public class ContextHelper extends BroadcastReceiver {
     public void startService() {
 
         mRssiLevel = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
-        mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, 999);
         mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
-        mWifiRssi = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mWifiRssi = new SlideWindow(SAMPLE_NUM_WINDOW, -999);
         //hasBattery = 0;
         //localTime = 0;
         //inPocket = false;

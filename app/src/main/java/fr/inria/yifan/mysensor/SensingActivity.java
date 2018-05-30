@@ -170,7 +170,7 @@ public class SensingActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(mSwitchLog.isChecked() && isGetSenseRun){
+        if (mSwitchLog.isChecked() && isGetSenseRun) {
             try {
                 mFilesIOHelper.autoSave(arrayToString(mSensingData));
             } catch (Exception e) {
@@ -347,7 +347,7 @@ public class SensingActivity extends AppCompatActivity {
     }
 
     // Convert string array to single string
-    private String arrayToString(ArrayList<String> array){
+    private String arrayToString(ArrayList<String> array) {
         StringBuilder content = new StringBuilder();
         for (String line : array) {
             content.append(line).append("\n");

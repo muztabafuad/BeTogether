@@ -13,7 +13,7 @@ public class DecisionStump implements Serializable {
 
     private double error; // Minimal error of prediction
     private int index; // Index of feature attribute
-    private char operation; // Operation >= or <
+    private char operation; // Operation > or <=
     private double threshold; // Threshold value
     private double stepValue; // Threshold steps
 
@@ -48,15 +48,15 @@ public class DecisionStump implements Serializable {
                 for (int k = 0; k < samples.length; k++) {
                     // Weighted sum of prediction error, right prediction will give value 0
                     weightErrorLt += Math.abs(
-                            (samples[k][i] < threshold_i ? 1d : 0d) - samples[k][samples[k].length - 1]) * weight[k];
+                            (samples[k][i] <= threshold_i ? 1d : 0d) - samples[k][samples[k].length - 1]) * weight[k];
                     weightErrorGt += Math.abs(
-                            (samples[k][i] >= threshold_i ? 1d : 0d) - samples[k][samples[k].length - 1]) * weight[k];
+                            (samples[k][i] > threshold_i ? 1d : 0d) - samples[k][samples[k].length - 1]) * weight[k];
                 }
                 // Update the minimal sum of weighted error
                 if (weightErrorLt < error) {
                     error = weightErrorLt;
                     index = i;
-                    operation = '<';
+                    operation = '(';
                     threshold = threshold_i;
                     stepValue = stepValue_i;
                 }
@@ -64,7 +64,7 @@ public class DecisionStump implements Serializable {
                 if (weightErrorGt < error) {
                     error = weightErrorGt;
                     index = i;
-                    operation = ')';
+                    operation = '>';
                     threshold = threshold_i;
                     stepValue = stepValue_i;
                 }
@@ -79,18 +79,16 @@ public class DecisionStump implements Serializable {
         threshold = sample[index];
         if (Predict(sample) != sample[sample.length - 1]) {
             threshold = temp;
-        } else {
-            System.out.println("Corrected: " + operation + " " + sample[index] + ", " + temp + " -> " + threshold);
         }
     }
 
     // The incremental method for threshold
     public void PoissonUpdate(double[] sample) {
         switch (operation) {
-            case '<':
+            case '(':
                 threshold += stepValue;
                 break;
-            case ')':
+            case '>':
                 threshold -= stepValue;
                 break;
             default:
@@ -101,10 +99,10 @@ public class DecisionStump implements Serializable {
     // Predict for one new sample
     public int Predict(double[] features) {
         switch (operation) {
-            case '<':
-                return features[index] < threshold ? 1 : 0;
-            case ')':
-                return features[index] >= threshold ? 1 : 0;
+            case '(':
+                return features[index] <= threshold ? 1 : 0;
+            case '>':
+                return features[index] > threshold ? 1 : 0;
             default:
                 throw new IllegalArgumentException("Illegal operation: " + operation);
         }

@@ -37,7 +37,7 @@ public class SlideWindow {
     }
 
     public float getLast() {
-        return ct == 0 ? storage[ct] : storage[(ct -1) % storage.length];
+        return ct == 0 ? storage[ct] : storage[(ct - 1) % storage.length];
     }
 
 }

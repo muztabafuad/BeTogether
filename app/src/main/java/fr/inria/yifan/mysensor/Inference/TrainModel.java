@@ -23,20 +23,20 @@ public class TrainModel {
         14 in-pocket label, 15 in-door label, 16 under-ground label
         */
         int featuresInit[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // The index of features to construct samples
-        int labelInit = 14;
+        int labelInit = 15;
         int numSamples = 20000; // Use how many samples for learning
 
-        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv";
-        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
-        int featuresUsed[] = {2, 9}; // The index of features used for training
+        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv";
+        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv";
 
-        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/IndoorOutdoor_binary.csv";
-        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INDOOR;
-        //int featuresUsed[] = {1, 3, 4}; // The index of features used for training
+        //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
+        //int featuresUsed[] = {2, 9}; // The index of features used for training
 
-        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/OngroundUnderground_binary.csv";
+        String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INDOOR;
+        int featuresUsed[] = {6, 7, 8}; // The index of features used for training
+
         //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_UNDERGROUND;
-        //int featuresUsed[] = {1, 2, 3}; // The index of features used for training
+        //int featuresUsed[] = {2, 5, 6, 7}; // The index of features used for training
 
         CSVParser parserSample = new CSVParser(fileLoad, numSamples, featuresInit, labelInit);
         parserSample.shuffleSamples(); // Shuffle the samples
@@ -47,7 +47,7 @@ public class TrainModel {
         double[][] samples_test = Arrays.copyOfRange(samples, (int) (numSamples * 0.8), numSamples);
 
         // n features * 10 threshold = 10n classifiers
-        AdaBoost adaBoost = new AdaBoost(20, featuresUsed, 10);
+        AdaBoost adaBoost = new AdaBoost(300, featuresUsed, 100);
         adaBoost.BatchTrain(samples_train);
 
         int right = 0; // True counter
@@ -78,18 +78,15 @@ public class TrainModel {
         }
 
         // Load samples for feedback and test
-        int numTests = 1000; // Use how many samples for testing
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv";
+        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv";
 
-        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv";
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Door_Crosscall.csv";
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/20180427/Ground_Crosscall.csv";
-
-        CSVParser parserTest = new CSVParser(fileTest, numTests, featuresInit, labelInit);
+        CSVParser parserTest = new CSVParser(fileTest, numSamples, featuresInit, labelInit);
         StringBuilder logging = new StringBuilder();
 
         // Run multiple times
-        int run = 10;
-        for (int count = 0; count < run; count++) {
+        int run = 100;
+        for (int t = 0; t < run; t++) {
             // Load trained model
             try {
                 FileInputStream fileInputStream = new FileInputStream(fileSave);
@@ -101,17 +98,32 @@ public class TrainModel {
             }
 
             parserTest.shuffleSamples(); // Shuffle the samples
-            double[][] tests = parserTest.getSampleArray();
+            double[][] new_samples = parserTest.getSampleArray();
+            double[][] new_tests = Arrays.copyOfRange(new_samples, (int) (numSamples * 0.5), numSamples);
 
             // Online feedback and learning
-            System.out.println("Online tested on: " + tests.length);
-            double ca_max = Double.NEGATIVE_INFINITY;
-            int in_min = Integer.MAX_VALUE;
+            System.out.println("Online tested on: " + new_tests.length);
 
-            for (int i = 0; i < tests.length; i++) {
+            right = 0;
+            wrong = 0;
+            for (double[] test : new_tests) {
+                if (adaBoost.Predict(test) == test[test.length - 1]) {
+                    right++;
+                } else {
+                    wrong++;
+                }
+            }
+            double init_ca = (double) right / (right + wrong);
+            //System.out.println("Initial classification accuracy: " + init_ca);
+
+            double ca_max = Double.NEGATIVE_INFINITY;
+            int i_min = Integer.MAX_VALUE;
+            int i_feed = 0;
+
+            for (double[] new_test : new_tests) {
                 right = 0;
                 wrong = 0;
-                for (double[] test : tests) {
+                for (double[] test : new_tests) {
                     if (adaBoost.Predict(test) == test[test.length - 1]) {
                         right++;
                     } else {
@@ -123,7 +135,7 @@ public class TrainModel {
                 //System.out.println("Classification accuracy: " + ca);
                 if (ca > ca_max) {
                     ca_max = ca;
-                    in_min = i;
+                    i_min = i_feed;
                 }
 
                 // Opportunistic feedback on wrong inference
@@ -132,14 +144,15 @@ public class TrainModel {
                 int threshold = (int) (ca * 100);
                 //System.out.println("Feedback possibility: " + num + " " + threshold);
 
-                if (adaBoost.Predict(tests[i]) != tests[i][tests[i].length - 1] & num > threshold) {
+                if (num > threshold) {
                     //System.out.println("Updated");
-                    //adaBoost.GreedyUpdate(sample);
-                    adaBoost.OnlineUpdate(tests[i]);
+                    //adaBoost.GreedyUpdate(new_test);
+                    adaBoost.OnlineUpdate(new_test);
+                    i_feed++;
                 }
             }
-            System.out.println("Iteration: " + (in_min) + ", Maximum CA: " + ca_max * 100);
-            logging.append(in_min).append(", ").append(ca_max * 100).append("\n");
+            System.out.println("Iteration: " + (i_min) + ", Maximum CA: " + ca_max + ", Initial CA: " + init_ca);
+            logging.append(i_min).append(", ").append(ca_max * 100).append(", ").append(init_ca * 100).append("\n");
         }
 
         // Save the log file
@@ -152,5 +165,4 @@ public class TrainModel {
             System.out.println("Error when saving to file: " + e);
         }
     }
-
 }

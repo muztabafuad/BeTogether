@@ -14,60 +14,66 @@
         android:textSize="@dimen/font_size_normal" />
 
     <LinearLayout
+        android:id="@+id/pocket_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:id="@+id/pocket_view"
         android:layout_below="@id/welcome_view"
         android:layout_marginLeft="@dimen/activity_vertical_margin"
-        android:layout_marginStart="@dimen/activity_vertical_margin">
+        android:layout_marginStart="@dimen/activity_vertical_margin"
+        android:orientation="horizontal">
+
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/pocket_button"
-            android:text="@string/feedback"/>
-        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/pocket_text" />
+            android:text="@string/feedback" />
+
+        <TextView
+            android:id="@+id/pocket_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/door_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:id="@+id/door_view"
         android:layout_below="@id/pocket_view"
         android:layout_marginLeft="@dimen/activity_vertical_margin"
-        android:layout_marginStart="@dimen/activity_vertical_margin">
+        android:layout_marginStart="@dimen/activity_vertical_margin"
+        android:orientation="horizontal">
+
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/door_button"
-            android:text="@string/feedback"/>
-        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/door_text" />
+            android:text="@string/feedback" />
+
+        <TextView
+            android:id="@+id/door_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/ground_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:id="@+id/ground_view"
         android:layout_below="@id/door_view"
         android:layout_marginLeft="@dimen/activity_vertical_margin"
-        android:layout_marginStart="@dimen/activity_vertical_margin">
+        android:layout_marginStart="@dimen/activity_vertical_margin"
+        android:orientation="horizontal">
+
         <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/ground_button"
-            android:text="@string/feedback"/>
-        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/ground_text" />
+            android:text="@string/feedback" />
+
+        <TextView
+            android:id="@+id/ground_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <TextView
@@ -75,8 +81,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/ground_view"
-        android:textColor="@color/colorAccent"
-        android:layout_margin="@dimen/activity_vertical_margin" />
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:textColor="@color/colorAccent" />
 
     <TextView
         android:id="@+id/location_view"

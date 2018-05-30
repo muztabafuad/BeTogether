@@ -11,8 +11,8 @@ import android.widget.TextView;
 import java.util.List;
 
 /*
-* This activity provides functions including showing sensor and log sensing data.
-*/
+ * This activity provides functions including showing sensor and log sensing data.
+ */
 
 public class SensorsActivity extends AppCompatActivity {
 

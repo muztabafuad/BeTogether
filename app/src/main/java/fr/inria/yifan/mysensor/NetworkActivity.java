@@ -1,8 +1,8 @@
 package fr.inria.yifan.mysensor;
 
 /*
-* This activity provides functions related to the Wifi Direct service.
-*/
+ * This activity provides functions related to the Wifi Direct service.
+ */
 
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;

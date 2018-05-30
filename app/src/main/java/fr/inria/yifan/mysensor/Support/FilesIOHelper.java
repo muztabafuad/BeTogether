@@ -48,7 +48,7 @@ public class FilesIOHelper {
     }
 
     // Automatically save the log into local file
-    public void autoSave(String filecontent)throws Exception {
+    public void autoSave(String filecontent) throws Exception {
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             File folder = new File(Environment.getExternalStorageDirectory().getCanonicalPath() + STORAGE_FILE_PATH);
             if (!folder.exists()) {
@@ -88,13 +88,13 @@ public class FilesIOHelper {
 
     // Send file via e-mail
     public void sendFile(String address, String subject, Uri attachment) {
-        String[] addresses = new String[] {address};
+        String[] addresses = new String[]{address};
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this
         intent.putExtra(Intent.EXTRA_EMAIL, addresses);
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         intent.putExtra(Intent.EXTRA_STREAM, attachment);
-        if (intent.resolveActivity(mContext.getPackageManager()) !=null){
+        if (intent.resolveActivity(mContext.getPackageManager()) != null) {
             mContext.startActivity(intent);
         }
     }

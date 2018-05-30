@@ -222,7 +222,7 @@ public class SensorsHelper {
     }
 
     // Manually update sliding window
-    public void updateWindow(){
+    public void updateWindow() {
         mLight.putValue(mLight.getLast());
         mMagnet.putValue(mMagnet.getLast());
         mProximity.putValue(mProximity.getLast());
