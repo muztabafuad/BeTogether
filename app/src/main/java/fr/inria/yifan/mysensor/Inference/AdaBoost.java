@@ -51,17 +51,6 @@ public class AdaBoost implements Serializable {
         }
     }
 
-    // Greedy update from one new sample
-    public void GreedyUpdate(double[] sample) {
-        // Train all weak learners
-        for (int i = 0; i < numLearn; i++) {
-            // Found wrong predictor
-            if (dStumps[i].Predict(sample) != sample[sample.length - 1]) {
-                dStumps[i].UpdateThreshold(sample);
-            }
-        }
-    }
-
     // Online AdaBoost from one new sample
     public void OnlineUpdate(double[] sample) {
         double lambda = 1d;
@@ -71,7 +60,8 @@ public class AdaBoost implements Serializable {
             double lambda_wrong = 0d;
             int k = Poisson(lambda);
             for (int j = 0; j < k; j++) {
-                dStumps[i].PoissonUpdate(sample);
+                //dStumps[i].PoissonUpdate(sample);
+                dStumps[i].UpdateThreshold(sample);
             }
             if (dStumps[i].Predict(sample) == sample[sample.length - 1]) {
                 lambda_right = lambda_right + lambda;

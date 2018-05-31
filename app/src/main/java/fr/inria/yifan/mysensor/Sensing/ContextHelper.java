@@ -20,6 +20,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
+import android.telephony.CellInfo;
+import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -32,6 +34,7 @@ import com.google.android.gms.location.ActivityRecognitionClient;
 import com.google.android.gms.location.ActivityRecognitionResult;
 
 import java.util.Calendar;
+import java.util.List;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
@@ -122,10 +125,12 @@ public class ContextHelper extends BroadcastReceiver {
         mConnectManager = (ConnectivityManager) mActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
         mWifiManager = (WifiManager) mActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
-        //List<CellInfo> cellList = mTelephonyManager.getAllCellInfo();
+        List<NeighboringCellInfo> cellList = mTelephonyManager.getNeighboringCellInfo();
+
+        Log.d(TAG, "Cell Information: " + cellList);
         /*
         for(CellInfo cellInfo: cellList){
-            Log.d(TAG, String.valueOf(cellInfo));
+            Log.d(TAG, "Cell Info: " + String.valueOf(cellInfo));
         }
         */
 
@@ -151,7 +156,7 @@ public class ContextHelper extends BroadcastReceiver {
     @SuppressLint("MissingPermission")
     public void startService() {
 
-        mRssiLevel = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mRssiLevel = new SlideWindow(SAMPLE_NUM_WINDOW, -999);
         mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, 999);
         mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mWifiRssi = new SlideWindow(SAMPLE_NUM_WINDOW, -999);
@@ -242,10 +247,10 @@ public class ContextHelper extends BroadcastReceiver {
             if (wifiInfo != null) {
                 mWifiRssi.putValue(wifiInfo.getRssi());
             } else {
-                mWifiRssi.putValue(0);
+                mWifiRssi.putValue(-999);
             }
         } else {
-            mWifiRssi.putValue(0);
+            mWifiRssi.putValue(-999);
         }
         return mWifiRssi.getMean();
     }

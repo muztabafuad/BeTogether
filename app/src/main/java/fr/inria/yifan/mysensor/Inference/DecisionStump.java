@@ -75,15 +75,28 @@ public class DecisionStump implements Serializable {
 
     // The simple adjusting for threshold
     public void UpdateThreshold(double[] sample) {
-        double temp = threshold;
-        threshold = sample[index];
         if (Predict(sample) != sample[sample.length - 1]) {
-            threshold = temp;
+            //System.out.println("Current FE: " + index + ", OP: " + operation + ", TH: " + threshold +
+            //        ", VA: " + sample[index] + ", HY: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
+            switch (operation) {
+                case '(':
+                    threshold += stepValue;
+                    break;
+                case '>':
+                    threshold -= stepValue;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Illegal operation: " + operation);
+            }
+            //System.out.println("New FE: " + index + ", OP: " + operation + ", TH: " + threshold +
+            //        ", VA: " + sample[index] + ", H: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
         }
     }
 
     // The incremental method for threshold
     public void PoissonUpdate(double[] sample) {
+        System.out.println("Current FE: " + index + ", OP: " + operation + ", TH: " + threshold +
+                ", VA: " + sample[index] + ", HY: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
         switch (operation) {
             case '(':
                 threshold += stepValue;
@@ -94,6 +107,8 @@ public class DecisionStump implements Serializable {
             default:
                 throw new IllegalArgumentException("Illegal operation: " + operation);
         }
+        System.out.println("New FE: " + index + ", OP: " + operation + ", TH: " + threshold +
+                ", VA: " + sample[index] + ", H: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
     }
 
     // Predict for one new sample

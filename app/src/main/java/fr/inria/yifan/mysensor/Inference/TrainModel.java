@@ -26,8 +26,8 @@ public class TrainModel {
         int labelInit = 15;
         int numSamples = 20000; // Use how many samples for learning
 
-        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv";
-        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv";
+        String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv";
+        //String fileLoad = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv";
 
         //String fileSave = "C:/Users/Yifan/Documents/MySensor/app/src/main/assets/" + MODEL_INPOCKET;
         //int featuresUsed[] = {2, 9}; // The index of features used for training
@@ -47,7 +47,7 @@ public class TrainModel {
         double[][] samples_test = Arrays.copyOfRange(samples, (int) (numSamples * 0.8), numSamples);
 
         // n features * 10 threshold = 10n classifiers
-        AdaBoost adaBoost = new AdaBoost(300, featuresUsed, 100);
+        AdaBoost adaBoost = new AdaBoost(30, featuresUsed, 10);
         adaBoost.BatchTrain(samples_train);
 
         int right = 0; // True counter
@@ -78,8 +78,8 @@ public class TrainModel {
         }
 
         // Load samples for feedback and test
-        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv";
-        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv";
+        String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv";
+        //String fileTest = "C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv";
 
         CSVParser parserTest = new CSVParser(fileTest, numSamples, featuresInit, labelInit);
         StringBuilder logging = new StringBuilder();
@@ -144,9 +144,8 @@ public class TrainModel {
                 int threshold = (int) (ca * 100);
                 //System.out.println("Feedback possibility: " + num + " " + threshold);
 
-                if (num > threshold) {
+                if (adaBoost.Predict(new_test) != new_test[new_test.length - 1]) {
                     //System.out.println("Updated");
-                    //adaBoost.GreedyUpdate(new_test);
                     adaBoost.OnlineUpdate(new_test);
                     i_feed++;
                 }
