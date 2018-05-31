@@ -20,7 +20,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
-import android.telephony.CellInfo;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
@@ -48,6 +47,9 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
 public class ContextHelper extends BroadcastReceiver {
 
     private static final String TAG = "Device context";
+
+    private static final int WIFI_RSSI_OUT = -150;
+    private static final int GPS_ACC_OUT = 1000;
 
     // Declare references and managers
     private Activity mActivity;
@@ -156,10 +158,10 @@ public class ContextHelper extends BroadcastReceiver {
     @SuppressLint("MissingPermission")
     public void startService() {
 
-        mRssiLevel = new SlideWindow(SAMPLE_NUM_WINDOW, -999);
-        mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, 999);
+        mRssiLevel = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, GPS_ACC_OUT);
         mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
-        mWifiRssi = new SlideWindow(SAMPLE_NUM_WINDOW, -999);
+        mWifiRssi = new SlideWindow(SAMPLE_NUM_WINDOW, WIFI_RSSI_OUT);
         //hasBattery = 0;
         //localTime = 0;
         //inPocket = false;
@@ -247,10 +249,10 @@ public class ContextHelper extends BroadcastReceiver {
             if (wifiInfo != null) {
                 mWifiRssi.putValue(wifiInfo.getRssi());
             } else {
-                mWifiRssi.putValue(-999);
+                mWifiRssi.putValue(WIFI_RSSI_OUT);
             }
         } else {
-            mWifiRssi.putValue(-999);
+            mWifiRssi.putValue(WIFI_RSSI_OUT);
         }
         return mWifiRssi.getMean();
     }
