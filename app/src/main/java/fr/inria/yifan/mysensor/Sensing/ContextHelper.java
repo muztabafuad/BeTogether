@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
+import android.telephony.CellInfo;
 import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
@@ -49,6 +50,7 @@ public class ContextHelper extends BroadcastReceiver {
     private static final String TAG = "Device context";
 
     private static final int WIFI_RSSI_OUT = -150;
+    private static final int GSM_RSSI_OUT = -150;
     private static final int GPS_ACC_OUT = 1000;
 
     // Declare references and managers
@@ -59,10 +61,11 @@ public class ContextHelper extends BroadcastReceiver {
     private WifiManager mWifiManager;
 
     // Declare all contexts
+    private int mGSMFlag;
     private SlideWindow mRssiLevel;
+    private SlideWindow mRssiValue;
     private SlideWindow mAccuracy;
     private SlideWindow mSpeed;
-    private int mGSMFlag;
     private SlideWindow mWifiRssi;
     //private float hasBattery;
     //private long localTime;
@@ -80,13 +83,12 @@ public class ContextHelper extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.M)
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
-            //mRssiDbm.putValue(signalStrength.getGsmSignalStrength() * 2 - 113); // -> dBm
             mGSMFlag = signalStrength.isGsm() ? 1 : 0;
-            //Log.d(TAG, "CDMA: " + String.valueOf(signalStrength.getCdmaDbm()));
-            //Log.d(TAG, "Evdo: " + String.valueOf(signalStrength.getEvdoDbm()));
-            //Log.d(TAG, "GSM: " + String.valueOf(signalStrength.getGsmSignalStrength() * 2 - 113));
-            //Log.d(TAG, "Is GSM: " + String.valueOf(signalStrength.isGsm()));
-            //Log.d(TAG, "Level: " + signalStrength.getLevel());
+            Log.d(TAG, "CDMA: " + String.valueOf(signalStrength.getCdmaDbm()));
+            Log.d(TAG, "Evdo: " + String.valueOf(signalStrength.getEvdoDbm()));
+            Log.d(TAG, "Is GSM: " + String.valueOf(signalStrength.isGsm()));
+            Log.d(TAG, "GSM: " + (signalStrength.getGsmSignalStrength() * 2 - 113));
+            mRssiValue.putValue(signalStrength.getGsmSignalStrength() * 2 - 113); // -> dBm
             mRssiLevel.putValue(signalStrength.getLevel());
         }
     };
@@ -127,10 +129,11 @@ public class ContextHelper extends BroadcastReceiver {
         mConnectManager = (ConnectivityManager) mActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
         mWifiManager = (WifiManager) mActivity.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
-        List<NeighboringCellInfo> cellList = mTelephonyManager.getNeighboringCellInfo();
+        /* Searching neighbor cells does not work
+        List<NeighboringCellInfo> neighborList = mTelephonyManager.getNeighboringCellInfo();
+        List<CellInfo> cellList = mTelephonyManager.getAllCellInfo();
 
-        Log.d(TAG, "Cell Information: " + cellList);
-        /*
+        Log.d(TAG, "Cell Information: " + cellList + " " + neighborList);
         for(CellInfo cellInfo: cellList){
             Log.d(TAG, "Cell Info: " + String.valueOf(cellInfo));
         }
@@ -159,6 +162,7 @@ public class ContextHelper extends BroadcastReceiver {
     public void startService() {
 
         mRssiLevel = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
+        mRssiValue = new SlideWindow(SAMPLE_NUM_WINDOW, GSM_RSSI_OUT);
         mAccuracy = new SlideWindow(SAMPLE_NUM_WINDOW, GPS_ACC_OUT);
         mSpeed = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mWifiRssi = new SlideWindow(SAMPLE_NUM_WINDOW, WIFI_RSSI_OUT);
@@ -202,6 +206,11 @@ public class ContextHelper extends BroadcastReceiver {
     // Get the most recent signal strength level
     public float getRssiLevel() {
         return mRssiLevel.getMean();
+    }
+
+    // Get the most recent signal strength level
+    public float getRssiValue() {
+        return mRssiValue.getMean();
     }
 
     // Get location information from GPS
@@ -270,6 +279,7 @@ public class ContextHelper extends BroadcastReceiver {
     // Manually update sliding window
     public void updateWindow() {
         mRssiLevel.putValue(mRssiLevel.getLast());
+        mRssiValue.putValue(mRssiValue.getLast());
         mAccuracy.putValue(mAccuracy.getLast());
         mSpeed.putValue(mSpeed.getLast());
     }
