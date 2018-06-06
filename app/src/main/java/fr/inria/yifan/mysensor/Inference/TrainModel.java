@@ -1,45 +1,57 @@
 package fr.inria.yifan.mysensor.Inference;
 
+import java.util.Random;
+
+import weka.classifiers.Evaluation;
+import weka.classifiers.trees.J48;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.NumericToNominal;
 import weka.filters.unsupervised.attribute.Remove;
-import weka.filters.unsupervised.attribute.Standardize;
 
 public class TrainModel {
 
     // Main method for generating original model
     public static void main(String[] args) {
-
-        DataSource source;
         try {
-            source = new DataSource("C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv");
+            //DataSource source = new DataSource("C:/Users/Yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv");
+            DataSource source = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv");
             Instances data = source.getDataSet();
-            // Set the filter
-            Remove remove = new Remove();
-            remove.setAttributeIndices("0, 1, 4, 10, 11, 12, 13, 14, 16");
-            remove.setInputFormat(data);
-            // Configures the Filter based on train instances and returns filtered instances
-            Instances data_new = Filter.useFilter(data, remove);
-            System.out.println(data_new);
 
             for (int i = 0; i < data.numAttributes(); i++) {
                 System.out.println(data.attribute(i).name());
             }
 
-            //rm.setInputFormat(data); // initializing the filter once with training set
-              // remove attributes
+            // Remove attributes
+            Remove remove = new Remove();
+            remove.setAttributeIndices("1, 2, 5, 11, 12, 13, 14, 15, 17");
+            remove.setInputFormat(data);
+            Instances revData = Filter.useFilter(data, remove);
 
-            for (int i = 0; i < data_new.numAttributes(); i++) {
-                System.out.println(data_new.attribute(i).name());
+            NumericToNominal nominal = new NumericToNominal();
+            nominal.setAttributeIndices("8");
+            nominal.setInputFormat(revData);
+            Instances newData = Filter.useFilter(revData, nominal);
+
+            for (int i = 0; i < newData.numAttributes(); i++) {
+                System.out.println(newData.attribute(i).name());
             }
-            // setting class attribute if the data format does not provide this information
-            // For example, the XRFF format saves the class attribute information as well
-            if (data.classIndex() == -1) {
-                data.setClassIndex(data.numAttributes() - 1);
+
+            if (newData.classIndex() == -1) {
+                newData.setClassIndex(newData.numAttributes() - 1);
             }
-            System.out.println(data.firstInstance());
-            System.out.println(data.classAttribute().name());
+
+            System.out.println(newData.firstInstance());
+            System.out.println(newData.classAttribute().name());
+
+            J48 tree = new J48();         // new instance of tree
+            tree.buildClassifier(newData);   // build classifier
+
+            Evaluation eval = new Evaluation(newData);
+            eval.crossValidateModel(tree, newData, 10, new Random(1));
+            System.out.println(eval.toSummaryString("\nResults\n======\n", false));
+
         } catch (Exception e) {
             e.printStackTrace();
         }
