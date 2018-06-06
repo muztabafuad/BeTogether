@@ -12,10 +12,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.util.Arrays;
 import java.util.List;
 
-import fr.inria.yifan.mysensor.Inference.InferHelper;
+import fr.inria.yifan.mysensor.Backup.InferHelper;
 import fr.inria.yifan.mysensor.Sensing.ContextHelper;
 import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
 

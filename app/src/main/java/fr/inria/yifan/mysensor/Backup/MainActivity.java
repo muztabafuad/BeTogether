@@ -8,9 +8,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import fr.inria.yifan.mysensor.Inference.InferHelper;
 import fr.inria.yifan.mysensor.R;
 
+@SuppressLint("Registered")
 public class MainActivity extends AppCompatActivity {
 
     private static final String INPUT_NODE = "I";

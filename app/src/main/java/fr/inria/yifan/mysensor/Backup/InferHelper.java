@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Inference;
+package fr.inria.yifan.mysensor.Backup;
 
 /*
  This class implements the decision stump (weak learner) for AdaBoost.
