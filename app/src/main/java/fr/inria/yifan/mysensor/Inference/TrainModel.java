@@ -56,16 +56,26 @@ public class TrainModel {
             cv.crossValidateModel(tree, newData, 10, new Random(1));
             System.out.println(cv.toSummaryString());
 
-            // Batch training
-            tree.buildClassifier(newData);   // build classifier
+            long startTime;
+            long endTime;
+            long totalTime;
 
-            long totalTime = 0;
+            // Batch training
+            startTime = System.nanoTime();
+            tree.buildClassifier(newData);   // build classifier
+            endTime = System.nanoTime();
+            System.out.println("Training time (mean, nano): " + (endTime - startTime));
+
+            totalTime = 0;
             // Incremental training
             for (int i = 0; i < newData.numInstances(); i++) {
-                long startTime = System.nanoTime();
+                startTime = System.nanoTime();
                 tree.updateClassifier(newData.instance(i));
-                long endTime = System.nanoTime();
+                endTime = System.nanoTime();
                 totalTime += endTime - startTime;
+                //Evaluation ev = new Evaluation(newData);
+                //ev.evaluateModel(tree, newData);
+                //System.out.println(ev.pctCorrect());
             }
             System.out.println("Training time (mean, nano): " + totalTime/newData.numInstances());
 
@@ -79,10 +89,11 @@ public class TrainModel {
             System.out.println(eval.toSummaryString());
 
             // Classify new instance
+            Instances dataSet = new Instances(newData, 0);
             Instance inst = new DenseInstance(3);
             inst.setValue(0, 200.0f);
             inst.setValue(1, 8.0f);
-            inst.setDataset(newData);
+            inst.setDataset(dataSet);
             int result = (int) tree.classifyInstance(inst);
             System.out.println("Sample: " + inst + ", Inference: " + result);
 

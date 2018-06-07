@@ -1,9 +1,5 @@
 package fr.inria.yifan.mysensor.Deprecated;
 
-/*
- This class implements the decision stump (weak learner) for AdaBoost.
- */
-
 import android.content.Context;
 import android.util.Log;
 
