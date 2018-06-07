@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Backup;
+package fr.inria.yifan.mysensor.Deprecated;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;

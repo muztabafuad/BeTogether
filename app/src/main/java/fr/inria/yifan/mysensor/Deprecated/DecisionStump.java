@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Backup;
+package fr.inria.yifan.mysensor.Deprecated;
 
 import java.io.Serializable;
 
