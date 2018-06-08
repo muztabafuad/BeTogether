@@ -1,13 +1,11 @@
 package fr.inria.yifan.mysensor.Inference;
 
+import java.io.FileOutputStream;
 import java.util.Random;
 
 import weka.classifiers.Evaluation;
 import weka.classifiers.trees.HoeffdingTree;
-import weka.core.DenseInstance;
-import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -17,8 +15,8 @@ public class TrainModel {
 
     // Main method for generating original model
     public static void main(String[] args) {
-        try {
 
+        try {
             // Load data from csv file
             DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
             DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4.csv");
@@ -81,11 +79,12 @@ public class TrainModel {
             System.out.println(eval.toSummaryString());
 
             // Incremental training
-            int boost = 1;
+            int boost = 10;
             int counter = 0;
             totalTime = 0;
             Random random = new Random();
-            for (int i = 0; i < 10000; i++) {
+            StringBuilder logging = new StringBuilder();
+            for (int i = 0; i < 500; i++) {
                 Evaluation ev = new Evaluation(newTest);
                 ev.evaluateModel(classifier, newTest);
                 // Opportunistic feedback on wrong inference
@@ -96,25 +95,31 @@ public class TrainModel {
                     }
                     endTime = System.nanoTime();
                     totalTime += endTime - startTime;
-                    counter ++;
+                    counter++;
                     System.out.println("Feedback number: " + counter + " Accuracy: " + ev.pctCorrect());
+                    logging.append(counter).append(", ").append(ev.pctCorrect()).append("\n");
                 }
             }
             System.out.println("Training time (incremental): " + totalTime / counter);
 
-            // Save and load
-            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
-            classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
-
-            // Classify new instance
-            Instances dataSet = new Instances(newTrain, 0);
-            Instance inst = new DenseInstance(1, new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0});
-            inst.setDataset(dataSet);
-            int result = (int) classifier.classifyInstance(inst);
-            System.out.println("Sample: " + inst + ", Inference: " + result);
+            // Save the log file
+            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy";
+            FileOutputStream output = new FileOutputStream(logfile);
+            output.write(logging.toString().getBytes());
+            output.close();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // Save and load
+        //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
+        //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
+
+        // Classify new instance
+        //Instances dataSet = new Instances(newTrain, 0);
+        //Instance inst = new DenseInstance(1, new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0});
+        //inst.setDataset(dataSet);
+        //int result = (int) classifier.classifyInstance(inst);
+        //System.out.println("Sample: " + inst + ", Inference: " + result);
     }
 }
