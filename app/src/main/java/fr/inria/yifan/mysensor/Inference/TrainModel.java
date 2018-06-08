@@ -20,8 +20,10 @@ public class TrainModel {
         try {
 
             // Load data from csv file
-            DataSource source = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv");
-            Instances data = source.getDataSet();
+            DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_1527175592592.csv");
+            DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi Note 4_1527233438107.csv");
+            Instances train = source_train.getDataSet();
+            Instances test = source_test.getDataSet();
 
             /*
             1 timestamp 2 daytime (b) 3 light density (lx) 4 magnetic strength (μT) 5 GSM active (b)
@@ -34,26 +36,32 @@ public class TrainModel {
             Remove remove = new Remove();
             remove.setAttributeIndices("3, 10, 15");
             remove.setInvertSelection(true);
-            remove.setInputFormat(data);
-            Instances revData = Filter.useFilter(data, remove);
+            remove.setInputFormat(train);
+
+            Instances revTrain = Filter.useFilter(train, remove);
+            Instances revTest = Filter.useFilter(test, remove);
 
             // Convert class to nominal
             NumericToNominal nominal = new NumericToNominal();
             nominal.setAttributeIndices("3");
-            nominal.setInputFormat(revData);
-            Instances newData = Filter.useFilter(revData, nominal);
+            nominal.setInputFormat(revTrain);
+
+            Instances newTrain = Filter.useFilter(revTrain, nominal);
+            Instances newTest = Filter.useFilter(revTest, nominal);
 
             // Set data class label index
-            newData.setClassIndex(newData.numAttributes() - 1);
+            newTrain.setClassIndex(newTrain.numAttributes() - 1);
+            newTest.setClassIndex(newTest.numAttributes() - 1);
+            newTest.randomize(new Random());
 
-            for (int i = 0; i < newData.numAttributes(); i++) {
-                System.out.print(newData.attribute(i).name());
+            for (int i = 0; i < newTrain.numAttributes(); i++) {
+                System.out.print(newTrain.attribute(i).name());
             }
 
             // 10-fold cross validation
             HoeffdingTree tree = new HoeffdingTree(); // new instance of tree
-            Evaluation cv = new Evaluation(newData);
-            cv.crossValidateModel(tree, newData, 10, new Random(1));
+            Evaluation cv = new Evaluation(newTrain);
+            cv.crossValidateModel(tree, newTrain, 10, new Random(1));
             System.out.println(cv.toSummaryString());
 
             long startTime;
@@ -62,40 +70,44 @@ public class TrainModel {
 
             // Batch training
             startTime = System.nanoTime();
-            tree.buildClassifier(newData);   // build classifier
+            tree.buildClassifier(newTrain);   // build classifier
             endTime = System.nanoTime();
-            System.out.println("Training time (mean, nano): " + (endTime - startTime));
-
-            totalTime = 0;
-            // Incremental training
-            for (int i = 0; i < newData.numInstances(); i++) {
-                startTime = System.nanoTime();
-                tree.updateClassifier(newData.instance(i));
-                endTime = System.nanoTime();
-                totalTime += endTime - startTime;
-                //Evaluation ev = new Evaluation(newData);
-                //ev.evaluateModel(tree, newData);
-                //System.out.println(ev.pctCorrect());
-            }
-            System.out.println("Training time (mean, nano): " + totalTime/newData.numInstances());
-
-            // Save and load
-            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Tree.model", tree);
-            tree = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Tree.model");
+            System.out.println("Training time (batch): " + (endTime - startTime));
 
             // Evaluate classifier on data set
-            Evaluation eval = new Evaluation(newData);
-            eval.evaluateModel(tree, newData);
+            Evaluation eval = new Evaluation(newTest);
+            eval.evaluateModel(tree, newTest);
             System.out.println(eval.toSummaryString());
 
+            // Incremental training
+            int boostRun = 1000;
+            totalTime = 0;
+            for (int i = 0; i < newTest.numInstances(); i++) {
+                startTime = System.nanoTime();
+                // Boosting the incrementL learning
+                for (int j = 0; j < boostRun; j++){
+                    tree.updateClassifier(newTest.instance(i));
+                }
+                endTime = System.nanoTime();
+                totalTime += endTime - startTime;
+                Evaluation ev = new Evaluation(newTest);
+                ev.evaluateModel(tree, newTest);
+                System.out.println("Iteration: " + i + " Accuracy: " + ev.pctCorrect());
+            }
+            System.out.println("Training time (mean, nano): " + totalTime / newTest.numInstances());
+
+            // Save and load
+            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/HoeffdingTree.model", tree);
+            tree = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Tree.model");
+
             // Classify new instance
-            Instances dataSet = new Instances(newData, 0);
+            Instances dataSet = new Instances(newTrain, 0);
             Instance inst = new DenseInstance(3);
             inst.setValue(0, 200.0f);
             inst.setValue(1, 8.0f);
             inst.setDataset(dataSet);
             int result = (int) tree.classifyInstance(inst);
-            System.out.println("Sample: " + inst + ", Inference: " + result);
+            //System.out.println("Sample: " + inst + ", Inference: " + result);
 
         } catch (Exception e) {
             e.printStackTrace();
