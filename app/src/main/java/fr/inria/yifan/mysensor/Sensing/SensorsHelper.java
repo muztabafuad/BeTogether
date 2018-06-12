@@ -146,7 +146,7 @@ public class SensorsHelper {
 
         mLight = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mMagnet = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
-        mProximity = new SlideWindow(SAMPLE_NUM_WINDOW, mSensorProxy.getMaximumRange());
+        mProximity = new SlideWindow(SAMPLE_NUM_WINDOW, mSensorProxy != null ? mSensorProxy.getMaximumRange() : 0);
         mTemperature = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mPressure = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
         mHumidity = new SlideWindow(SAMPLE_NUM_WINDOW, 0);
