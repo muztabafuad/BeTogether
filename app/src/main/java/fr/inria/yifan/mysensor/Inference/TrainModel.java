@@ -109,22 +109,36 @@ public class TrainModel {
                 HoeffdingTree classifier = new HoeffdingTree();
                 classifier.buildClassifier(newTrain);
 
-                // Limit the feedback amount
+                // Limit the feedback amount to 50
                 for (int j = 0; j < 50; j++) {
                     Evaluation eva = new Evaluation(newTest);
                     eva.evaluateModel(classifier, newTest);
 
+                    // Classify new instance
+                    if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue())
+                    {
+                        classifier.updateClassifier(newTest.instance(j));
+                        count++;
+                        double acc = eva.pctCorrect();
+                        // Record max accuracy and feedback count
+                        if (acc > acc_max) {
+                            acc_max = acc;
+                            count_max = count;
+                        }
+                    }
+
+                    /*
                     // Opportunistic feedback on wrong inference
                     if (random.nextInt(100) > eva.pctCorrect()) {
                         // Generate Poisson number
-                        //double lambda = 1d;
-                        //int k = AdaBoost.Poisson(lambda);
-                        //System.out.println("K value = " + k);
+                        double lambda = 1d;
+                        int k = AdaBoost.Poisson(lambda);
+                        System.out.println("K value = " + k);
 
                         // Repeat learning from one sample
-                        //for (int j = 0; j < k; j++) {
+                        for (int j = 0; j < k; j++) {
                         classifier.updateClassifier(newTest.instance(j));
-                        //}
+                        }
                         count++;
                         double acc = eva.pctCorrect();
                         if (acc > acc_max) {
@@ -132,6 +146,7 @@ public class TrainModel {
                             count_max = count;
                         }
                     }
+                    */
                 }
                 System.out.println(i + "th Feedback number: " + count_max + ", Max accuracy: " + acc_max);
                 logging.append(count_max).append(", ").append(acc_max).append("\n");
