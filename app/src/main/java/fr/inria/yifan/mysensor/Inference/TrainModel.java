@@ -55,52 +55,87 @@ public class TrainModel {
             for (int i = 0; i < newTrain.numAttributes() - 1; i++) {
                 System.out.print(newTrain.attribute(i).name());
             }
-            System.out.print(" Target:" + newTrain.classAttribute().name());
+            System.out.println(" Target:" + newTrain.classAttribute().name());
 
-            // 10-fold cross validation
-            HoeffdingTree classifier = new HoeffdingTree();
-            Evaluation cross = new Evaluation(newTrain);
-            cross.crossValidateModel(classifier, newTrain, 10, new Random());
-            System.out.println(cross.toSummaryString());
+            // Multiply runs for evaluation
+            int run = 100;
 
+            /*
+            // Runtime evaluation
             long startTime;
             long endTime;
-            long totalTime;
-
-            // Batch training
+            HoeffdingTree classifier = new HoeffdingTree();
             startTime = System.nanoTime();
-            classifier.buildClassifier(newTrain);   // build classifier
+            // Batch training
+            classifier.buildClassifier(newTrain);
             endTime = System.nanoTime();
-            System.out.println("Training time (in batch): " + (endTime - startTime));
+            System.out.println("Training time (batch): " + (endTime - startTime));
+
+            long totalTime = 0;
+            for (int i = 0; i < run; i++) {
+                startTime = System.nanoTime();
+                classifier.updateClassifier(newTest.instance(i));
+                endTime = System.nanoTime();
+                totalTime += (endTime - startTime);
+            }
+            System.out.println("Updating time (online): " + totalTime / run);
+            */
+
+            // 10-fold cross validation
+            //Evaluation cross = new Evaluation(newTrain);
+            //cross.crossValidateModel(classifier, newTrain, 10, new Random());
+            //System.out.println(cross.toSummaryString());
 
             // Evaluate classifier on data set
-            Evaluation eval = new Evaluation(newTest);
-            eval.evaluateModel(classifier, newTest);
-            System.out.println(eval.toSummaryString());
+            //Evaluation eval = new Evaluation(newTest);
+            //eval.evaluateModel(classifier, newTest);
+            //System.out.println(eval.toSummaryString());
 
-            // Incremental training
-            int boost = 10;
-            int counter = 0;
-            totalTime = 0;
-            Random random = new Random();
+            // Accuracy evaluation
+            int count;
+            int count_max;
+            double acc_max;
             StringBuilder logging = new StringBuilder();
-            for (int i = 0; i < 500; i++) {
-                Evaluation ev = new Evaluation(newTest);
-                ev.evaluateModel(classifier, newTest);
-                // Opportunistic feedback on wrong inference
-                if (random.nextInt(100) > ev.pctCorrect()) {
-                    startTime = System.nanoTime();
-                    for (int j = 0; j < boost; j++) {
-                        classifier.updateClassifier(newTest.instance(i));
+
+            // Loop for multiple runs
+            for (int i = 0; i < run; i++) {
+                count = 0;
+                count_max = 0;
+                acc_max = 0;
+                // Randomize each run!
+                Random random = new Random();
+                newTest.randomize(random);
+                // New classifier each run!
+                HoeffdingTree classifier = new HoeffdingTree();
+                classifier.buildClassifier(newTrain);
+
+                // Limit the feedback amount
+                for (int j = 0; j < 50; j++) {
+                    Evaluation eva = new Evaluation(newTest);
+                    eva.evaluateModel(classifier, newTest);
+
+                    // Opportunistic feedback on wrong inference
+                    if (random.nextInt(100) > eva.pctCorrect()) {
+                        // Generate Poisson number
+                        //double lambda = 1d;
+                        //int k = AdaBoost.Poisson(lambda);
+                        //System.out.println("K value = " + k);
+
+                        // Repeat learning from one sample
+                        //for (int j = 0; j < k; j++) {
+                        classifier.updateClassifier(newTest.instance(j));
+                        //}
+                        count++;
+                        double acc = eva.pctCorrect();
+                        if (acc > acc_max) {
+                            acc_max = acc;
+                            count_max = count;
+                        }
                     }
-                    endTime = System.nanoTime();
-                    totalTime += endTime - startTime;
-                    counter++;
-                    System.out.println("Feedback number: " + counter + " Accuracy: " + ev.pctCorrect());
-                    logging.append(counter).append(", ").append(ev.pctCorrect()).append("\n");
                 }
+                System.out.println(i + "th Feedback number: " + count_max + ", Max accuracy: " + acc_max);
+                logging.append(count_max).append(", ").append(acc_max).append("\n");
             }
-            System.out.println("Training time (incremental): " + totalTime / counter);
 
             // Save the log file
             String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy";
