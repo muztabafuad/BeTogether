@@ -4,6 +4,9 @@ import java.io.FileOutputStream;
 import java.util.Random;
 
 import weka.classifiers.Evaluation;
+import weka.classifiers.lazy.IBk;
+import weka.classifiers.lazy.KStar;
+import weka.classifiers.lazy.LWL;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
@@ -59,12 +62,18 @@ public class TrainModel {
 
             // Multiply runs for evaluation
             int run = 100;
+            StringBuilder logging = new StringBuilder();
 
             /*
             // Runtime evaluation
             long startTime;
             long endTime;
-            HoeffdingTree classifier = new HoeffdingTree();
+            //HoeffdingTree classifier = new HoeffdingTree();
+            //IBk classifier = new IBk();
+            //KStar classifier = new KStar();
+            //LWL classifier = new LWL();
+            //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
+            //SGD classifier = new SGD();
             startTime = System.nanoTime();
             // Batch training
             classifier.buildClassifier(newTrain);
@@ -91,35 +100,49 @@ public class TrainModel {
             //eval.evaluateModel(classifier, newTest);
             //System.out.println(eval.toSummaryString());
 
+
             // Accuracy evaluation
             int count;
             int count_max;
             double acc_max;
-            StringBuilder logging = new StringBuilder();
 
             // Loop for multiple runs
             for (int i = 0; i < run; i++) {
                 count = 0;
                 count_max = 0;
                 acc_max = 0;
+
                 // Randomize each run!
                 Random random = new Random();
                 newTest.randomize(random);
+
                 // New classifier each run!
-                HoeffdingTree classifier = new HoeffdingTree();
+                //HoeffdingTree classifier = new HoeffdingTree();
+                //IBk classifier = new IBk();
+                KStar classifier = new KStar();
+                //LWL classifier = new LWL();
+                //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
+                //SGD classifier = new SGD();
                 classifier.buildClassifier(newTrain);
 
+                System.out.println("Online learning...");
                 // Limit the feedback amount to 50
                 for (int j = 0; j < 50; j++) {
                     Evaluation eva = new Evaluation(newTest);
                     eva.evaluateModel(classifier, newTest);
 
-                    // Classify new instance
-                    if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue())
-                    {
+                    // Generate Poisson number
+                    //double lambda = 1d;
+                    //int k = AdaBoost.Poisson(lambda);
+                    //System.out.println("K value = " + k);
+
+                    // Sequential feedback on wrong inference
+                    if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
+                        System.out.println("Updating model with a feedback...");
                         classifier.updateClassifier(newTest.instance(j));
                         count++;
                         double acc = eva.pctCorrect();
+                        System.out.println("Accuracy: " + acc);
                         // Record max accuracy and feedback count
                         if (acc > acc_max) {
                             acc_max = acc;
@@ -127,30 +150,22 @@ public class TrainModel {
                         }
                     }
 
-                    /*
                     // Opportunistic feedback on wrong inference
-                    if (random.nextInt(100) > eva.pctCorrect()) {
-                        // Generate Poisson number
-                        double lambda = 1d;
-                        int k = AdaBoost.Poisson(lambda);
-                        System.out.println("K value = " + k);
+                    //if (random.nextInt(100) > eva.pctCorrect()) {
+                    //    classifier.updateClassifier(newTest.instance(j));
+                    //    count++;
+                    //    double acc = eva.pctCorrect();
+                    //    if (acc > acc_max) {
+                    //       acc_max = acc;
+                    //        count_max = count;
+                    //    }
+                    //}
 
-                        // Repeat learning from one sample
-                        for (int j = 0; j < k; j++) {
-                        classifier.updateClassifier(newTest.instance(j));
-                        }
-                        count++;
-                        double acc = eva.pctCorrect();
-                        if (acc > acc_max) {
-                            acc_max = acc;
-                            count_max = count;
-                        }
-                    }
-                    */
                 }
                 System.out.println(i + "th Feedback number: " + count_max + ", Max accuracy: " + acc_max);
                 logging.append(count_max).append(", ").append(acc_max).append("\n");
             }
+
 
             // Save the log file
             String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy";
