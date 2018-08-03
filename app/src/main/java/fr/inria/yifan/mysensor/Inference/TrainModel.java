@@ -3,6 +3,7 @@ package fr.inria.yifan.mysensor.Inference;
 import java.io.FileOutputStream;
 import java.util.Random;
 
+import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.SGD;
 import weka.classifiers.lazy.IBk;
@@ -62,7 +63,7 @@ public class TrainModel {
             System.out.println(" Target:" + newTrain.classAttribute().name());
 
             // Multiply runs for evaluation
-            int run = 1000;
+            int run = 1;
 
 
             // Runtime evaluation
@@ -76,15 +77,20 @@ public class TrainModel {
             for (int i = 0; i < run; i++) {
                 //HoeffdingTree classifier = new HoeffdingTree();
                 //IBk classifier = new IBk();
-                //KStar classifier = new KStar();
+                KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                SGD classifier = new SGD();
+                //SGD classifier = new SGD();
                 startTime = System.nanoTime();
                 // Batch training
                 classifier.buildClassifier(newTrain);
                 endTime = System.nanoTime();
                 totalTime_b += (endTime - startTime);
+
+                // 10-fold cross validation
+                Evaluation cross = new Evaluation(newTrain);
+                cross.crossValidateModel(classifier, newTrain, 10, new Random());
+                System.out.println(cross.toSummaryString());
 
                 startTime = System.nanoTime();
                 classifier.updateClassifier(newTest.instance(i));
