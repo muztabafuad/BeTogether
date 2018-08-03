@@ -3,7 +3,8 @@ package fr.inria.yifan.mysensor.Inference;
 import java.io.FileOutputStream;
 import java.util.Random;
 
-import weka.classifiers.Evaluation;
+import weka.classifiers.bayes.NaiveBayesUpdateable;
+import weka.classifiers.functions.SGD;
 import weka.classifiers.lazy.IBk;
 import weka.classifiers.lazy.KStar;
 import weka.classifiers.lazy.LWL;
@@ -35,7 +36,7 @@ public class TrainModel {
 
             // Only keep used attributes
             Remove remove = new Remove();
-            remove.setAttributeIndices("6, 8, 13, 9, 7, 14, 10, 15, 18");
+            remove.setAttributeIndices("8, 7, 6, 3, 17");
             remove.setInvertSelection(true);
             remove.setInputFormat(train);
             Instances revTrain = Filter.useFilter(train, remove);
@@ -61,34 +62,38 @@ public class TrainModel {
             System.out.println(" Target:" + newTrain.classAttribute().name());
 
             // Multiply runs for evaluation
-            int run = 100;
-            StringBuilder logging = new StringBuilder();
+            int run = 1000;
 
-            /*
+
             // Runtime evaluation
             long startTime;
             long endTime;
-            //HoeffdingTree classifier = new HoeffdingTree();
-            //IBk classifier = new IBk();
-            //KStar classifier = new KStar();
-            //LWL classifier = new LWL();
-            //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-            //SGD classifier = new SGD();
-            startTime = System.nanoTime();
-            // Batch training
-            classifier.buildClassifier(newTrain);
-            endTime = System.nanoTime();
-            System.out.println("Training time (batch): " + (endTime - startTime));
+            long totalTime_b;
+            long totalTime_o;
 
-            long totalTime = 0;
+            totalTime_b = 0;
+            totalTime_o = 0;
             for (int i = 0; i < run; i++) {
+                //HoeffdingTree classifier = new HoeffdingTree();
+                //IBk classifier = new IBk();
+                //KStar classifier = new KStar();
+                //LWL classifier = new LWL();
+                //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
+                SGD classifier = new SGD();
+                startTime = System.nanoTime();
+                // Batch training
+                classifier.buildClassifier(newTrain);
+                endTime = System.nanoTime();
+                totalTime_b += (endTime - startTime);
+
                 startTime = System.nanoTime();
                 classifier.updateClassifier(newTest.instance(i));
                 endTime = System.nanoTime();
-                totalTime += (endTime - startTime);
+                totalTime_o += (endTime - startTime);
             }
-            System.out.println("Updating time (online): " + totalTime / run);
-            */
+            System.out.println("Training time (batch) ms: " + (totalTime_b / run) / 1000000d);
+            System.out.println("Updating time (online) ms: " + (totalTime_o / run) / 1000000d);
+
 
             // 10-fold cross validation
             //Evaluation cross = new Evaluation(newTrain);
@@ -100,7 +105,7 @@ public class TrainModel {
             //eval.evaluateModel(classifier, newTest);
             //System.out.println(eval.toSummaryString());
 
-
+            /*
             // Accuracy evaluation
             int count;
             int count_max;
@@ -165,12 +170,12 @@ public class TrainModel {
                 System.out.println(i + "th Feedback number: " + count_max + ", Max accuracy: " + acc_max);
                 logging.append(count_max).append(", ").append(acc_max).append("\n");
             }
-
+            */
 
             // Save the log file
             String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy";
             FileOutputStream output = new FileOutputStream(logfile);
-            output.write(logging.toString().getBytes());
+            output.write("".getBytes());
             output.close();
 
         } catch (Exception e) {
