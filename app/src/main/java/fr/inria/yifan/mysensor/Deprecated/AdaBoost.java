@@ -97,7 +97,7 @@ public class AdaBoost implements Serializable {
     }
 
     // Generate a Poisson number
-    private static int Poisson(double lambda) {
+    public static int Poisson(double lambda) {
         double L = Math.exp(-lambda);
         double p = 1d;
         int k = 0;

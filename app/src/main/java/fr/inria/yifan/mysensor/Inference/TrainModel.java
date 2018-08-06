@@ -3,6 +3,7 @@ package fr.inria.yifan.mysensor.Inference;
 import java.io.FileOutputStream;
 import java.util.Random;
 
+import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.SGD;
@@ -37,7 +38,9 @@ public class TrainModel {
 
             // Only keep used attributes
             Remove remove = new Remove();
-            remove.setAttributeIndices("8, 7, 6, 3, 17");
+            //remove.setAttributeIndices("11, 3, 16");
+            //remove.setAttributeIndices("8, 6, 7, 3, 17");
+            remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
             remove.setInvertSelection(true);
             remove.setInputFormat(train);
             Instances revTrain = Filter.useFilter(train, remove);
@@ -61,67 +64,76 @@ public class TrainModel {
                 System.out.print(newTrain.attribute(i).name());
             }
             System.out.println(" Target:" + newTrain.classAttribute().name());
+            for (int i = 0; i < newTest.numAttributes() - 1; i++) {
+                System.out.print(newTest.attribute(i).name());
+            }
+            System.out.println(" Target:" + newTest.classAttribute().name());
 
             // Multiply runs for evaluation
-            int run = 1;
+            int run = 100;
+            // For generating Poisson number
+            double lambda = 1d;
 
 
+            /*
             // Runtime evaluation
             long startTime;
             long endTime;
             long totalTime_b;
             long totalTime_o;
+            long totalTime_i;
 
             totalTime_b = 0;
             totalTime_o = 0;
+            totalTime_i = 0;
             for (int i = 0; i < run; i++) {
                 //HoeffdingTree classifier = new HoeffdingTree();
                 //IBk classifier = new IBk();
-                KStar classifier = new KStar();
+                //KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                //SGD classifier = new SGD();
+                SGD classifier = new SGD();
                 startTime = System.nanoTime();
                 // Batch training
                 classifier.buildClassifier(newTrain);
                 endTime = System.nanoTime();
                 totalTime_b += (endTime - startTime);
-
-                // 10-fold cross validation
-                Evaluation cross = new Evaluation(newTrain);
-                cross.crossValidateModel(classifier, newTrain, 10, new Random());
-                System.out.println(cross.toSummaryString());
+                //System.out.println((endTime - startTime) / 1000000d);
 
                 startTime = System.nanoTime();
                 classifier.updateClassifier(newTest.instance(i));
                 endTime = System.nanoTime();
                 totalTime_o += (endTime - startTime);
+                //System.out.println((endTime - startTime) / 1000000d);
+
+                startTime = System.nanoTime();
+                classifier.classifyInstance(newTest.instance(i));
+                endTime = System.nanoTime();
+                totalTime_i += (endTime - startTime);
+                //System.out.println((endTime - startTime) / 1000000d);
+
+                // 10-fold cross validation
+                //Evaluation cross = new Evaluation(newTrain);
+                //cross.crossValidateModel(classifier, newTrain, 10, new Random());
+                //System.out.println(cross.toSummaryString());
             }
             System.out.println("Training time (batch) ms: " + (totalTime_b / run) / 1000000d);
             System.out.println("Updating time (online) ms: " + (totalTime_o / run) / 1000000d);
+            System.out.println("Classification time ms: " + (totalTime_i / run) / 1000000d);
+            */
 
 
-            // 10-fold cross validation
-            //Evaluation cross = new Evaluation(newTrain);
-            //cross.crossValidateModel(classifier, newTrain, 10, new Random());
-            //System.out.println(cross.toSummaryString());
 
-            // Evaluate classifier on data set
-            //Evaluation eval = new Evaluation(newTest);
-            //eval.evaluateModel(classifier, newTest);
-            //System.out.println(eval.toSummaryString());
-
-            /*
             // Accuracy evaluation
             int count;
             int count_max;
             double acc_max;
+            StringBuilder log = new StringBuilder();
 
             // Loop for multiple runs
             for (int i = 0; i < run; i++) {
                 count = 0;
                 count_max = 0;
-                acc_max = 0;
 
                 // Randomize each run!
                 Random random = new Random();
@@ -129,60 +141,59 @@ public class TrainModel {
 
                 // New classifier each run!
                 //HoeffdingTree classifier = new HoeffdingTree();
-                //IBk classifier = new IBk();
-                KStar classifier = new KStar();
+                IBk classifier = new IBk();
+                //KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
                 //SGD classifier = new SGD();
                 classifier.buildClassifier(newTrain);
+                //System.out.println("Batch training finished.");
 
-                System.out.println("Online learning...");
+                // 10-fold cross validation
+                //Evaluation cross = new Evaluation(newTrain);
+                //cross.crossValidateModel(classifier, newTrain, 10, new Random());
+                //System.out.println(cross.toSummaryString());
+
+                // Evaluate classifier on data set
+                Evaluation eval = new Evaluation(newTest);
+                eval.evaluateModel(classifier, newTest);
+                //System.out.println("Evaluation finished.");
+                acc_max = eval.pctCorrect();
+
+                //System.out.println("Online learning...");
                 // Limit the feedback amount to 50
                 for (int j = 0; j < 50; j++) {
-                    Evaluation eva = new Evaluation(newTest);
-                    eva.evaluateModel(classifier, newTest);
-
-                    // Generate Poisson number
-                    //double lambda = 1d;
-                    //int k = AdaBoost.Poisson(lambda);
-                    //System.out.println("K value = " + k);
-
                     // Sequential feedback on wrong inference
                     if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
-                        System.out.println("Updating model with a feedback...");
-                        classifier.updateClassifier(newTest.instance(j));
+                        //System.out.println("Updating model with a feedback...");
+                        // Generate Poisson number
+                        int p = AdaBoost.Poisson(lambda);
+                        //System.out.println("K value = " + k);
+                        for (int k = 0; k < p; k++) {
+                            classifier.updateClassifier(newTest.instance(j));
+                        }
                         count++;
-                        double acc = eva.pctCorrect();
-                        System.out.println("Accuracy: " + acc);
+                        eval.evaluateModel(classifier, newTest);
+                        double acc = eval.pctCorrect();
+                        //System.out.println("Accuracy: " + acc);
                         // Record max accuracy and feedback count
                         if (acc > acc_max) {
                             acc_max = acc;
                             count_max = count;
                         }
                     }
-
-                    // Opportunistic feedback on wrong inference
-                    //if (random.nextInt(100) > eva.pctCorrect()) {
-                    //    classifier.updateClassifier(newTest.instance(j));
-                    //    count++;
-                    //    double acc = eva.pctCorrect();
-                    //    if (acc > acc_max) {
-                    //       acc_max = acc;
-                    //        count_max = count;
-                    //    }
-                    //}
-
                 }
-                System.out.println(i + "th Feedback number: " + count_max + ", Max accuracy: " + acc_max);
-                logging.append(count_max).append(", ").append(acc_max).append("\n");
+                System.out.println(i + "th run, feedback number: " + count_max + ", max accuracy: " + acc_max);
+                log.append(count_max).append(", ").append(acc_max).append("\n");
             }
-            */
 
             // Save the log file
-            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/ClassificationAccuracy";
+            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_KStar_1";
             FileOutputStream output = new FileOutputStream(logfile);
-            output.write("".getBytes());
+            output.write(log.toString().getBytes());
             output.close();
+
+
 
         } catch (Exception e) {
             e.printStackTrace();
