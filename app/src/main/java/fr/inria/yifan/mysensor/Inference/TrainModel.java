@@ -25,7 +25,7 @@ public class TrainModel {
         try {
             // Load data from csv file
             DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
-            DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4.csv");
+            DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
             Instances train = source_train.getDataSet();
             Instances test = source_test.getDataSet();
 
@@ -60,10 +60,12 @@ public class TrainModel {
             newTest.randomize(new Random());
 
             // Show all attributes
+            System.out.print("Features:");
             for (int i = 0; i < newTrain.numAttributes() - 1; i++) {
                 System.out.print(newTrain.attribute(i).name());
             }
             System.out.println(" Target:" + newTrain.classAttribute().name());
+            System.out.print("Features:");
             for (int i = 0; i < newTest.numAttributes() - 1; i++) {
                 System.out.print(newTest.attribute(i).name());
             }
@@ -141,11 +143,11 @@ public class TrainModel {
 
                 // New classifier each run!
                 //HoeffdingTree classifier = new HoeffdingTree();
-                IBk classifier = new IBk();
+                //IBk classifier = new IBk();
                 //KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                //SGD classifier = new SGD();
+                SGD classifier = new SGD();
                 classifier.buildClassifier(newTrain);
                 //System.out.println("Batch training finished.");
 
@@ -188,7 +190,7 @@ public class TrainModel {
             }
 
             // Save the log file
-            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_KStar_1";
+            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_SGD_Ground_1";
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();
@@ -203,7 +205,7 @@ public class TrainModel {
         //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
 
         // Classify new instance
-        //Instances dataSet = new Instances(newTrain, 0);
+        //Instances dataSet = new Instances(newTrain, 0);     1124
         //Instance inst = new DenseInstance(1, new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0});
         //inst.setDataset(dataSet);
         //int result = (int) classifier.classifyInstance(inst);
