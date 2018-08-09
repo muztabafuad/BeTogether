@@ -7,11 +7,9 @@ import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.SGD;
-import weka.classifiers.lazy.IBk;
-import weka.classifiers.lazy.KStar;
-import weka.classifiers.lazy.LWL;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -38,10 +36,10 @@ public class TrainModel {
 
             // Only keep used attributes
             Remove remove = new Remove();
-            //remove.setAttributeIndices("11, 3, 16");
+            remove.setAttributeIndices("11, 3, 16");
             //remove.setAttributeIndices("8, 6, 7, 3, 17");
-            remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
-            remove.setInvertSelection(true);
+            //remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
+            //remove.setInvertSelection(true);
             remove.setInputFormat(train);
             Instances revTrain = Filter.useFilter(train, remove);
             Instances revTest = Filter.useFilter(test, remove);
@@ -89,14 +87,14 @@ public class TrainModel {
             totalTime_o = 0;
             totalTime_i = 0;
             for (int i = 0; i < run; i++) {
-                //HoeffdingTree classifier = new HoeffdingTree();
+                HoeffdingTree classifier = new HoeffdingTree();
                 //IBk classifier = new IBk();
                 //KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                SGD classifier = new SGD();
+                //SGD classifier = new SGD();
+
                 startTime = System.nanoTime();
-                // Batch training
                 classifier.buildClassifier(newTrain);
                 endTime = System.nanoTime();
                 totalTime_b += (endTime - startTime);
@@ -113,17 +111,11 @@ public class TrainModel {
                 endTime = System.nanoTime();
                 totalTime_i += (endTime - startTime);
                 //System.out.println((endTime - startTime) / 1000000d);
-
-                // 10-fold cross validation
-                //Evaluation cross = new Evaluation(newTrain);
-                //cross.crossValidateModel(classifier, newTrain, 10, new Random());
-                //System.out.println(cross.toSummaryString());
             }
             System.out.println("Training time (batch) ms: " + (totalTime_b / run) / 1000000d);
             System.out.println("Updating time (online) ms: " + (totalTime_o / run) / 1000000d);
             System.out.println("Classification time ms: " + (totalTime_i / run) / 1000000d);
             */
-
 
 
             // Accuracy evaluation
@@ -142,14 +134,18 @@ public class TrainModel {
                 newTest.randomize(random);
 
                 // New classifier each run!
-                //HoeffdingTree classifier = new HoeffdingTree();
+                HoeffdingTree classifier = new HoeffdingTree();
                 //IBk classifier = new IBk();
                 //KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                SGD classifier = new SGD();
+                //SGD classifier = new SGD();
                 classifier.buildClassifier(newTrain);
                 //System.out.println("Batch training finished.");
+
+                // Save and load
+                //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
+                //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
 
                 // 10-fold cross validation
                 //Evaluation cross = new Evaluation(newTrain);
@@ -157,10 +153,10 @@ public class TrainModel {
                 //System.out.println(cross.toSummaryString());
 
                 // Evaluate classifier on data set
-                Evaluation eval = new Evaluation(newTest);
-                eval.evaluateModel(classifier, newTest);
-                //System.out.println("Evaluation finished.");
-                acc_max = eval.pctCorrect();
+                Evaluation eva1 = new Evaluation(newTest);
+                eva1.evaluateModel(classifier, newTest);
+                //System.out.println(eva1.toSummaryString());
+                acc_max = eva1.pctCorrect();
 
                 //System.out.println("Online learning...");
                 // Limit the feedback amount to 50
@@ -175,13 +171,15 @@ public class TrainModel {
                             classifier.updateClassifier(newTest.instance(j));
                         }
                         count++;
-                        eval.evaluateModel(classifier, newTest);
-                        double acc = eval.pctCorrect();
+                        Evaluation eva2 = new Evaluation(newTest);
+                        eva2.evaluateModel(classifier, newTest);
+                        double acc = eva2.pctCorrect();
                         //System.out.println("Accuracy: " + acc);
                         // Record max accuracy and feedback count
                         if (acc > acc_max) {
                             acc_max = acc;
                             count_max = count;
+                            //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
                         }
                     }
                 }
@@ -189,20 +187,17 @@ public class TrainModel {
                 log.append(count_max).append(", ").append(acc_max).append("\n");
             }
 
+            //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
+
             // Save the log file
-            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_SGD_Ground_1";
+            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Pocket_1";
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();
 
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Save and load
-        //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
-        //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
 
         // Classify new instance
         //Instances dataSet = new Instances(newTrain, 0);     1124
