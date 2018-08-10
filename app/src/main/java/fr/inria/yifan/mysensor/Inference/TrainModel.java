@@ -5,8 +5,11 @@ import java.util.Random;
 
 import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
+import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.SGD;
+import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -33,9 +36,9 @@ public class TrainModel {
 
             // Only keep used attributes
             Remove remove = new Remove();
-            //remove.setAttributeIndices("11, 3, 16");
+            remove.setAttributeIndices("11, 3, 16");
             //remove.setAttributeIndices("8, 6, 7, 3, 17");
-            remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
+            //remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
 
             remove.setInvertSelection(true);
             remove.setInputFormat(train);
@@ -132,12 +135,12 @@ public class TrainModel {
                 newTest.randomize(random);
 
                 // New classifier each run
-                //HoeffdingTree classifier = new HoeffdingTree();
+                HoeffdingTree classifier = new HoeffdingTree();
                 //IBk classifier = new IBk();
                 //KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                SGD classifier = new SGD();
+                //SGD classifier = new SGD();
 
                 classifier.buildClassifier(newTrain);
 
@@ -175,6 +178,7 @@ public class TrainModel {
                         if (acc > acc_max) {
                             acc_max = acc;
                             count_max = count;
+                            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
                         }
                     }
                 }
@@ -182,8 +186,14 @@ public class TrainModel {
                 log.append(count_max).append(", ").append(acc_max).append("\n");
             }
 
+            HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
+            // Evaluate classifier on data set
+            Evaluation eva3 = new Evaluation(newTrain);
+            eva3.evaluateModel(classifier, newTrain);
+            System.out.println(eva3.toSummaryString());
+
             // Save the log file
-            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_SGD_Ground_100";
+            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Pocket_100";
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();
@@ -193,7 +203,7 @@ public class TrainModel {
         }
 
         // Classify new instance
-        //Instances dataSet = new Instances(newTrain, 0);     1124
+        //Instances dataSet = new Instances(newTrain, 0);
         //Instance inst = new DenseInstance(1, new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0});
         //inst.setDataset(dataSet);
         //int result = (int) classifier.classifyInstance(inst);
