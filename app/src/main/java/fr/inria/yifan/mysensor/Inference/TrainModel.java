@@ -5,11 +5,8 @@ import java.util.Random;
 
 import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
-import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.SGD;
-import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
-import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -36,10 +33,11 @@ public class TrainModel {
 
             // Only keep used attributes
             Remove remove = new Remove();
-            remove.setAttributeIndices("11, 3, 16");
+            //remove.setAttributeIndices("11, 3, 16");
             //remove.setAttributeIndices("8, 6, 7, 3, 17");
-            //remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
-            //remove.setInvertSelection(true);
+            remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
+
+            remove.setInvertSelection(true);
             remove.setInputFormat(train);
             Instances revTrain = Filter.useFilter(train, remove);
             Instances revTest = Filter.useFilter(test, remove);
@@ -72,7 +70,7 @@ public class TrainModel {
             // Multiply runs for evaluation
             int run = 100;
             // For generating Poisson number
-            double lambda = 1d;
+            double lambda = 100d;
 
 
             /*
@@ -133,15 +131,15 @@ public class TrainModel {
                 Random random = new Random();
                 newTest.randomize(random);
 
-                // New classifier each run!
-                HoeffdingTree classifier = new HoeffdingTree();
+                // New classifier each run
+                //HoeffdingTree classifier = new HoeffdingTree();
                 //IBk classifier = new IBk();
                 //KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                //SGD classifier = new SGD();
+                SGD classifier = new SGD();
+
                 classifier.buildClassifier(newTrain);
-                //System.out.println("Batch training finished.");
 
                 // Save and load
                 //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
@@ -158,12 +156,10 @@ public class TrainModel {
                 //System.out.println(eva1.toSummaryString());
                 acc_max = eva1.pctCorrect();
 
-                //System.out.println("Online learning...");
                 // Limit the feedback amount to 50
                 for (int j = 0; j < 50; j++) {
                     // Sequential feedback on wrong inference
                     if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
-                        //System.out.println("Updating model with a feedback...");
                         // Generate Poisson number
                         int p = AdaBoost.Poisson(lambda);
                         //System.out.println("K value = " + k);
@@ -179,7 +175,6 @@ public class TrainModel {
                         if (acc > acc_max) {
                             acc_max = acc;
                             count_max = count;
-                            //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
                         }
                     }
                 }
@@ -187,10 +182,8 @@ public class TrainModel {
                 log.append(count_max).append(", ").append(acc_max).append("\n");
             }
 
-            //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
-
             // Save the log file
-            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Pocket_1";
+            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_SGD_Ground_100";
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();

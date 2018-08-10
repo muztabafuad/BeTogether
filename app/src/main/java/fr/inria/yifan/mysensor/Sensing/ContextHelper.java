@@ -42,7 +42,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
 
 /**
- * This class represents the context map set of a sensing device.
+ * This class represents the context helper of a sensing device.
  */
 
 public class ContextHelper extends BroadcastReceiver {
