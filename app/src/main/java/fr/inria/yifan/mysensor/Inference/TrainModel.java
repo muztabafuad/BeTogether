@@ -22,8 +22,8 @@ public class TrainModel {
 
         try {
             // Load data from csv file
-            DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
-            DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
+            DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/2Mixed.csv");
+            DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
             Instances train = source_train.getDataSet();
             Instances test = source_test.getDataSet();
 
@@ -36,9 +36,9 @@ public class TrainModel {
 
             // Only keep used attributes
             Remove remove = new Remove();
-            remove.setAttributeIndices("11, 3, 16");
+            //remove.setAttributeIndices("11, 3, 16");
             //remove.setAttributeIndices("8, 6, 7, 3, 17");
-            //remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
+            remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
 
             remove.setInvertSelection(true);
             remove.setInputFormat(train);
@@ -69,6 +69,14 @@ public class TrainModel {
                 System.out.print(newTest.attribute(i).name());
             }
             System.out.println(" Target:" + newTest.classAttribute().name());
+
+            HoeffdingTree classifier = new HoeffdingTree();
+            classifier.buildClassifier(newTrain);
+
+            // Evaluate classifier on data set
+            Evaluation eva3 = new Evaluation(newTest);
+            eva3.evaluateModel(classifier, newTest);
+            System.out.println(eva3.toSummaryString());
 
             // Multiply runs for evaluation
             int run = 100;
@@ -119,6 +127,7 @@ public class TrainModel {
             */
 
 
+            /*
             // Accuracy evaluation
             int count;
             int count_max;
@@ -187,16 +196,13 @@ public class TrainModel {
             }
 
             HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
-            // Evaluate classifier on data set
-            Evaluation eva3 = new Evaluation(newTrain);
-            eva3.evaluateModel(classifier, newTrain);
-            System.out.println(eva3.toSummaryString());
 
             // Save the log file
             String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Pocket_100";
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();
+            */
 
         } catch (Exception e) {
             e.printStackTrace();
