@@ -1,13 +1,9 @@
 package fr.inria.yifan.mysensor.Inference;
 
-import java.io.FileOutputStream;
 import java.util.Random;
 
-import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
-import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.functions.SGD;
-import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
@@ -22,8 +18,8 @@ public class TrainModel {
 
         try {
             // Load data from csv file
-            DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/2Mixed.csv");
-            DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
+            DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
+            DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
             Instances train = source_train.getDataSet();
             Instances test = source_test.getDataSet();
 
@@ -36,9 +32,9 @@ public class TrainModel {
 
             // Only keep used attributes
             Remove remove = new Remove();
-            //remove.setAttributeIndices("11, 3, 16");
-            //remove.setAttributeIndices("8, 6, 7, 3, 17");
-            remove.setAttributeIndices("6, 8, 9, 7, 14, 10, 18");
+            remove.setAttributeIndices("11, 13, 3, 16");
+            //remove.setAttributeIndices("8, 6, 7, 3, 13, 17");
+            //remove.setAttributeIndices("6, 8, 13, 7, 14, 10, 15, 18");
 
             remove.setInvertSelection(true);
             remove.setInputFormat(train);
@@ -70,18 +66,29 @@ public class TrainModel {
             }
             System.out.println(" Target:" + newTest.classAttribute().name());
 
-            HoeffdingTree classifier = new HoeffdingTree();
+            // Multiply runs for evaluation
+            int run = 1;
+            // For generating Poisson number
+            double lambda = 1d;
+
+            // Model evaluation
+            //HoeffdingTree classifier = new HoeffdingTree();
+            //IBk classifier = new IBk();
+            //KStar classifier = new KStar();
+            //LWL classifier = new LWL();
+            //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
+            SGD classifier = new SGD();
+
+            // 10-fold cross validation
+            Evaluation cross = new Evaluation(newTrain);
+            cross.crossValidateModel(classifier, newTrain, 10, new Random());
+            System.out.println(cross.toSummaryString());
+
             classifier.buildClassifier(newTrain);
 
-            // Evaluate classifier on data set
-            Evaluation eva3 = new Evaluation(newTest);
-            eva3.evaluateModel(classifier, newTest);
-            System.out.println(eva3.toSummaryString());
-
-            // Multiply runs for evaluation
-            int run = 100;
-            // For generating Poisson number
-            double lambda = 100d;
+            // Save and load
+            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
+            //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
 
 
             /*
@@ -136,8 +143,6 @@ public class TrainModel {
 
             // Loop for multiple runs
             for (int i = 0; i < run; i++) {
-                count = 0;
-                count_max = 0;
 
                 // Randomize each run!
                 Random random = new Random();
@@ -150,18 +155,10 @@ public class TrainModel {
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
                 //SGD classifier = new SGD();
-
                 classifier.buildClassifier(newTrain);
 
-                // Save and load
-                //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
-                //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
-
-                // 10-fold cross validation
-                //Evaluation cross = new Evaluation(newTrain);
-                //cross.crossValidateModel(classifier, newTrain, 10, new Random());
-                //System.out.println(cross.toSummaryString());
-
+                count = 0;
+                count_max = 0;
                 // Evaluate classifier on data set
                 Evaluation eva1 = new Evaluation(newTest);
                 eva1.evaluateModel(classifier, newTest);
@@ -169,33 +166,33 @@ public class TrainModel {
                 acc_max = eva1.pctCorrect();
 
                 // Limit the feedback amount to 50
-                for (int j = 0; j < 50; j++) {
+                for (int j = 0; j < 30; j++) {
                     // Sequential feedback on wrong inference
-                    if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
-                        // Generate Poisson number
-                        int p = AdaBoost.Poisson(lambda);
-                        //System.out.println("K value = " + k);
-                        for (int k = 0; k < p; k++) {
-                            classifier.updateClassifier(newTest.instance(j));
-                        }
-                        count++;
-                        Evaluation eva2 = new Evaluation(newTest);
-                        eva2.evaluateModel(classifier, newTest);
-                        double acc = eva2.pctCorrect();
-                        //System.out.println("Accuracy: " + acc);
-                        // Record max accuracy and feedback count
-                        if (acc > acc_max) {
-                            acc_max = acc;
-                            count_max = count;
-                            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
-                        }
+                    //if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
+                    // Generate Poisson number
+                    int p = AdaBoost.Poisson(lambda);
+                    //System.out.println("K value = " + k);
+                    for (int k = 0; k < p; k++) {
+                        classifier.updateClassifier(newTest.instance(j));
                     }
+                    count++;
+                    Evaluation eva2 = new Evaluation(newTest);
+                    eva2.evaluateModel(classifier, newTest);
+                    double acc = eva2.pctCorrect();
+                    //System.out.println("Accuracy: " + acc);
+                    // Record max accuracy and feedback count
+                    if (acc > acc_max) {
+                        acc_max = acc;
+                        count_max = count;
+                        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
+                    }
+                    //}
                 }
                 System.out.println(i + "th run, feedback number: " + count_max + ", max accuracy: " + acc_max);
                 log.append(count_max).append(", ").append(acc_max).append("\n");
             }
 
-            HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
+            //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
 
             // Save the log file
             String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Pocket_100";
@@ -203,6 +200,7 @@ public class TrainModel {
             output.write(log.toString().getBytes());
             output.close();
             */
+
 
         } catch (Exception e) {
             e.printStackTrace();
