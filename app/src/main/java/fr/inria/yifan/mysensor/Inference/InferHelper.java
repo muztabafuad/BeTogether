@@ -9,22 +9,24 @@ public class InferHelper {
     private static final String TAG = "Inference helper";
 
     public InferHelper(){
+        // Load the base model
 
     }
 
-    public boolean inPocketInfer(){
+    public boolean inferInPocket(){
         return false;
     }
 
-    public boolean inDoorInfer(){
+    public boolean inferInDoor(){
         return false;
     }
 
-    public boolean underGroundInfer(){
+    public boolean inferUnderGround(){
         return false;
     }
 
     public void updateModel(int index, float[] sample){
+        // 1 pocket, 2 door, 3 ground
         switch (index) {
             case 1:
                 break;
