@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import fr.inria.yifan.mysensor.Deprecated.InferHelper;
+import fr.inria.yifan.mysensor.Inference.InferHelper;
 import fr.inria.yifan.mysensor.Sensing.ContextHelper;
 import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
 
@@ -166,26 +166,27 @@ public class DetectionActivity extends AppCompatActivity {
                             mSensorHelper.updateWindow();
                             mContextHelper.updateWindow();
                             Location location = mContextHelper.getLocation();
+
                             // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
                             double[] sample = new double[]{mContextHelper.isDaytime(), mSensorHelper.getLightDensity(), mSensorHelper.getMagnet(),
                                     mContextHelper.isGSMLink(), mContextHelper.getGPSAccuracy(), mContextHelper.getGPSSpeed(), mSensorHelper.getProximity()};
                             //Log.d(TAG, Arrays.toString(sample));
 
-                            if (mInferHelper.InferPocket(sample) == 1) {
+                            if (mInferHelper.inferInPocket(sample)) {
                                 mPocketView.setText("Inference result: In-pocket");
                             } else {
                                 mPocketView.setText("Inference result: Out-pocket");
                             }
 
                             //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
-                            if (mInferHelper.InferIndoor(sample) == 1) {
+                            if (mInferHelper.inferInDoor(sample)) {
                                 mDoorView.setText("Inference result: In-door");
                             } else {
                                 mDoorView.setText("Inference result: Out-door");
                             }
 
                             //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
-                            if (mInferHelper.InferUnderground(sample) == 1) {
+                            if (mInferHelper.inferUnderGround(sample)) {
                                 mGroundView.setText("Inference result: Under-ground");
                             } else {
                                 mGroundView.setText("Inference result: On-ground");

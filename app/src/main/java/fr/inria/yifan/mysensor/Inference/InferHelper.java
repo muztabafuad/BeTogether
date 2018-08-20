@@ -1,5 +1,8 @@
 package fr.inria.yifan.mysensor.Inference;
 
+import android.content.Context;
+import android.util.Log;
+
 /**
  * This class represents the inference helper for environmental contexts.
  */
@@ -8,32 +11,36 @@ public class InferHelper {
 
     private static final String TAG = "Inference helper";
 
-    public InferHelper(){
+    private Context mContext;
+
+    public InferHelper(Context context) {
+        mContext = context;
         // Load the base model
 
     }
 
-    public boolean inferInPocket(){
+    public boolean inferInPocket(double[] sample) {
         return false;
     }
 
-    public boolean inferInDoor(){
+    public boolean inferInDoor(double[] sample) {
         return false;
     }
 
-    public boolean inferUnderGround(){
+    public boolean inferUnderGround(double[] sample) {
         return false;
     }
 
-    public void updateModel(int index, float[] sample){
-        // 1 pocket, 2 door, 3 ground
-        switch (index) {
-            case 1:
+    public void updateModel(String model, double[] sample) {
+        switch (model) {
+            case "Pocket":
                 break;
-            case 2:
+            case "Door":
                 break;
-            case 3:
-                break;
+            case "Ground":
+            default:
+                Log.e(TAG, "Wrong parameter of model type: " + model);
         }
     }
+
 }

@@ -5,7 +5,7 @@ import java.util.Random;
 
 import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
-import weka.classifiers.trees.HoeffdingTree;
+import weka.classifiers.functions.SGD;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
@@ -34,8 +34,8 @@ public class TrainModel {
             // Only keep used attributes
             Remove remove = new Remove();
             //remove.setAttributeIndices("11, 13, 3, 16");
-            remove.setAttributeIndices("8, 6, 7, 3, 13, 17");
-            //remove.setAttributeIndices("6, 8, 13, 7, 14, 10, 15, 18");
+            //remove.setAttributeIndices("8, 6, 7, 3, 13, 17");
+            remove.setAttributeIndices("6, 8, 13, 7, 14, 10, 15, 18");
 
             remove.setInvertSelection(true);
             remove.setInputFormat(train);
@@ -70,7 +70,7 @@ public class TrainModel {
             // Multiply runs for evaluation
             int run = 100;
             // For generating Poisson number
-            double lambda = 1d;
+            double lambda = 100d;
 
             // Model evaluation
             //HoeffdingTree classifier = new HoeffdingTree();
@@ -155,12 +155,12 @@ public class TrainModel {
                 newTest.randomize(random);
 
                 // New classifier each run
-                HoeffdingTree classifier = new HoeffdingTree();
+                //HoeffdingTree classifier = new HoeffdingTree();
                 //IBk classifier = new IBk();
                 //KStar classifier = new KStar();
                 //LWL classifier = new LWL();
                 //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                //SGD classifier = new SGD();
+                SGD classifier = new SGD();
                 classifier.buildClassifier(newTrain);
 
                 count = 0;
@@ -201,7 +201,7 @@ public class TrainModel {
             //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
 
             // Save the log file
-            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Door_1";
+            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_SGD_Ground_100";
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();
