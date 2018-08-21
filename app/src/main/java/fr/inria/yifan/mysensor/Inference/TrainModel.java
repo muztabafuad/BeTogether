@@ -1,12 +1,12 @@
 package fr.inria.yifan.mysensor.Inference;
 
-import java.io.FileOutputStream;
 import java.util.Random;
 
-import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
-import weka.classifiers.Evaluation;
-import weka.classifiers.functions.SGD;
+import weka.classifiers.trees.HoeffdingTree;
+import weka.core.DenseInstance;
+import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -28,7 +28,7 @@ public class TrainModel {
             1 timestamp, 2 daytime (b), 3 light density (lx), 4 magnetic strength (μT), 5 GSM active (b),
             6 RSSI level, 7 RSSI value (dBm), 8 GPS accuracy (m), 9 Wifi active (b), 10 Wifi RSSI (dBm),
             11 proximity (b), 12 sound level (dBA), 13 temperature (C), 14 pressure (hPa), 15 humidity (%),
-            16 in-pocket label, 17 in-door label, 18 under-ground label"
+            16 in-pocket label, 17 in-door label, 18 under-ground label
             */
 
             // Only keep used attributes
@@ -67,13 +67,8 @@ public class TrainModel {
             }
             System.out.println(" Target:" + newTest.classAttribute().name());
 
-            // Multiply runs for evaluation
-            int run = 100;
-            // For generating Poisson number
-            double lambda = 100d;
-
             // Model evaluation
-            //HoeffdingTree classifier = new HoeffdingTree();
+            HoeffdingTree classifier = new HoeffdingTree();
             //IBk classifier = new IBk();
             //KStar classifier = new KStar();
             //LWL classifier = new LWL();
@@ -85,12 +80,30 @@ public class TrainModel {
             //cross.crossValidateModel(classifier, newTrain, 10, new Random());
             //System.out.println(cross.toSummaryString());
 
-            //classifier.buildClassifier(newTrain);
+            // Build the classifier
+            classifier.buildClassifier(newTrain);
+
+            // Evaluate classifier on data set
+            //Evaluation eva = new Evaluation(newTest);
+            //eva.evaluateModel(classifier, newTest);
+            //System.out.println(eva.toSummaryString());
 
             // Save and load
-            //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
-            //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
+            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_ground.model", classifier);
+            //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
+            Instances dataSet = new Instances(newTrain, 0);
+            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_ground.model", dataSet);
 
+            // Classify new instance
+            Instance inst = new DenseInstance(1, new double[]{1, 2, 3, 4, 5, 6, 7});
+            inst.setDataset(dataSet);
+            int result = (int) classifier.classifyInstance(inst);
+            System.out.println("Sample: " + inst + ", Inference: " + result);
+
+            // Multiply runs for evaluation
+            //int run = 100;
+            // For generating Poisson number
+            //double lambda = 100d;
 
             /*
             // Runtime evaluation
@@ -133,7 +146,6 @@ public class TrainModel {
                 endTime = System.nanoTime();
                 totalTime_i += (endTime - startTime);
                 //System.out.println((endTime - startTime) / 1000000d);
-
             }
             System.out.println("Training time (batch) ms: " + (totalTime_b / run) / 1000000d);
             System.out.println("Updating time (online) ms: " + (totalTime_o / run) / 1000000d);
@@ -141,15 +153,15 @@ public class TrainModel {
             */
 
 
+            /*
             // Accuracy evaluation
-            int count;
+            int count_err;
             int count_max;
             double acc_max;
             StringBuilder log = new StringBuilder();
 
             // Loop for multiple runs
             for (int i = 0; i < run; i++) {
-
                 // Randomize each run!
                 Random random = new Random();
                 newTest.randomize(random);
@@ -163,7 +175,7 @@ public class TrainModel {
                 SGD classifier = new SGD();
                 classifier.buildClassifier(newTrain);
 
-                count = 0;
+                count_err = 0;
                 count_max = 0;
                 // Evaluate classifier on data set
                 Evaluation eva1 = new Evaluation(newTest);
@@ -181,7 +193,7 @@ public class TrainModel {
                     for (int k = 0; k < p; k++) {
                         classifier.updateClassifier(newTest.instance(j));
                     }
-                    count++;
+                    count_err++;
                     Evaluation eva2 = new Evaluation(newTest);
                     eva2.evaluateModel(classifier, newTest);
                     double acc = eva2.pctCorrect();
@@ -189,33 +201,25 @@ public class TrainModel {
                     // Record max accuracy and feedback count
                     if (acc > acc_max) {
                         acc_max = acc;
-                        count_max = count;
+                        count_max = count_err;
                         //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
                     }
                     //}
                 }
-                System.out.println(i + "th run, feedback number: " + count_max + ", max accuracy: " + acc_max);
+                System.out.println(i + "th run, feedback ratio: " + count_max + ", max accuracy: " + acc_max);
                 log.append(count_max).append(", ").append(acc_max).append("\n");
             }
-
-            //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
 
             // Save the log file
             String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_SGD_Ground_100";
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();
+            */
 
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Classify new instance
-        //Instances dataSet = new Instances(newTrain, 0);
-        //Instance inst = new DenseInstance(1, new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0});
-        //inst.setDataset(dataSet);
-        //int result = (int) classifier.classifyInstance(inst);
-        //System.out.println("Sample: " + inst + ", Inference: " + result);
     }
 }

@@ -24,7 +24,7 @@ public class InferHelper {
     private AdaBoost mAdaBoostGround;
 
     // Initialization for three models
-    public InferHelper(Context context) {
+    InferHelper(Context context) {
         mContext = context;
         // Check local model existence
         File filePocket = mContext.getFileStreamPath(MODEL_INPOCKET);

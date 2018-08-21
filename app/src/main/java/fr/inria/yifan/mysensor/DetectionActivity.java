@@ -20,6 +20,7 @@ import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_IN_MS;
+import static java.lang.System.currentTimeMillis;
 
 /*
  * This activity provides functions including in-pocket detection and GPS location service.
@@ -167,29 +168,57 @@ public class DetectionActivity extends AppCompatActivity {
                             mContextHelper.updateWindow();
                             Location location = mContextHelper.getLocation();
 
-                            // 0 daytime, 1 light, 2 magnetic, 3 GSM, 4 GPS accuracy, 5 GPS speed, 6 proximity
-                            double[] sample = new double[]{mContextHelper.isDaytime(), mSensorHelper.getLightDensity(), mSensorHelper.getMagnet(),
-                                    mContextHelper.isGSMLink(), mContextHelper.getGPSAccuracy(), mContextHelper.getGPSSpeed(), mSensorHelper.getProximity()};
+                            /*
+                            0 timestamp, 1 daytime (b), 2 light density (lx), 3 magnetic strength (μT), 4 GSM active (b),
+                            5 RSSI level, 6 RSSI value (dBm), 7 GPS accuracy (m), 8 Wifi active (b), 9 Wifi RSSI (dBm),
+                            10 proximity (b), 11 sound level (dBA), 12 temperature (C), 13 pressure (hPa), 14 humidity (%),
+                            */
+                            double[] sample = new double[]{currentTimeMillis(),
+                                    mContextHelper.isDaytime(),
+                                    mSensorHelper.getLightDensity(),
+                                    mSensorHelper.getMagnet(),
+                                    mContextHelper.isGSMLink(),
+                                    mContextHelper.getRssiLevel(),
+                                    mContextHelper.getRssiValue(),
+                                    mContextHelper.getGPSAccuracy(),
+                                    mContextHelper.isWifiLink(),
+                                    mContextHelper.getWifiRSSI(),
+                                    mSensorHelper.getProximity(),
+                                    mSensorHelper.getSoundLevel(),
+                                    mSensorHelper.getTemperature(),
+                                    mSensorHelper.getPressure(),
+                                    mSensorHelper.getHumidity()};
                             //Log.d(TAG, Arrays.toString(sample));
-
-                            if (mInferHelper.inferInPocket(sample)) {
-                                mPocketView.setText("Inference result: In-pocket");
-                            } else {
-                                mPocketView.setText("Inference result: Out-pocket");
+                            try {
+                                if (mInferHelper.inferInPocket(sample)) {
+                                    mPocketView.setText("Inference result: In-pocket");
+                                } else {
+                                    mPocketView.setText("Inference result: Out-pocket");
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
 
                             //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
-                            if (mInferHelper.inferInDoor(sample)) {
-                                mDoorView.setText("Inference result: In-door");
-                            } else {
-                                mDoorView.setText("Inference result: Out-door");
+                            try {
+                                if (mInferHelper.inferInDoor(sample)) {
+                                    mDoorView.setText("Inference result: In-door");
+                                } else {
+                                    mDoorView.setText("Inference result: Out-door");
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
 
                             //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
-                            if (mInferHelper.inferUnderGround(sample)) {
-                                mGroundView.setText("Inference result: Under-ground");
-                            } else {
-                                mGroundView.setText("Inference result: On-ground");
+                            try {
+                                if (mInferHelper.inferUnderGround(sample)) {
+                                    mGroundView.setText("Inference result: Under-ground");
+                                } else {
+                                    mGroundView.setText("Inference result: On-ground");
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
 
                             mActivityView.setText(/*"Signal strength level: " + mContextHelper.getRssiLevel() + "\n\n" +*/
