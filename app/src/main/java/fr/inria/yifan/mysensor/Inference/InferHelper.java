@@ -78,7 +78,7 @@ public class InferHelper {
 
                 objectInputStream.close();
                 fileInputStream.close();
-                Log.d(TAG, "Success in loading from file.");
+                Log.d(TAG, "Success in loading from assets.");
 
                 fileOutputStream = mContext.openFileOutput(MODEL_INPOCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
