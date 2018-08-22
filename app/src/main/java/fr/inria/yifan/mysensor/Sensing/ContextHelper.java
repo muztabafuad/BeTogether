@@ -20,8 +20,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
-import android.telephony.CellInfo;
-import android.telephony.NeighboringCellInfo;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
@@ -34,12 +32,14 @@ import com.google.android.gms.location.ActivityRecognitionClient;
 import com.google.android.gms.location.ActivityRecognitionResult;
 
 import java.util.Calendar;
-import java.util.List;
+
+import fr.inria.yifan.mysensor.Support.SlideWindow;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 
 /**
  * This class represents the context helper of a sensing device.
@@ -190,6 +190,20 @@ public class ContextHelper extends BroadcastReceiver {
         ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(mActivity);
         activityRecognitionClient.requestActivityUpdates(LOCATION_UPDATE_TIME, pendingIntent);
         mActivity.registerReceiver(this, new IntentFilter("ActivityRecognitionResult"));
+
+        // Start the loop thread for synchronised sensing window
+        final int delay = SAMPLE_WINDOW_MS / SAMPLE_NUM_WINDOW;
+        new Thread() {
+            public void run() {
+                while (true) try {
+                    updateManual();
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Local thread error: ", e);
+                    break;
+                }
+            }
+        }.start();
     }
 
     // Unregister the listeners
@@ -277,11 +291,12 @@ public class ContextHelper extends BroadcastReceiver {
     }
 
     // Manually update sliding window
-    public void updateWindow() {
-        mRssiLevel.putValue(mRssiLevel.getLast());
-        mRssiValue.putValue(mRssiValue.getLast());
-        mAccuracy.putValue(mAccuracy.getLast());
-        mSpeed.putValue(mSpeed.getLast());
+    private void updateManual() {
+        mRssiLevel.updateWindow();
+        mRssiValue.updateWindow();
+        mAccuracy.updateWindow();
+        mSpeed.updateWindow();
+        mWifiRssi.updateWindow();
     }
 
 }

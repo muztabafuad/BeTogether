@@ -19,7 +19,7 @@ import fr.inria.yifan.mysensor.Sensing.ContextHelper;
 import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_IN_MS;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
 
 /*
@@ -155,7 +155,7 @@ public class DetectionActivity extends AppCompatActivity {
                     // Sampling time delay
                     synchronized (mLock) {
                         try {
-                            mLock.wait(SAMPLE_WINDOW_IN_MS);
+                            mLock.wait(SAMPLE_WINDOW_MS);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -164,8 +164,6 @@ public class DetectionActivity extends AppCompatActivity {
                         @RequiresApi(api = Build.VERSION_CODES.N)
                         @Override
                         public void run() {
-                            mSensorHelper.updateWindow();
-                            mContextHelper.updateWindow();
                             Location location = mContextHelper.getLocation();
 
                             /*

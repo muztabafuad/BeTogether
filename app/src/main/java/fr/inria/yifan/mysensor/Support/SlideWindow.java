@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Sensing;
+package fr.inria.yifan.mysensor.Support;
 
 import java.util.Arrays;
 
@@ -6,7 +6,7 @@ public class SlideWindow {
     private float[] storage;
     private int ct;
 
-    SlideWindow(int size, float initVal) {
+    public SlideWindow(int size, float initVal) {
         storage = new float[size];
         ct = 0;
         // Initial fill
@@ -36,8 +36,12 @@ public class SlideWindow {
         return sum / storage.length;
     }
 
-    public float getLast() {
+    private float getLast() {
         return ct == 0 ? storage[ct] : storage[(ct - 1) % storage.length];
+    }
+
+    public void updateWindow(){
+        this.putValue(this.getLast());
     }
 
 }

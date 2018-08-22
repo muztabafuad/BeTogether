@@ -9,10 +9,14 @@ import android.hardware.SensorManager;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.util.Log;
+
+import fr.inria.yifan.mysensor.Support.SlideWindow;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
 
 /**
@@ -158,6 +162,21 @@ public class SensorsHelper {
         mSensorManager.registerListener(mListenerTemp, mSensorTemp, SensorManager.SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(mListenerPress, mSensorPress, SensorManager.SENSOR_DELAY_FASTEST);
         mSensorManager.registerListener(mListenerHumid, mSensorHumid, SensorManager.SENSOR_DELAY_FASTEST);
+
+        // Start the loop thread for synchronised sensing window
+        final int delay = SAMPLE_WINDOW_MS / SAMPLE_NUM_WINDOW;
+        new Thread() {
+            public void run() {
+                while (true) try {
+                    updateManual();
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Local thread error: ", e);
+                    break;
+                }
+            }
+        }.start();
+
     }
 
     // Unregister the broadcast receiver and listeners
@@ -171,10 +190,10 @@ public class SensorsHelper {
         mSensorManager.unregisterListener(mListenerHumid);
     }
 
-    // Get the most recent sound level
+    // Get the most recent sound level, NOT in slide window
     public int getSoundLevel() {
         short[] buffer = new short[BUFFER_SIZE];
-        // r is the real measurement data length, normally r is less than buffersize
+        // r is the real measurement data length, normally r is less than buffer size
         int r = mAudioRecord.read(buffer, 0, BUFFER_SIZE);
         // Apply A-weighting filtering
         buffer = mAWeighting.apply(buffer);
@@ -222,13 +241,13 @@ public class SensorsHelper {
     }
 
     // Manually update sliding window
-    public void updateWindow() {
-        mLight.putValue(mLight.getLast());
-        mMagnet.putValue(mMagnet.getLast());
-        mProximity.putValue(mProximity.getLast());
-        mTemperature.putValue(mTemperature.getLast());
-        mPressure.putValue(mPressure.getLast());
-        mHumidity.putValue(mHumidity.getLast());
+    private void updateManual() {
+        mLight.updateWindow();
+        mMagnet.updateWindow();
+        mProximity.updateWindow();
+        mTemperature.updateWindow();
+        mPressure.updateWindow();
+        mHumidity.updateWindow();
     }
 
     // Simple In/Out-pocket detection function
@@ -249,3 +268,4 @@ public class SensorsHelper {
         }
     }*/
 }
+

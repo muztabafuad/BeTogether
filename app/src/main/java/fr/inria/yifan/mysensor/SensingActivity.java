@@ -28,7 +28,7 @@ import fr.inria.yifan.mysensor.Support.FilesIOHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.DST_MAIL_ADDRESS;
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_IN_MS;
+import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
 
 /*
@@ -204,7 +204,7 @@ public class SensingActivity extends AppCompatActivity {
                     // Sampling time delay
                     synchronized (mLock) {
                         try {
-                            mLock.wait(SAMPLE_WINDOW_IN_MS);
+                            mLock.wait(SAMPLE_WINDOW_MS);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -212,8 +212,6 @@ public class SensingActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mSensorHelper.updateWindow();
-                            mContextHelper.updateWindow();
                             mAdapterSensing.add(currentTimeMillis() + ", " +
                                     mContextHelper.isDaytime() + ", " +
                                     mSensorHelper.getLightDensity() + ", " +
