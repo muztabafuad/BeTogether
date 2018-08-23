@@ -1,12 +1,12 @@
 package fr.inria.yifan.mysensor.Inference;
 
+import java.io.FileOutputStream;
 import java.util.Random;
 
-import weka.classifiers.trees.HoeffdingTree;
-import weka.core.DenseInstance;
-import weka.core.Instance;
+import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
+import weka.classifiers.Evaluation;
+import weka.classifiers.functions.SGD;
 import weka.core.Instances;
-import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -68,7 +68,7 @@ public class TrainModel {
             System.out.println(" Target:" + newTest.classAttribute().name());
 
             // Model evaluation
-            HoeffdingTree classifier = new HoeffdingTree();
+            //HoeffdingTree classifier = new HoeffdingTree();
             //IBk classifier = new IBk();
             //KStar classifier = new KStar();
             //LWL classifier = new LWL();
@@ -81,7 +81,7 @@ public class TrainModel {
             //System.out.println(cross.toSummaryString());
 
             // Build the classifier
-            classifier.buildClassifier(newTrain);
+            //classifier.buildClassifier(newTrain);
 
             // Evaluate classifier on data set
             //Evaluation eva = new Evaluation(newTest);
@@ -89,21 +89,21 @@ public class TrainModel {
             //System.out.println(eva.toSummaryString());
 
             // Save and load
-            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_ground.model", classifier);
+            //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_ground.model", classifier);
             //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
-            Instances dataSet = new Instances(newTrain, 0);
-            SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_ground.model", dataSet);
+            //Instances dataSet = new Instances(newTrain, 0);
+            //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_ground.model", dataSet);
 
             // Classify new instance
-            Instance inst = new DenseInstance(1, new double[]{1, 2, 3, 4, 5, 6, 7});
-            inst.setDataset(dataSet);
-            int result = (int) classifier.classifyInstance(inst);
-            System.out.println("Sample: " + inst + ", Inference: " + result);
+            //Instance inst = new DenseInstance(1, new double[]{1, 2, 3, 4, 5, 6, 7});
+            //inst.setDataset(dataSet);
+            //int result = (int) classifier.classifyInstance(inst);
+            //System.out.println("Sample: " + inst + ", Inference: " + result);
 
             // Multiply runs for evaluation
-            //int run = 100;
+            int run = 100;
             // For generating Poisson number
-            //double lambda = 100d;
+            double lambda = 100d;
 
             /*
             // Runtime evaluation
@@ -153,7 +153,6 @@ public class TrainModel {
             */
 
 
-            /*
             // Accuracy evaluation
             int count_err;
             int count_max;
@@ -186,25 +185,24 @@ public class TrainModel {
                 // Limit the feedback amount to 50
                 for (int j = 0; j < 30; j++) {
                     // Sequential feedback on wrong inference
-                    //if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
-                    // Generate Poisson number
-                    int p = AdaBoost.Poisson(lambda);
-                    //System.out.println("K value = " + k);
-                    for (int k = 0; k < p; k++) {
-                        classifier.updateClassifier(newTest.instance(j));
+                    if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
+                        // Generate Poisson number
+                        int p = AdaBoost.Poisson(lambda);
+                        //System.out.println("K value = " + k);
+                        for (int k = 0; k < p; k++) {
+                            classifier.updateClassifier(newTest.instance(j));
+                        }
+                        count_err++;
+                        Evaluation eva2 = new Evaluation(newTest);
+                        eva2.evaluateModel(classifier, newTest);
+                        double acc = eva2.pctCorrect();
+                        //System.out.println("Accuracy: " + acc);
+                        // Record max accuracy and feedback count
+                        if (acc > acc_max) {
+                            acc_max = acc;
+                            count_max = count_err;
+                        }
                     }
-                    count_err++;
-                    Evaluation eva2 = new Evaluation(newTest);
-                    eva2.evaluateModel(classifier, newTest);
-                    double acc = eva2.pctCorrect();
-                    //System.out.println("Accuracy: " + acc);
-                    // Record max accuracy and feedback count
-                    if (acc > acc_max) {
-                        acc_max = acc;
-                        count_max = count_err;
-                        //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model", classifier);
-                    }
-                    //}
                 }
                 System.out.println(i + "th run, feedback ratio: " + count_max + ", max accuracy: " + acc_max);
                 log.append(count_max).append(", ").append(acc_max).append("\n");
@@ -215,7 +213,6 @@ public class TrainModel {
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();
-            */
 
 
         } catch (Exception e) {

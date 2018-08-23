@@ -50,6 +50,10 @@ public class DetectionActivity extends AppCompatActivity {
     private SensorsHelper mSensorHelper;
     private ContextHelper mContextHelper;
     private InferHelper mInferHelper;
+    private double[] mSample;
+    private boolean mInPocket;
+    private boolean mInDoor;
+    private boolean mUnderGround;
 
     // Constructor initializes locker
     public DetectionActivity() {
@@ -90,6 +94,39 @@ public class DetectionActivity extends AppCompatActivity {
                 stopSensing();
                 mStartButton.setVisibility(View.VISIBLE);
                 mStopButton.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        mPocketButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    mInferHelper.updateModel("Pocket", mSample, 1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        mDoorButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    mInferHelper.updateModel("Door", mSample, 1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        mGroundButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    mInferHelper.updateModel("Ground", mSample, 1);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -171,7 +208,7 @@ public class DetectionActivity extends AppCompatActivity {
                             5 RSSI level, 6 RSSI value (dBm), 7 GPS accuracy (m), 8 Wifi active (b), 9 Wifi RSSI (dBm),
                             10 proximity (b), 11 sound level (dBA), 12 temperature (C), 13 pressure (hPa), 14 humidity (%),
                             */
-                            double[] sample = new double[]{currentTimeMillis(),
+                            mSample = new double[]{currentTimeMillis(),
                                     mContextHelper.isDaytime(),
                                     mSensorHelper.getLightDensity(),
                                     mSensorHelper.getMagnet(),
@@ -180,40 +217,31 @@ public class DetectionActivity extends AppCompatActivity {
                                     mContextHelper.getRssiValue(),
                                     mContextHelper.getGPSAccuracy(),
                                     mContextHelper.isWifiLink(),
-                                    mContextHelper.getWifiRSSI(),
+                                    mContextHelper. getWifiRSSI(),
                                     mSensorHelper.getProximity(),
                                     mSensorHelper.getSoundLevel(),
                                     mSensorHelper.getTemperature(),
                                     mSensorHelper.getPressure(),
                                     mSensorHelper.getHumidity()};
-                            //Log.d(TAG, Arrays.toString(sample));
-                            try {
-                                if (mInferHelper.inferInPocket(sample)) {
-                                    mPocketView.setText("Inference result: In-pocket");
-                                } else {
-                                    mPocketView.setText("Inference result: Out-pocket");
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
+                            //Log.d(TAG, Arrays.toString(mSample));
 
-                            //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
                             try {
-                                if (mInferHelper.inferInDoor(sample)) {
-                                    mDoorView.setText("Inference result: In-door");
+                                if (mInPocket = mInferHelper.inferInPocket(mSample)) {
+                                    mPocketView.setText("In-pocket");
                                 } else {
-                                    mDoorView.setText("Inference result: Out-door");
+                                    mPocketView.setText("Out-pocket");
                                 }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
-                            try {
-                                if (mInferHelper.inferUnderGround(sample)) {
-                                    mGroundView.setText("Inference result: Under-ground");
+                                //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
+                                if (mInDoor = mInferHelper.inferInDoor(mSample)) {
+                                    mDoorView.setText("In-door");
                                 } else {
-                                    mGroundView.setText("Inference result: On-ground");
+                                    mDoorView.setText("Out-door");
+                                }
+                                //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
+                                if (mUnderGround = mInferHelper.inferUnderGround(mSample)) {
+                                    mGroundView.setText("Under-ground");
+                                } else {
+                                    mGroundView.setText("On-ground");
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();

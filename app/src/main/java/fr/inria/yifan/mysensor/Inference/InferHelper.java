@@ -168,13 +168,31 @@ public class InferHelper {
         return classifierGround.classifyInstance(inst) == 1;
     }
 
-    public void updateModel(String model, double[] sample) {
+    public void updateModel(String model, double[] sample, int label) throws Exception {
+        double[] entry;
+        Instance inst;
         switch (model) {
             case "Pocket":
+                // 10 Proximity, 12 temperature, 2 light density
+                entry = new double[]{sample[10], sample[12], sample[2], label};
+                inst = new DenseInstance(1, entry);
+                inst.setDataset(instancesPocket);
+                classifierPocket.updateClassifier(inst);
                 break;
             case "Door":
+                // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 2 light density, 12 temperature
+                entry = new double[]{sample[7], sample[5], sample[6], sample[2], sample[12], label};
+                inst = new DenseInstance(1, entry);
+                inst.setDataset(instancesDoor);
+                classifierDoor.updateClassifier(inst);
                 break;
             case "Ground":
+                // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
+                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], label};
+                inst = new DenseInstance(1, entry);
+                inst.setDataset(instancesGround);
+                classifierGround.updateClassifier(inst);
+                break;
             default:
                 Log.e(TAG, "Wrong parameter of model type: " + model);
         }

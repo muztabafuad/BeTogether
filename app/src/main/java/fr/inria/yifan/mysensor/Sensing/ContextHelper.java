@@ -40,6 +40,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DIST
 import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * This class represents the context helper of a sensing device.
@@ -48,6 +49,9 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 public class ContextHelper extends BroadcastReceiver {
 
     private static final String TAG = "Device context";
+
+    // Thread running flag
+    private boolean isSensingRun;
 
     private static final int WIFI_RSSI_OUT = -150;
     private static final int GSM_RSSI_OUT = -150;
@@ -79,7 +83,7 @@ public class ContextHelper extends BroadcastReceiver {
     //private TensorFlowInferenceInterface inferenceInterface;
 
     // Declare GSM RSSI state listener
-    private PhoneStateListener mPhoneStateListener = new PhoneStateListener() {
+    private PhoneStateListener mListenerPhone = new PhoneStateListener() {
         @RequiresApi(api = Build.VERSION_CODES.M)
         @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
@@ -174,7 +178,7 @@ public class ContextHelper extends BroadcastReceiver {
         userActivity = null;
         mLocation = new Location("null");
 
-        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         // Check GPS enable switch
         if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             // Start GPS and location service
@@ -193,14 +197,15 @@ public class ContextHelper extends BroadcastReceiver {
 
         // Start the loop thread for synchronised sensing window
         final int delay = SAMPLE_WINDOW_MS / SAMPLE_NUM_WINDOW;
+        isSensingRun = true;
         new Thread() {
             public void run() {
-                while (true) try {
+                while (isSensingRun) try {
                     updateManual();
                     Thread.sleep(delay);
+                    Log.d(TAG, currentTimeMillis() + " Update window");
                 } catch (InterruptedException e) {
                     Log.e(TAG, "Local thread error: ", e);
-                    break;
                 }
             }
         }.start();
@@ -209,7 +214,9 @@ public class ContextHelper extends BroadcastReceiver {
     // Unregister the listeners
     public void stopService() {
         mLocationManager.removeUpdates(mListenerLoc);
+        mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
         mActivity.unregisterReceiver(this);
+        isSensingRun = false;
     }
 
     // Get the most recent GSM RSSI
@@ -267,16 +274,6 @@ public class ContextHelper extends BroadcastReceiver {
 
     // Detection on Wifi RSSI
     public float getWifiRSSI() {
-        if (mWifiManager.isWifiEnabled()) {
-            WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
-            if (wifiInfo != null) {
-                mWifiRssi.putValue(wifiInfo.getRssi());
-            } else {
-                mWifiRssi.putValue(WIFI_RSSI_OUT);
-            }
-        } else {
-            mWifiRssi.putValue(WIFI_RSSI_OUT);
-        }
         return mWifiRssi.getMean();
     }
 
@@ -296,7 +293,17 @@ public class ContextHelper extends BroadcastReceiver {
         mRssiValue.updateWindow();
         mAccuracy.updateWindow();
         mSpeed.updateWindow();
-        mWifiRssi.updateWindow();
+        // Wifi RSSI has no callback listener
+        if (mWifiManager.isWifiEnabled()) {
+            WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
+            if (wifiInfo != null) {
+                mWifiRssi.putValue(wifiInfo.getRssi());
+            } else {
+                mWifiRssi.putValue(WIFI_RSSI_OUT);
+            }
+        } else {
+            mWifiRssi.putValue(WIFI_RSSI_OUT);
+        }
     }
 
 }

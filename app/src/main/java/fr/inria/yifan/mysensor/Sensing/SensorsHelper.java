@@ -18,6 +18,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * This class provides functions including initialize and reading data from sensors.
@@ -26,6 +27,9 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
 public class SensorsHelper {
 
     private static final String TAG = "Sensors helper";
+
+    // Thread running flag
+    private boolean isSensingRun;
 
     // Audio recorder parameters for sampling
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
@@ -165,18 +169,18 @@ public class SensorsHelper {
 
         // Start the loop thread for synchronised sensing window
         final int delay = SAMPLE_WINDOW_MS / SAMPLE_NUM_WINDOW;
+        isSensingRun = true;
         new Thread() {
             public void run() {
-                while (true) try {
+                while (isSensingRun) try {
                     updateManual();
                     Thread.sleep(delay);
+                    Log.d(TAG, currentTimeMillis() + " Update window");
                 } catch (InterruptedException e) {
                     Log.e(TAG, "Local thread error: ", e);
-                    break;
                 }
             }
         }.start();
-
     }
 
     // Unregister the broadcast receiver and listeners
@@ -188,6 +192,7 @@ public class SensorsHelper {
         mSensorManager.unregisterListener(mListenerTemp);
         mSensorManager.unregisterListener(mListenerPress);
         mSensorManager.unregisterListener(mListenerHumid);
+        isSensingRun = false;
     }
 
     // Get the most recent sound level, NOT in slide window
