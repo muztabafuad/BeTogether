@@ -6,6 +6,8 @@ import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -45,6 +47,8 @@ public class DetectionActivity extends AppCompatActivity {
     private Button mGroundButton;
     private Button mStartButton;
     private Button mStopButton;
+    private NotificationCompat.Builder mNotifyBuilder;
+    private NotificationManagerCompat notificationManager;
 
     // Sensors helper for sensor and context
     private SensorsHelper mSensorHelper;
@@ -144,6 +148,19 @@ public class DetectionActivity extends AppCompatActivity {
         mGroundButton.setVisibility(View.INVISIBLE);
     }
 
+    // Notification bar initialization
+    private void notifyView() {
+        mNotifyBuilder = new NotificationCompat.Builder(this, "Inference")
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .setContentTitle(getString(R.string.notify_title))
+                .setContentText(getString(R.string.notify_content))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setOngoing(true);
+        notificationManager = NotificationManagerCompat.from(this);
+        // notificationId is a unique int for each notification that you must define
+        notificationManager.notify(1, mNotifyBuilder.build());
+    }
+
     // Main activity initialization
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
@@ -152,6 +169,7 @@ public class DetectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detection);
         bindViews();
         cleanView();
+        notifyView();
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
         mInferHelper = new InferHelper(this);
@@ -217,7 +235,7 @@ public class DetectionActivity extends AppCompatActivity {
                                     mContextHelper.getRssiValue(),
                                     mContextHelper.getGPSAccuracy(),
                                     mContextHelper.isWifiLink(),
-                                    mContextHelper. getWifiRSSI(),
+                                    mContextHelper.getWifiRSSI(),
                                     mSensorHelper.getProximity(),
                                     mSensorHelper.getSoundLevel(),
                                     mSensorHelper.getTemperature(),
@@ -228,21 +246,28 @@ public class DetectionActivity extends AppCompatActivity {
                             try {
                                 if (mInPocket = mInferHelper.inferInPocket(mSample)) {
                                     mPocketView.setText("In-pocket");
+                                    mNotifyBuilder.setContentText("In-pocket");
                                 } else {
                                     mPocketView.setText("Out-pocket");
+                                    mNotifyBuilder.setContentText("Out-pocket");
                                 }
                                 //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
                                 if (mInDoor = mInferHelper.inferInDoor(mSample)) {
                                     mDoorView.setText("In-door");
+                                    //mNotifyBuilder.setContentText("In-door");
                                 } else {
                                     mDoorView.setText("Out-door");
+                                    //mNotifyBuilder.setContentText("Out-door");
                                 }
                                 //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
                                 if (mUnderGround = mInferHelper.inferUnderGround(mSample)) {
                                     mGroundView.setText("Under-ground");
+                                    //mNotifyBuilder.setContentText("Under-ground");
                                 } else {
                                     mGroundView.setText("On-ground");
+                                    //mNotifyBuilder.setContentText("On-ground");
                                 }
+                                notificationManager.notify(1, mNotifyBuilder.build());
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
