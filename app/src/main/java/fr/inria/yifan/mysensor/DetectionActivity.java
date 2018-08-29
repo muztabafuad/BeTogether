@@ -246,27 +246,22 @@ public class DetectionActivity extends AppCompatActivity {
                             try {
                                 if (mInPocket = mInferHelper.inferInPocket(mSample)) {
                                     mPocketView.setText("In-pocket");
-                                    mNotifyBuilder.setContentText("In-pocket");
                                 } else {
                                     mPocketView.setText("Out-pocket");
-                                    mNotifyBuilder.setContentText("Out-pocket");
                                 }
                                 //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
                                 if (mInDoor = mInferHelper.inferInDoor(mSample)) {
                                     mDoorView.setText("In-door");
-                                    //mNotifyBuilder.setContentText("In-door");
                                 } else {
                                     mDoorView.setText("Out-door");
-                                    //mNotifyBuilder.setContentText("Out-door");
                                 }
                                 //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
                                 if (mUnderGround = mInferHelper.inferUnderGround(mSample)) {
                                     mGroundView.setText("Under-ground");
-                                    //mNotifyBuilder.setContentText("Under-ground");
                                 } else {
                                     mGroundView.setText("On-ground");
-                                    //mNotifyBuilder.setContentText("On-ground");
                                 }
+                                mNotifyBuilder.setContentText(mInferHelper.inferOneResult(mSample));
                                 notificationManager.notify(1, mNotifyBuilder.build());
                             } catch (Exception e) {
                                 e.printStackTrace();

@@ -140,10 +140,20 @@ public class InferHelper {
         }
     }
 
-    public boolean inferTrigger() {
-        return false;
+    // Get a single result from inference
+    public String inferOneResult(double[] sample) throws Exception {
+        if (inferInPocket(sample)) {
+            return "In-Pocket (Do nothing)";
+        } else if (!inferInDoor(sample)) {
+            return "Out-Door (Out-Pocket)";
+        } else if (inferUnderGround(sample)) {
+            return "Under-ground (In-Door)";
+        } else {
+            return "In-Door (Out-Pocket)";
+        }
     }
 
+    // Infer in pocket or out pocket
     public boolean inferInPocket(double[] sample) throws Exception {
         // 10 Proximity, 12 temperature, 2 light density
         double[] entry = new double[]{sample[10], sample[12], sample[2]};
@@ -152,6 +162,7 @@ public class InferHelper {
         return classifierPocket.classifyInstance(inst) == 1;
     }
 
+    // Infer in door or out door
     public boolean inferInDoor(double[] sample) throws Exception {
         // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 2 light density, 12 temperature
         double[] entry = new double[]{sample[7], sample[5], sample[6], sample[2], sample[12]};
@@ -160,6 +171,7 @@ public class InferHelper {
         return classifierDoor.classifyInstance(inst) == 1;
     }
 
+    // Infer under ground or on ground
     public boolean inferUnderGround(double[] sample) throws Exception {
         // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
         double[] entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14]};
@@ -168,6 +180,7 @@ public class InferHelper {
         return classifierGround.classifyInstance(inst) == 1;
     }
 
+    // Update the model by online learning
     public void updateModel(String model, double[] sample, int label) throws Exception {
         double[] entry;
         Instance inst;
