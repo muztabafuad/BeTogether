@@ -182,7 +182,7 @@ public class TrainModel {
                 //System.out.println(eva1.toSummaryString());
                 acc_max = eva1.pctCorrect();
 
-                // Limit the feedback amount to 50
+                // Limit the feedback amount to 30
                 for (int j = 0; j < 30; j++) {
                     // Sequential feedback on wrong inference
                     if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {

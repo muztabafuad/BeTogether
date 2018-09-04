@@ -149,7 +149,7 @@ public class InferHelper {
         } else if (inferUnderGround(sample)) {
             return "Under-ground (In-Door)";
         } else {
-            return "In-Door (Out-Pocket)";
+            return "On-ground (In-Door)";
         }
     }
 

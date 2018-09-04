@@ -1,6 +1,8 @@
 package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Build;
@@ -150,12 +152,16 @@ public class DetectionActivity extends AppCompatActivity {
 
     // Notification bar initialization
     private void notifyView() {
+        // TODO
+        Intent feedbackIntent = new Intent(this, BroadcastReceiver.class);
         mNotifyBuilder = new NotificationCompat.Builder(this, "Inference")
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .setContentTitle(getString(R.string.notify_title))
                 .setContentText(getString(R.string.notify_content))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setOngoing(true);
+                .setOngoing(true)
+                .addAction(android.R.drawable.ic_delete, "On-ground!", PendingIntent.getBroadcast(this, 0, feedbackIntent, 0))
+                .addAction(android.R.drawable.ic_delete, "Out-door!", PendingIntent.getBroadcast(this, 0, feedbackIntent, 0));
         notificationManager = NotificationManagerCompat.from(this);
         // notificationId is a unique int for each notification that you must define
         notificationManager.notify(1, mNotifyBuilder.build());
