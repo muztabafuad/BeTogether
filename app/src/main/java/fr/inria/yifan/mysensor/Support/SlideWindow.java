@@ -18,6 +18,7 @@ public class SlideWindow {
     }
 
     // Adding a new value into the window
+
     public void putValue(float val) {
         // Initial update
         if (ct == 0) {
@@ -29,7 +30,6 @@ public class SlideWindow {
         ct++;
         //System.out.println(Arrays.toString(storage));
     }
-
     // Return the mean value of the window
     public float getMean() {
         float sum = 0;

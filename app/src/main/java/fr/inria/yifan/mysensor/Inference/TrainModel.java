@@ -76,7 +76,7 @@ public class TrainModel {
             //SGD classifier = new SGD();
 
             // 10-fold cross validation
-            //Evaluation cross = new Evaluation(newTrain);
+            //HierarchicalTest cross = new HierarchicalTest(newTrain);
             //cross.crossValidateModel(classifier, newTrain, 10, new Random());
             //System.out.println(cross.toSummaryString());
 
@@ -84,7 +84,7 @@ public class TrainModel {
             //classifier.buildClassifier(newTrain);
 
             // Evaluate classifier on data set
-            //Evaluation eva = new Evaluation(newTest);
+            //HierarchicalTest eva = new HierarchicalTest(newTest);
             //eva.evaluateModel(classifier, newTest);
             //System.out.println(eva.toSummaryString());
 
@@ -131,7 +131,7 @@ public class TrainModel {
                 //System.out.println((endTime - startTime) / 1000000d);
 
                 // Evaluate classifier on data set
-                Evaluation eva1 = new Evaluation(newTest);
+                HierarchicalTest eva1 = new HierarchicalTest(newTest);
                 eva1.evaluateModel(classifier, newTest);
                 System.out.println(eva1.toSummaryString());
 

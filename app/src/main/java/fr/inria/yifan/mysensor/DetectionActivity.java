@@ -152,7 +152,7 @@ public class DetectionActivity extends AppCompatActivity {
 
     // Notification bar initialization
     private void notifyView() {
-        // TODO
+        // TODO intent when users click the feedback button
         Intent feedbackIntent = new Intent(this, BroadcastReceiver.class);
         mNotifyBuilder = new NotificationCompat.Builder(this, "Inference")
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
