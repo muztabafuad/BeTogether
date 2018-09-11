@@ -1,12 +1,10 @@
 package fr.inria.yifan.mysensor.Inference;
 
-import java.io.FileOutputStream;
 import java.util.Random;
 
-import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
-import weka.classifiers.Evaluation;
-import weka.classifiers.functions.SGD;
+import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
+import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -15,14 +13,13 @@ import weka.filters.unsupervised.attribute.Remove;
 public class TrainModel {
 
     // Main method for generating original model
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
-        try {
-            // Load data from csv file
-            DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
-            DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
-            Instances train = source_train.getDataSet();
-            Instances test = source_test.getDataSet();
+        // Load data from csv file
+        DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
+        DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
+        Instances train = source_train.getDataSet();
+        Instances test = source_test.getDataSet();
 
             /*
             1 timestamp, 2 daytime (b), 3 light density (lx), 4 magnetic strength (μT), 5 GSM active (b),
@@ -31,79 +28,79 @@ public class TrainModel {
             16 in-pocket label, 17 in-door label, 18 under-ground label
             */
 
-            // Only keep used attributes
-            Remove remove = new Remove();
-            //remove.setAttributeIndices("11, 13, 3, 16");
-            //remove.setAttributeIndices("8, 6, 7, 3, 13, 17");
-            remove.setAttributeIndices("6, 8, 13, 7, 14, 10, 15, 18");
+        // Only keep used attributes
+        Remove remove = new Remove();
+        //remove.setAttributeIndices("11, 13, 3, 16");
+        remove.setAttributeIndices("8, 6, 7, 10, 3, 13, 17");
+        //remove.setAttributeIndices("6, 8, 13, 7, 14, 10, 15, 18");
 
-            remove.setInvertSelection(true);
-            remove.setInputFormat(train);
-            Instances revTrain = Filter.useFilter(train, remove);
-            Instances revTest = Filter.useFilter(test, remove);
+        remove.setInvertSelection(true);
+        remove.setInputFormat(train);
+        Instances revTrain = Filter.useFilter(train, remove);
+        Instances revTest = Filter.useFilter(test, remove);
 
-            // Convert class to nominal
-            NumericToNominal nominal = new NumericToNominal();
-            nominal.setAttributeIndices(String.valueOf(revTrain.numAttributes()));
-            nominal.setInputFormat(revTrain);
-            Instances newTrain = Filter.useFilter(revTrain, nominal);
-            Instances newTest = Filter.useFilter(revTest, nominal);
+        // Convert class to nominal
+        NumericToNominal nominal = new NumericToNominal();
+        nominal.setAttributeIndices(String.valueOf(revTrain.numAttributes()));
+        nominal.setInputFormat(revTrain);
+        Instances newTrain = Filter.useFilter(revTrain, nominal);
+        Instances newTest = Filter.useFilter(revTest, nominal);
 
-            // Set data class label index
-            newTrain.setClassIndex(newTrain.numAttributes() - 1);
-            newTest.setClassIndex(newTest.numAttributes() - 1);
-            newTrain.randomize(new Random());
-            newTest.randomize(new Random());
+        // Set data class label index
+        newTrain.setClassIndex(newTrain.numAttributes() - 1);
+        newTest.setClassIndex(newTest.numAttributes() - 1);
+        newTrain.randomize(new Random());
+        newTest.randomize(new Random());
 
-            // Show all attributes
-            System.out.print("Features:");
-            for (int i = 0; i < newTrain.numAttributes() - 1; i++) {
-                System.out.print(newTrain.attribute(i).name());
-            }
-            System.out.println(" Target:" + newTrain.classAttribute().name());
-            System.out.print("Features:");
-            for (int i = 0; i < newTest.numAttributes() - 1; i++) {
-                System.out.print(newTest.attribute(i).name());
-            }
-            System.out.println(" Target:" + newTest.classAttribute().name());
+        // Show all attributes
+        System.out.print("Features:");
+        for (int i = 0; i < newTrain.numAttributes() - 1; i++) {
+            System.out.print(newTrain.attribute(i).name());
+        }
+        System.out.println(" Target:" + newTrain.classAttribute().name());
+        System.out.print("Features:");
+        for (int i = 0; i < newTest.numAttributes() - 1; i++) {
+            System.out.print(newTest.attribute(i).name());
+        }
+        System.out.println(" Target:" + newTest.classAttribute().name());
 
-            // Model evaluation
-            //HoeffdingTree classifier = new HoeffdingTree();
-            //IBk classifier = new IBk();
-            //KStar classifier = new KStar();
-            //LWL classifier = new LWL();
-            //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-            //SGD classifier = new SGD();
+        // Model evaluation
+        HoeffdingTree classifier = new HoeffdingTree();
+        //IBk classifier = new IBk();
+        //KStar classifier = new KStar();
+        //LWL classifier = new LWL();
+        //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
+        //SGD classifier = new SGD();
 
-            // 10-fold cross validation
-            //HierarchicalTest cross = new HierarchicalTest(newTrain);
-            //cross.crossValidateModel(classifier, newTrain, 10, new Random());
-            //System.out.println(cross.toSummaryString());
+        // 10-fold cross validation
+        //HierarchicalTest cross = new HierarchicalTest(newTrain);
+        //cross.crossValidateModel(classifier, newTrain, 10, new Random());
+        //System.out.println(cross.toSummaryString());
 
-            // Build the classifier
-            //classifier.buildClassifier(newTrain);
+        // Build the classifier
+        classifier.buildClassifier(newTrain);
 
-            // Evaluate classifier on data set
-            //HierarchicalTest eva = new HierarchicalTest(newTest);
-            //eva.evaluateModel(classifier, newTest);
-            //System.out.println(eva.toSummaryString());
+        // Evaluate classifier on data set
+        //HierarchicalTest eva = new HierarchicalTest(newTest);
+        //eva.evaluateModel(classifier, newTest);
+        //System.out.println(eva.toSummaryString());
 
-            // Save and load
-            //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_ground.model", classifier);
-            //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
-            //Instances dataSet = new Instances(newTrain, 0);
-            //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_ground.model", dataSet);
+        // Save and load
+        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_door.model", classifier);
+        //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
+        Instances dataSet = new Instances(newTrain, 0);
+        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_door.model", dataSet);
 
-            // Classify new instance
-            //Instance inst = new DenseInstance(1, new double[]{1, 2, 3, 4, 5, 6, 7});
-            //inst.setDataset(dataSet);
-            //int result = (int) classifier.classifyInstance(inst);
-            //System.out.println("Sample: " + inst + ", Inference: " + result);
+        // Classify new instance
+        //Instance inst = new DenseInstance(1, new double[]{1, 2, 3, 4, 5, 6, 7});
+        //inst.setDataset(dataSet);
+        //int result = (int) classifier.classifyInstance(inst);
+        //System.out.println("Sample: " + inst + ", Inference: " + result);
 
-            // Multiply runs for evaluation
-            int run = 100;
-            // For generating Poisson number
-            double lambda = 100d;
+        // Multiply runs for evaluation
+        int run = 100;
+        // For generating Poisson number
+        double lambda = 100d;
 
             /*
             // Runtime evaluation
@@ -152,7 +149,7 @@ public class TrainModel {
             System.out.println("Classification time ms: " + (totalTime_i / run) / 1000000d);
             */
 
-
+            /*
             // Accuracy evaluation
             int count_err;
             int count_max;
@@ -213,10 +210,6 @@ public class TrainModel {
             FileOutputStream output = new FileOutputStream(logfile);
             output.write(log.toString().getBytes());
             output.close();
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            */
     }
 }

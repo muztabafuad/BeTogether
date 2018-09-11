@@ -28,10 +28,6 @@ public class HierarchicalTest {
         StringBuilder log_door = new StringBuilder();
         StringBuilder log_ground = new StringBuilder();
 
-        //int pocketEnhanceCount = 0;
-        //int doorEnhanceCount = 0;
-        //int groundEnhanceCount = 0;
-
         // Loop for multiple runs
         for (int i = 0; i < run; i++) {
 
@@ -61,7 +57,7 @@ public class HierarchicalTest {
             test_pocket.setClassIndex(test_pocket.numAttributes() - 1);
 
             // Instances for in-door classification
-            remove.setAttributeIndices("8, 6, 7, 3, 13, 17");
+            remove.setAttributeIndices("8, 6, 7, 10, 3, 13, 17");
             remove.setInputFormat(test);
             Instances test_door = Filter.useFilter(test, remove);
             nominal.setAttributeIndices(String.valueOf(test_door.numAttributes()));
@@ -93,11 +89,8 @@ public class HierarchicalTest {
                         Evaluation eva = new Evaluation(test_pocket);
                         eva.evaluateModel(classifier_pocket, test_pocket);
                         double acc = eva.pctCorrect();
-                        //System.out.println(i + "th run, feedback: " + count_err + ", pocket accuracy: " + acc);
+                        System.out.println(i + "th run, feedback: " + count_err + ", pocket accuracy: " + acc);
                         log_pocket.append(count_err).append(", ").append(acc).append("\n");
-//                        if (acc > 53.890) {
-//                            pocketEnhanceCount++;
-//                        }
                     }
                 } else if (classifier_door.classifyInstance(test_door.instance(j)) == 0) {
                     if (test_door.instance(j).classValue() == 1) {
@@ -109,11 +102,8 @@ public class HierarchicalTest {
                         Evaluation eva = new Evaluation(test_door);
                         eva.evaluateModel(classifier_door, test_door);
                         double acc = eva.pctCorrect();
-                        //System.out.println(i + "th run, feedback: " + count_err + ", door accuracy: " + acc);
+                        System.out.println(i + "th run, feedback: " + count_err + ", door accuracy: " + acc);
                         log_door.append(count_err).append(", ").append(acc).append("\n");
-//                        if (acc > 77.784) {
-//                            doorEnhanceCount++;
-//                        }
                     }
                 } else if (classifier_ground.classifyInstance(test_ground.instance(j)) == 1) {
                     if (test_ground.instance(j).classValue() == 0) {
@@ -125,11 +115,8 @@ public class HierarchicalTest {
                         Evaluation eva = new Evaluation(test_ground);
                         eva.evaluateModel(classifier_ground, test_ground);
                         double acc = eva.pctCorrect();
-                        //System.out.println(i + "th run, feedback: " + count_err + ", ground accuracy: " + acc);
+                        System.out.println(i + "th run, feedback: " + count_err + ", ground accuracy: " + acc);
                         log_ground.append(count_err).append(", ").append(acc).append("\n");
-//                        if (acc > 68.842) {
-//                            groundEnhanceCount++;
-//                        }
                     }
                 } else {
                     if (test_ground.instance(j).classValue() == 1) {
@@ -141,11 +128,8 @@ public class HierarchicalTest {
                         Evaluation eva = new Evaluation(test_ground);
                         eva.evaluateModel(classifier_ground, test_ground);
                         double acc = eva.pctCorrect();
-                        //System.out.println(i + "th run, feedback: " + count_err + ", ground accuracy: " + acc);
+                        System.out.println(i + "th run, feedback: " + count_err + ", ground accuracy: " + acc);
                         log_ground.append(count_err).append(", ").append(acc).append("\n");
-//                        if (acc > 68.842) {
-//                            groundEnhanceCount++;
-//                        }
                     } else if (test_door.instance(j).classValue() == 0) {
                         int p = AdaBoost.Poisson(lambda);
                         for (int k = 0; k < p; k++) {
@@ -155,16 +139,12 @@ public class HierarchicalTest {
                         Evaluation eva = new Evaluation(test_door);
                         eva.evaluateModel(classifier_door, test_door);
                         double acc = eva.pctCorrect();
-                        //System.out.println(i + "th run, feedback: " + count_err + ", door accuracy: " + acc);
+                        System.out.println(i + "th run, feedback: " + count_err + ", door accuracy: " + acc);
                         log_door.append(count_err).append(", ").append(acc).append("\n");
-//                        if (acc > 77.784) {
-//                            doorEnhanceCount++;
-//                        }
                     }
                 }
             }
         }
-        //System.out.println("Enhancement pocket: " + pocketEnhanceCount / 5 + " Enhancement door: " + doorEnhanceCount / 5 + " Enhancement ground: " + groundEnhanceCount / 5);
 
         // Save the log file
         String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_pocket_Hierarchical_10";
