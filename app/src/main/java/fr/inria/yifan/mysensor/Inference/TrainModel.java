@@ -1,10 +1,12 @@
 package fr.inria.yifan.mysensor.Inference;
 
+import java.io.FileOutputStream;
 import java.util.Random;
 
-import weka.classifiers.trees.HoeffdingTree;
+import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
+import weka.classifiers.Evaluation;
+import weka.classifiers.functions.SGD;
 import weka.core.Instances;
-import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -65,7 +67,7 @@ public class TrainModel {
         System.out.println(" Target:" + newTest.classAttribute().name());
 
         // Model evaluation
-        HoeffdingTree classifier = new HoeffdingTree();
+        //HoeffdingTree classifier = new HoeffdingTree();
         //IBk classifier = new IBk();
         //KStar classifier = new KStar();
         //LWL classifier = new LWL();
@@ -78,7 +80,7 @@ public class TrainModel {
         //System.out.println(cross.toSummaryString());
 
         // Build the classifier
-        classifier.buildClassifier(newTrain);
+        //classifier.buildClassifier(newTrain);
 
         // Evaluate classifier on data set
         //Evaluation eva = new Evaluation(newTest);
@@ -86,10 +88,10 @@ public class TrainModel {
         //System.out.println(eva.toSummaryString());
 
         // Save and load
-        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_door.model", classifier);
+        //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_door.model", classifier);
         //HoeffdingTree classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
-        Instances dataSet = new Instances(newTrain, 0);
-        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_door.model", dataSet);
+        //Instances dataSet = new Instances(newTrain, 0);
+        //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_door.model", dataSet);
 
         // Classify new instance
         //Instance inst = new DenseInstance(1, new double[]{1, 2, 3, 4, 5, 6, 7});
@@ -145,7 +147,6 @@ public class TrainModel {
         */
 
 
-        /*
         // Accuracy evaluation
         int count_err;
         int count_max;
@@ -159,12 +160,12 @@ public class TrainModel {
             newTest.randomize(random);
 
             // New classifier each run
-            HoeffdingTree classifier = new HoeffdingTree();
+            //HoeffdingTree classifier = new HoeffdingTree();
             //IBk classifier = new IBk();
             //KStar classifier = new KStar();
             //LWL classifier = new LWL();
             //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-            //SGD classifier = new SGD();
+            SGD classifier = new SGD();
             classifier.buildClassifier(newTrain);
 
             count_err = 0;
@@ -202,11 +203,10 @@ public class TrainModel {
         }
 
         // Save the log file
-        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Ground_10";
+        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_SGD_Door_10";
         FileOutputStream output = new FileOutputStream(logfile);
         output.write(log.toString().getBytes());
         output.close();
-        */
 
     }
 }
