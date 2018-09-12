@@ -74,7 +74,7 @@ public class HierarchicalTest {
             test_ground = Filter.useFilter(test_ground, nominal);
             test_ground.setClassIndex(test_ground.numAttributes() - 1);
 
-            double lambda = 10d;
+            double lambda = 15d;
             int count_err = 0;
             // Limit the feedback amount to 30
             for (int j = 0; j < 30; j++) {
@@ -147,13 +147,13 @@ public class HierarchicalTest {
         }
 
         // Save the log file
-        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_pocket_Hierarchical_10";
+        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_pocket_Hierarchical_15";
         FileOutputStream output = new FileOutputStream(logfile);
         output.write(log_pocket.toString().getBytes());
-        logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_door_Hierarchical_10";
+        logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_door_Hierarchical_15";
         output = new FileOutputStream(logfile);
         output.write(log_door.toString().getBytes());
-        logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_ground_Hierarchical_10";
+        logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_ground_Hierarchical_15";
         output = new FileOutputStream(logfile);
         output.write(log_ground.toString().getBytes());
         output.close();

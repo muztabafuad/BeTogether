@@ -21,12 +21,12 @@ public class TrainModel {
         Instances train = source_train.getDataSet();
         Instances test = source_test.getDataSet();
 
-            /*
-            1 timestamp, 2 daytime (b), 3 light density (lx), 4 magnetic strength (μT), 5 GSM active (b),
-            6 RSSI level, 7 RSSI value (dBm), 8 GPS accuracy (m), 9 Wifi active (b), 10 Wifi RSSI (dBm),
-            11 proximity (b), 12 sound level (dBA), 13 temperature (C), 14 pressure (hPa), 15 humidity (%),
-            16 in-pocket label, 17 in-door label, 18 under-ground label
-            */
+        /*
+        1 timestamp, 2 daytime (b), 3 light density (lx), 4 magnetic strength (μT), 5 GSM active (b),
+        6 RSSI level, 7 RSSI value (dBm), 8 GPS accuracy (m), 9 Wifi active (b), 10 Wifi RSSI (dBm),
+        11 proximity (b), 12 sound level (dBA), 13 temperature (C), 14 pressure (hPa), 15 humidity (%),
+        16 in-pocket label, 17 in-door label, 18 under-ground label
+        */
 
         // Only keep used attributes
         Remove remove = new Remove();
@@ -73,7 +73,7 @@ public class TrainModel {
         //SGD classifier = new SGD();
 
         // 10-fold cross validation
-        //HierarchicalTest cross = new HierarchicalTest(newTrain);
+        //Evaluation cross = new Evaluation(newTrain);
         //cross.crossValidateModel(classifier, newTrain, 10, new Random());
         //System.out.println(cross.toSummaryString());
 
@@ -81,7 +81,7 @@ public class TrainModel {
         classifier.buildClassifier(newTrain);
 
         // Evaluate classifier on data set
-        //HierarchicalTest eva = new HierarchicalTest(newTest);
+        //Evaluation eva = new Evaluation(newTest);
         //eva.evaluateModel(classifier, newTest);
         //System.out.println(eva.toSummaryString());
 
@@ -100,116 +100,113 @@ public class TrainModel {
         // Multiply runs for evaluation
         int run = 100;
         // For generating Poisson number
-        double lambda = 100d;
+        double lambda = 10d;
 
-            /*
-            // Runtime evaluation
-            long startTime;
-            long endTime;
-            long totalTime_b;
-            long totalTime_o;
-            long totalTime_i;
+        /*
+        // Runtime evaluation
+        long startTime;
+        long endTime;
+        long totalTime_b;
+        long totalTime_o;
+        long totalTime_i;
 
-            totalTime_b = 0;
-            totalTime_o = 0;
-            totalTime_i = 0;
-            for (int i = 0; i < run; i++) {
-                //HoeffdingTree classifier = new HoeffdingTree();
-                //IBk classifier = new IBk();
-                //KStar classifier = new KStar();
-                //LWL classifier = new LWL();
-                //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                SGD classifier = new SGD();
+        totalTime_b = 0;
+        totalTime_o = 0;
+        totalTime_i = 0;
+        for (int i = 0; i < run; i++) {
+            //HoeffdingTree classifier = new HoeffdingTree();
+            //IBk classifier = new IBk();
+            //KStar classifier = new KStar();
+            //LWL classifier = new LWL();
+            //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
+            SGD classifier = new SGD();
 
-                startTime = System.nanoTime();
-                classifier.buildClassifier(newTrain);
-                endTime = System.nanoTime();
-                totalTime_b += (endTime - startTime);
-                //System.out.println((endTime - startTime) / 1000000d);
+            startTime = System.nanoTime();
+            classifier.buildClassifier(newTrain);
+            endTime = System.nanoTime();
+            totalTime_b += (endTime - startTime);
+            //System.out.println((endTime - startTime) / 1000000d);
 
-                // Evaluate classifier on data set
-                HierarchicalTest eva1 = new HierarchicalTest(newTest);
-                eva1.evaluateModel(classifier, newTest);
-                System.out.println(eva1.toSummaryString());
+            startTime = System.nanoTime();
+            classifier.updateClassifier(newTest.instance(i));
+            endTime = System.nanoTime();
+            totalTime_o += (endTime - startTime);
+            //System.out.println((endTime - startTime) / 1000000d);
 
-                startTime = System.nanoTime();
-                classifier.updateClassifier(newTest.instance(i));
-                endTime = System.nanoTime();
-                totalTime_o += (endTime - startTime);
-                //System.out.println((endTime - startTime) / 1000000d);
+            startTime = System.nanoTime();
+            classifier.classifyInstance(newTest.instance(i));
+            endTime = System.nanoTime();
+            totalTime_i += (endTime - startTime);
+            //System.out.println((endTime - startTime) / 1000000d);
+        }
+        System.out.println("Training time (batch) ms: " + (totalTime_b / run) / 1000000d);
+        System.out.println("Updating time (online) ms: " + (totalTime_o / run) / 1000000d);
+        System.out.println("Classification time ms: " + (totalTime_i / run) / 1000000d);
+        */
 
-                startTime = System.nanoTime();
-                classifier.classifyInstance(newTest.instance(i));
-                endTime = System.nanoTime();
-                totalTime_i += (endTime - startTime);
-                //System.out.println((endTime - startTime) / 1000000d);
-            }
-            System.out.println("Training time (batch) ms: " + (totalTime_b / run) / 1000000d);
-            System.out.println("Updating time (online) ms: " + (totalTime_o / run) / 1000000d);
-            System.out.println("Classification time ms: " + (totalTime_i / run) / 1000000d);
-            */
 
-            /*
-            // Accuracy evaluation
-            int count_err;
-            int count_max;
-            double acc_max;
-            StringBuilder log = new StringBuilder();
+        /*
+        // Accuracy evaluation
+        int count_err;
+        int count_max;
+        double acc_max;
+        StringBuilder log = new StringBuilder();
 
-            // Loop for multiple runs
-            for (int i = 0; i < run; i++) {
-                // Randomize each run!
-                Random random = new Random();
-                newTest.randomize(random);
+        // Loop for multiple runs
+        for (int i = 0; i < run; i++) {
+            // Randomize each run!
+            Random random = new Random();
+            newTest.randomize(random);
 
-                // New classifier each run
-                //HoeffdingTree classifier = new HoeffdingTree();
-                //IBk classifier = new IBk();
-                //KStar classifier = new KStar();
-                //LWL classifier = new LWL();
-                //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-                SGD classifier = new SGD();
-                classifier.buildClassifier(newTrain);
+            // New classifier each run
+            HoeffdingTree classifier = new HoeffdingTree();
+            //IBk classifier = new IBk();
+            //KStar classifier = new KStar();
+            //LWL classifier = new LWL();
+            //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
+            //SGD classifier = new SGD();
+            classifier.buildClassifier(newTrain);
 
-                count_err = 0;
-                count_max = 0;
-                // Evaluate classifier on data set
-                Evaluation eva1 = new Evaluation(newTest);
-                eva1.evaluateModel(classifier, newTest);
-                //System.out.println(eva1.toSummaryString());
-                acc_max = eva1.pctCorrect();
+            count_err = 0;
+            count_max = 0;
+            // Evaluate classifier on data set
+            Evaluation eva1 = new Evaluation(newTest);
+            eva1.evaluateModel(classifier, newTest);
+            //System.out.println(eva1.toSummaryString());
+            acc_max = eva1.pctCorrect();
 
-                // Limit the feedback amount to 30
-                for (int j = 0; j < 30; j++) {
-                    // Sequential feedback on wrong inference
-                    if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
-                        // Generate Poisson number
-                        int p = AdaBoost.Poisson(lambda);
-                        //System.out.println("K value = " + k);
-                        for (int k = 0; k < p; k++) {
-                            classifier.updateClassifier(newTest.instance(j));
-                        }
-                        count_err++;
-                        Evaluation eva2 = new Evaluation(newTest);
-                        eva2.evaluateModel(classifier, newTest);
-                        double acc = eva2.pctCorrect();
-                        //System.out.println("Accuracy: " + acc);
-                        // Record max accuracy and feedback count
-                        if (acc > acc_max) {
-                            acc_max = acc;
-                            count_max = count_err;
-                        }
+            // Limit the feedback amount to 30
+            for (int j = 0; j < 30; j++) {
+                // Sequential feedback on wrong inference
+                if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
+                    // Generate Poisson number
+                    int p = AdaBoost.Poisson(lambda);
+                    //System.out.println("K value = " + k);
+                    for (int k = 0; k < p; k++) {
+                        classifier.updateClassifier(newTest.instance(j));
+                    }
+                    count_err++;
+                    Evaluation eva2 = new Evaluation(newTest);
+                    eva2.evaluateModel(classifier, newTest);
+                    double acc = eva2.pctCorrect();
+                    //System.out.println("Accuracy: " + acc);
+                    // Record max accuracy and feedback count
+                    if (acc > acc_max) {
+                        acc_max = acc;
+                        count_max = count_err;
                     }
                 }
-                System.out.println(i + "th run, feedback ratio: " + count_max + ", max accuracy: " + acc_max);
-                log.append(count_max).append(", ").append(acc_max).append("\n");
             }
+            System.out.println(i + "th run, feedback ratio: " + count_max + ", max accuracy: " + acc_max);
+            log.append(count_max).append(", ").append(acc_max).append("\n");
+        }
 
-            // Save the log file
-            String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_SGD_Ground_100";
-            FileOutputStream output = new FileOutputStream(logfile);
-            output.write(log.toString().getBytes());
-            output.close();
-            */
+        // Save the log file
+        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Ground_10";
+        FileOutputStream output = new FileOutputStream(logfile);
+        output.write(log.toString().getBytes());
+        output.close();
+        */
+
     }
 }
