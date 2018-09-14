@@ -5,6 +5,7 @@ import java.util.Random;
 
 import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
+import weka.classifiers.functions.SGD;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -40,6 +41,7 @@ public class HierarchicalTest {
             ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
             Instances test = source_test.getDataSet();
             test.randomize(new Random());
+            test = new Instances(test, 0,3000);
 
             // Only keep used attributes
             Remove remove = new Remove();
@@ -74,7 +76,7 @@ public class HierarchicalTest {
             test_ground = Filter.useFilter(test_ground, nominal);
             test_ground.setClassIndex(test_ground.numAttributes() - 1);
 
-            double lambda = 15d;
+            double lambda = 10d;
             int count_err = 0;
             // Limit the feedback amount to 30
             for (int j = 0; j < 30; j++) {
@@ -147,13 +149,13 @@ public class HierarchicalTest {
         }
 
         // Save the log file
-        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_pocket_Hierarchical_15";
+        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_pocket_Hierarchical_10";
         FileOutputStream output = new FileOutputStream(logfile);
         output.write(log_pocket.toString().getBytes());
-        logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_door_Hierarchical_15";
+        logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_door_Hierarchical_10";
         output = new FileOutputStream(logfile);
         output.write(log_door.toString().getBytes());
-        logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_ground_Hierarchical_15";
+        logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_ground_Hierarchical_10";
         output = new FileOutputStream(logfile);
         output.write(log_ground.toString().getBytes());
         output.close();
