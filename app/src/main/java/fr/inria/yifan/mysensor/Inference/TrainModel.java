@@ -1,12 +1,7 @@
 package fr.inria.yifan.mysensor.Inference;
 
-import java.io.FileOutputStream;
 import java.util.Random;
 
-import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
-import weka.classifiers.Evaluation;
-import weka.classifiers.bayes.NaiveBayesUpdateable;
-import weka.classifiers.functions.SGD;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -35,8 +30,8 @@ public class TrainModel {
 
         // Only keep used attributes
         Remove remove = new Remove();
-        //remove.setAttributeIndices("11, 13, 3, 16");
-        remove.setAttributeIndices("8, 6, 7, 10, 3, 13, 17");
+        remove.setAttributeIndices("11, 13, 3, 16");
+        //remove.setAttributeIndices("8, 6, 7, 10, 3, 13, 17");
         //remove.setAttributeIndices("6, 8, 13, 7, 14, 10, 15, 18");
 
         remove.setInvertSelection(true);
@@ -70,7 +65,6 @@ public class TrainModel {
         System.out.println(" Target:" + newTest.classAttribute().name());
 
 
-
         // Model evaluation
         HoeffdingTree classifier = new HoeffdingTree();
         //IBk classifier = new IBk();
@@ -93,10 +87,10 @@ public class TrainModel {
         //System.out.println(eva.toSummaryString());
 
         // Save and load
-        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_door.model", classifier);
+        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_pocket.model", classifier);
         //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
         Instances dataSet = new Instances(newTrain, 0);
-        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_door.model", dataSet);
+        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_pocket.model", dataSet);
 
         // Classify new instance
         //Instance inst = new DenseInstance(1, new double[]{1, 2, 3, 4, 5, 6, 7});

@@ -5,7 +5,6 @@ import java.util.Random;
 
 import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
-import weka.classifiers.functions.SGD;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -41,7 +40,6 @@ public class HierarchicalTest {
             ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
             Instances test = source_test.getDataSet();
             test.randomize(new Random());
-            test = new Instances(test, 0,3000);
 
             // Only keep used attributes
             Remove remove = new Remove();
@@ -79,7 +77,8 @@ public class HierarchicalTest {
             double lambda = 10d;
             int count_err = 0;
             // Limit the feedback amount to 30
-            for (int j = 0; j < 30; j++) {
+            for (int j = 0; j < 50; j++) {
+                //System.out.println("Iteration: " + j);
                 // Sequential feedback on wrong inference
                 if (classifier_pocket.classifyInstance(test_pocket.instance(j)) == 1) {
                     if (test_pocket.instance(j).classValue() == 0) {
