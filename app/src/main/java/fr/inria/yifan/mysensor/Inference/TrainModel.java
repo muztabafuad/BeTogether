@@ -2,9 +2,9 @@ package fr.inria.yifan.mysensor.Inference;
 
 import java.util.Random;
 
+import weka.classifiers.Evaluation;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
-import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
@@ -17,7 +17,9 @@ public class TrainModel {
 
         // Load data from csv file
         DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
-        DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
+        //DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
+        //DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_lite.csv");
+        DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
         Instances train = source_train.getDataSet();
         Instances test = source_test.getDataSet();
 
@@ -27,6 +29,8 @@ public class TrainModel {
         11 proximity (b), 12 sound level (dBA), 13 temperature (C), 14 pressure (hPa), 15 humidity (%),
         16 in-pocket label, 17 in-door label, 18 under-ground label
         */
+
+        //GPS, Wifi, Proximity
 
         // Only keep used attributes
         Remove remove = new Remove();
@@ -64,7 +68,6 @@ public class TrainModel {
         }
         System.out.println(" Target:" + newTest.classAttribute().name());
 
-
         // Model evaluation
         HoeffdingTree classifier = new HoeffdingTree();
         //IBk classifier = new IBk();
@@ -82,22 +85,21 @@ public class TrainModel {
         classifier.buildClassifier(newTrain);
 
         // Evaluate classifier on data set
-        //Evaluation eva = new Evaluation(newTest);
-        //eva.evaluateModel(classifier, newTest);
-        //System.out.println(eva.toSummaryString());
+        Evaluation eva = new Evaluation(newTest);
+        eva.evaluateModel(classifier, newTest);
+        System.out.println(eva.toSummaryString());
 
         // Save and load
-        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_pocket.model", classifier);
+        //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_pocket.model", classifier);
         //classifier = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier.model");
-        Instances dataSet = new Instances(newTrain, 0);
-        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_pocket.model", dataSet);
+        //Instances dataSet = new Instances(newTrain, 0);
+        //SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_pocket.model", dataSet);
 
         // Classify new instance
         //Instance inst = new DenseInstance(1, new double[]{1, 2, 3, 4, 5, 6, 7});
         //inst.setDataset(dataSet);
         //int result = (int) classifier.classifyInstance(inst);
         //System.out.println("Sample: " + inst + ", Inference: " + result);
-
 
         // Multiply runs for evaluation
         int run = 100;
@@ -145,7 +147,6 @@ public class TrainModel {
         System.out.println("Updating time (online) ms: " + (totalTime_o / run) / 1000000d);
         System.out.println("Classification time ms: " + (totalTime_i / run) / 1000000d);
         */
-
 
         /*
         // Accuracy evaluation
@@ -209,7 +210,6 @@ public class TrainModel {
         output.write(log.toString().getBytes());
         output.close();
         */
-
 
     }
 }

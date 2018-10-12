@@ -37,7 +37,8 @@ public class HierarchicalTest {
             HoeffdingTree classifier_ground = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_ground.model");
 
             // Load data from csv file
-            ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
+            //ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
+            ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_lite.csv");
             Instances test = source_test.getDataSet();
             test.randomize(new Random());
 
@@ -77,7 +78,7 @@ public class HierarchicalTest {
             double lambda = 10d;
             int count_err = 0;
             // Limit the feedback amount to 30
-            for (int j = 0; j < 50; j++) {
+            for (int j = 0; j < 30; j++) {
                 //System.out.println("Iteration: " + j);
                 // Sequential feedback on wrong inference
                 if (classifier_pocket.classifyInstance(test_pocket.instance(j)) == 1) {

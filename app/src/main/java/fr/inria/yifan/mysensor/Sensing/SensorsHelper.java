@@ -141,11 +141,17 @@ public class SensorsHelper {
         mSensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
         assert mSensorManager != null;
         mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        System.out.println("Light: mA " + mSensorLight.getPower());
         mSensorMagnet = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        System.out.println("Magnet: mA " + mSensorMagnet.getPower());
         mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        System.out.println("Proxy: mA " + mSensorProxy.getPower());
         mSensorTemp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
+        System.out.println("Temp: mA " + mSensorTemp.getPower());
         mSensorPress = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
+        System.out.println("Press: mA " + mSensorPress.getPower());
         mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+        System.out.println("Humid: mA " + mSensorHumid.getPower());
     }
 
     // Check if location service on system is enabled

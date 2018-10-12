@@ -3,6 +3,7 @@ package fr.inria.yifan.mysensor;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -231,7 +232,6 @@ public class SensingActivity extends AppCompatActivity {
                                     mDoorLabel + ", " +
                                     mGroundLabel);
                             mSenseRound += 1;
-                            mWelcomeView.setText(String.valueOf(mSenseRound));
                             //Log.d(TAG, String.valueOf(mSenseRound));
                         }
                     });
