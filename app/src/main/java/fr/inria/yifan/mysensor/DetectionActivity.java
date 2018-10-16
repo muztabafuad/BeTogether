@@ -160,7 +160,7 @@ public class DetectionActivity extends AppCompatActivity {
                 .setContentText(getString(R.string.notify_content))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setOngoing(true)
-                .addAction(android.R.drawable.ic_delete, "On-ground!", PendingIntent.getBroadcast(this, 0, feedbackIntent, 0))
+                .addAction(android.R.drawable.ic_delete, "Under-ground!", PendingIntent.getBroadcast(this, 0, feedbackIntent, 0))
                 .addAction(android.R.drawable.ic_delete, "Out-door!", PendingIntent.getBroadcast(this, 0, feedbackIntent, 0));
         notificationManager = NotificationManagerCompat.from(this);
         // notificationId is a unique int for each notification that you must define
@@ -175,7 +175,6 @@ public class DetectionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detection);
         bindViews();
         cleanView();
-        notifyView();
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
         mInferHelper = new InferHelper(this);
@@ -185,6 +184,7 @@ public class DetectionActivity extends AppCompatActivity {
         if (mContextHelper != null) {
             mContextHelper.startService();
         }
+        notifyView();
     }
 
     // Stop thread when exit!
@@ -249,20 +249,89 @@ public class DetectionActivity extends AppCompatActivity {
                                     mSensorHelper.getHumidity()};
                             //Log.d(TAG, Arrays.toString(mSample));
 
+                            long startTime;
+                            long endTime;
+
                             try {
-                                if (mInPocket = mInferHelper.inferInPocket(mSample)) {
+                                startTime = System.nanoTime();
+                                mInferHelper.infer("Pocket", mSample);
+                                endTime = System.nanoTime();
+                                System.out.println("Pocket infer (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.infer("Door", mSample);
+                                endTime = System.nanoTime();
+                                System.out.println("Door infer (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.infer("Ground", mSample);
+                                endTime = System.nanoTime();
+                                System.out.println("Ground infer (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.updateModel("Pocket", mSample, 1);
+                                endTime = System.nanoTime();
+                                System.out.println("Pocket update (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.updateModel("Door", mSample, 1);
+                                endTime = System.nanoTime();
+                                System.out.println("Door update (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.updateModel("Ground", mSample, 1);
+                                endTime = System.nanoTime();
+                                System.out.println("Ground update (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.infer("Pocket", mSample);
+                                endTime = System.nanoTime();
+                                System.out.println("Pocket infer (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.infer("Door", mSample);
+                                endTime = System.nanoTime();
+                                System.out.println("Door infer (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.infer("Ground", mSample);
+                                endTime = System.nanoTime();
+                                System.out.println("Ground infer (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.updateModel("Pocket", mSample, 1);
+                                endTime = System.nanoTime();
+                                System.out.println("Pocket update (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.updateModel("Door", mSample, 1);
+                                endTime = System.nanoTime();
+                                System.out.println("Door update (ms): " + (endTime - startTime) / 1000000d);
+
+                                startTime = System.nanoTime();
+                                mInferHelper.updateModel("Ground", mSample, 1);
+                                endTime = System.nanoTime();
+                                System.out.println("Ground update (ms): " + (endTime - startTime) / 1000000d);
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            /*
+                            try {
+                                if (mInPocket = mInferHelper.infer("Pocket", mSample)) {
                                     mPocketView.setText("In-pocket");
                                 } else {
                                     mPocketView.setText("Out-pocket");
                                 }
                                 //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
-                                if (mInDoor = mInferHelper.inferInDoor(mSample)) {
+                                if (mInDoor = mInferHelper.infer("Door", mSample)) {
                                     mDoorView.setText("In-door");
                                 } else {
                                     mDoorView.setText("Out-door");
                                 }
                                 //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
-                                if (mUnderGround = mInferHelper.inferUnderGround(mSample)) {
+                                if (mUnderGround = mInferHelper.infer("Ground", mSample)) {
                                     mGroundView.setText("Under-ground");
                                 } else {
                                     mGroundView.setText("On-ground");
@@ -272,6 +341,7 @@ public class DetectionActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                            */
 
                             mActivityView.setText(/*"Signal strength level: " + mContextHelper.getRssiLevel() + "\n\n" +*/
                                     mContextHelper.getUserActivity());

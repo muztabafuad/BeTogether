@@ -24,5 +24,5 @@
     <string name="email_title">Sensing data from MySensor</string>
     <string name="switch_mail">&amp; Mail log</string>
     <string name="notify_title">Inference Result</string>
-    <string name="notify_content">Not running</string>
+    <string name="notify_content">On-ground (In-door, Out-pocket)</string>
 </resources>

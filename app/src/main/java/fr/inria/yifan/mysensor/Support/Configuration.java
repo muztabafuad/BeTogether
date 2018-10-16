@@ -30,15 +30,15 @@ public class Configuration implements Serializable {
     // For sound level calibration, initially 0, 1
     public static final double INTERCEPT = 0;
     public static final double SLOPE = 1;
-    // Load the AdaBoost model file from this path
+    // Load the learning model file from this path
     public static final String MODEL_INPOCKET = "Classifier_pocket.model";
     public static final String MODEL_INDOOR = "Classifier_door.model";
     public static final String MODEL_UNDERGROUND = "Classifier_ground.model";
     public static final String DATASET_INPOCKET = "Dataset_pocket.model";
     public static final String DATASET_INDOOR = "Dataset_door.model";
     public static final String DATASET_UNDERGROUND = "Dataset_ground.model";
-    // Divisor for threshold increase decrease
-    public static final int THRESHOLD_DIVISOR = 1;
+    // The lambda parameter for learning model update
+    public static final int LAMBDA = 10;
     // Storage path for the sensing data file
     static final String STORAGE_FILE_PATH = "/Download/MySensor";
 
