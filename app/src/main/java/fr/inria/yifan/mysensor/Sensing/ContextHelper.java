@@ -277,16 +277,6 @@ public class ContextHelper extends BroadcastReceiver {
         return mWifiRssi.getMean();
     }
 
-    // Intent receiver for activity recognition result callback
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (ActivityRecognitionResult.hasResult(intent)) {
-            ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
-            userActivity = result.getMostProbableActivity().toString();
-            //Log.e(TAG, "Received intent: " + result.getMostProbableActivity().toString());
-        }
-    }
-
     // Manually update sliding window
     private void updateManual() {
         mRssiLevel.updateWindow();
@@ -303,6 +293,16 @@ public class ContextHelper extends BroadcastReceiver {
             }
         } else {
             mWifiRssi.putValue(WIFI_RSSI_OUT);
+        }
+    }
+
+    // Intent receiver for activity recognition result callback
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (ActivityRecognitionResult.hasResult(intent)) {
+            ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
+            userActivity = result.getMostProbableActivity().toString();
+            //Log.e(TAG, "Received intent: " + result.getMostProbableActivity().toString());
         }
     }
 

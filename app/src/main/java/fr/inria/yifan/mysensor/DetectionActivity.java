@@ -3,7 +3,9 @@ package fr.inria.yifan.mysensor;
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +24,7 @@ import fr.inria.yifan.mysensor.Inference.InferHelper;
 import fr.inria.yifan.mysensor.Sensing.ContextHelper;
 import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
 
+import static android.app.Notification.EXTRA_NOTIFICATION_ID;
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
@@ -107,7 +110,8 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    mInferHelper.updateModel("Pocket", mSample, 1);
+                    boolean wrong = mInferHelper.infer("Pocket", mSample);
+                    mInferHelper.updateModel("Pocket", mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -118,7 +122,8 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    mInferHelper.updateModel("Door", mSample, 1);
+                    boolean wrong = mInferHelper.infer("Door", mSample);
+                    mInferHelper.updateModel("Door", mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -129,7 +134,8 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    mInferHelper.updateModel("Ground", mSample, 1);
+                    boolean wrong = mInferHelper.infer("Groung", mSample);
+                    mInferHelper.updateModel("Ground", mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -152,16 +158,12 @@ public class DetectionActivity extends AppCompatActivity {
 
     // Notification bar initialization
     private void notifyView() {
-        // TODO intent when users click the feedback button
-        Intent feedbackIntent = new Intent(this, BroadcastReceiver.class);
         mNotifyBuilder = new NotificationCompat.Builder(this, "Inference")
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .setContentTitle(getString(R.string.notify_title))
                 .setContentText(getString(R.string.notify_content))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setOngoing(true)
-                .addAction(android.R.drawable.ic_delete, "Under-ground!", PendingIntent.getBroadcast(this, 0, feedbackIntent, 0))
-                .addAction(android.R.drawable.ic_delete, "Out-door!", PendingIntent.getBroadcast(this, 0, feedbackIntent, 0));
+                .setOngoing(true);
         notificationManager = NotificationManagerCompat.from(this);
         // notificationId is a unique int for each notification that you must define
         notificationManager.notify(1, mNotifyBuilder.build());
@@ -178,6 +180,7 @@ public class DetectionActivity extends AppCompatActivity {
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
         mInferHelper = new InferHelper(this);
+        this.registerReceiver(mInferHelper, new IntentFilter(Intent.ACTION_MAIN));
         if (mSensorHelper != null) {
             mSensorHelper.startService();
         }
@@ -191,6 +194,7 @@ public class DetectionActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        this.unregisterReceiver(mInferHelper);
         isSensingRun = false;
         if (mSensorHelper != null) {
             mSensorHelper.stopService();
@@ -252,37 +256,8 @@ public class DetectionActivity extends AppCompatActivity {
                             long startTime;
                             long endTime;
 
+                            /*
                             try {
-                                startTime = System.nanoTime();
-                                mInferHelper.infer("Pocket", mSample);
-                                endTime = System.nanoTime();
-                                System.out.println("Pocket infer (ms): " + (endTime - startTime) / 1000000d);
-
-                                startTime = System.nanoTime();
-                                mInferHelper.infer("Door", mSample);
-                                endTime = System.nanoTime();
-                                System.out.println("Door infer (ms): " + (endTime - startTime) / 1000000d);
-
-                                startTime = System.nanoTime();
-                                mInferHelper.infer("Ground", mSample);
-                                endTime = System.nanoTime();
-                                System.out.println("Ground infer (ms): " + (endTime - startTime) / 1000000d);
-
-                                startTime = System.nanoTime();
-                                mInferHelper.updateModel("Pocket", mSample, 1);
-                                endTime = System.nanoTime();
-                                System.out.println("Pocket update (ms): " + (endTime - startTime) / 1000000d);
-
-                                startTime = System.nanoTime();
-                                mInferHelper.updateModel("Door", mSample, 1);
-                                endTime = System.nanoTime();
-                                System.out.println("Door update (ms): " + (endTime - startTime) / 1000000d);
-
-                                startTime = System.nanoTime();
-                                mInferHelper.updateModel("Ground", mSample, 1);
-                                endTime = System.nanoTime();
-                                System.out.println("Ground update (ms): " + (endTime - startTime) / 1000000d);
-
                                 startTime = System.nanoTime();
                                 mInferHelper.infer("Pocket", mSample);
                                 endTime = System.nanoTime();
@@ -316,8 +291,8 @@ public class DetectionActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                            */
 
-                            /*
                             try {
                                 if (mInPocket = mInferHelper.infer("Pocket", mSample)) {
                                     mPocketView.setText("In-pocket");
@@ -337,11 +312,20 @@ public class DetectionActivity extends AppCompatActivity {
                                     mGroundView.setText("On-ground");
                                 }
                                 mNotifyBuilder.setContentText(mInferHelper.inferOneResult(mSample));
+                                mNotifyBuilder.mActions.clear();
+
+                                // TODO intent when users click the feedback button
+                                Intent intent = new Intent();
+                                intent.setAction(Intent.ACTION_MAIN);
+                                intent.putExtra("infer_type", "pocket");
+                                PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0);
+                                Log.d(TAG, "Sent: " + pendingIntent);
+                                mNotifyBuilder.addAction(android.R.drawable.ic_delete, "Option", pendingIntent);
+
                                 notificationManager.notify(1, mNotifyBuilder.build());
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            */
 
                             mActivityView.setText(/*"Signal strength level: " + mContextHelper.getRssiLevel() + "\n\n" +*/
                                     mContextHelper.getUserActivity());

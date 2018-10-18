@@ -187,14 +187,14 @@ public class InferHelper extends BroadcastReceiver {
     }
 
     // Update the model by online learning
-    public void updateModel(String model, double[] sample, int label) throws Exception {
+    public void updateModel(String model, double[] sample, boolean label) throws Exception {
         double[] entry;
         Instance inst;
         int p;
         switch (model) {
             case "Pocket":
                 // 10 Proximity, 12 temperature, 2 light density
-                entry = new double[]{sample[10], sample[12], sample[2], label};
+                entry = new double[]{sample[10], sample[12], sample[2], label ? 1 : 0};
                 inst = new DenseInstance(1, entry);
                 inst.setDataset(instancesPocket);
                 p = AdaBoost.Poisson(LAMBDA);
@@ -204,7 +204,7 @@ public class InferHelper extends BroadcastReceiver {
                 break;
             case "Door":
                 // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
-                entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], label};
+                entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], label ? 1 : 0};
                 inst = new DenseInstance(1, entry);
                 inst.setDataset(instancesDoor);
                 p = AdaBoost.Poisson(LAMBDA);
@@ -214,7 +214,7 @@ public class InferHelper extends BroadcastReceiver {
                 break;
             case "Ground":
                 // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
-                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], label};
+                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], label ? 1 : 0};
                 inst = new DenseInstance(1, entry);
                 inst.setDataset(instancesGround);
                 p = AdaBoost.Poisson(LAMBDA);
@@ -231,6 +231,8 @@ public class InferHelper extends BroadcastReceiver {
     // Receive user feedback from broadcast
     @Override
     public void onReceive(Context context, Intent intent) {
-
+        Log.d(TAG, "Received: " + intent);
+        String type = intent.getStringExtra("infer_type");
+        Log.d(TAG, "Inference type is: " + type);
     }
 }
