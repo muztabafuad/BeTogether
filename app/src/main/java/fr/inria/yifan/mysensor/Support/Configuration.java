@@ -37,7 +37,7 @@ public class Configuration implements Serializable {
     public static final String DATASET_INPOCKET = "Dataset_pocket.model";
     public static final String DATASET_INDOOR = "Dataset_door.model";
     public static final String DATASET_UNDERGROUND = "Dataset_ground.model";
-    // The lambda parameter for learning model update
+    // The lambda parameter for learning model updateByLabel
     public static final int LAMBDA = 10;
     // Storage path for the sensing data file
     static final String STORAGE_FILE_PATH = "/Download/MySensor";

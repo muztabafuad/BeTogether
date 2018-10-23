@@ -33,7 +33,6 @@ public class InferHelper extends BroadcastReceiver {
 
     private static final String TAG = "Inference helper";
 
-    private Context mContext;
     // Three empty instances for initialization
     private Instances instancesPocket;
     private Instances instancesDoor;
@@ -44,11 +43,10 @@ public class InferHelper extends BroadcastReceiver {
 
     // Load the base model and instances
     public InferHelper(Context context) {
-        mContext = context;
         // Check local model existence
-        File filePocket = mContext.getFileStreamPath(MODEL_INPOCKET);
-        File fileDoor = mContext.getFileStreamPath(MODEL_INDOOR);
-        File fileGround = mContext.getFileStreamPath(MODEL_UNDERGROUND);
+        File filePocket = context.getFileStreamPath(MODEL_INPOCKET);
+        File fileDoor = context.getFileStreamPath(MODEL_INDOOR);
+        File fileGround = context.getFileStreamPath(MODEL_UNDERGROUND);
 
         FileInputStream fileInputStream;
         ObjectInputStream objectInputStream;
@@ -59,24 +57,24 @@ public class InferHelper extends BroadcastReceiver {
             Log.d(TAG, "Local model does not exist.");
             // Initialize trained model
             try {
-                fileInputStream = mContext.getAssets().openFd(MODEL_INPOCKET).createInputStream();
+                fileInputStream = context.getAssets().openFd(MODEL_INPOCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierPocket = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = mContext.getAssets().openFd(DATASET_INPOCKET).createInputStream();
+                fileInputStream = context.getAssets().openFd(DATASET_INPOCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesPocket = (Instances) objectInputStream.readObject();
 
-                fileInputStream = mContext.getAssets().openFd(MODEL_INDOOR).createInputStream();
+                fileInputStream = context.getAssets().openFd(MODEL_INDOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = mContext.getAssets().openFd(DATASET_INDOOR).createInputStream();
+                fileInputStream = context.getAssets().openFd(DATASET_INDOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesDoor = (Instances) objectInputStream.readObject();
 
-                fileInputStream = mContext.getAssets().openFd(MODEL_UNDERGROUND).createInputStream();
+                fileInputStream = context.getAssets().openFd(MODEL_UNDERGROUND).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = mContext.getAssets().openFd(DATASET_UNDERGROUND).createInputStream();
+                fileInputStream = context.getAssets().openFd(DATASET_UNDERGROUND).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesGround = (Instances) objectInputStream.readObject();
 
@@ -84,24 +82,24 @@ public class InferHelper extends BroadcastReceiver {
                 fileInputStream.close();
                 Log.d(TAG, "Success in loading from assets.");
 
-                fileOutputStream = mContext.openFileOutput(MODEL_INPOCKET, Context.MODE_PRIVATE);
+                fileOutputStream = context.openFileOutput(MODEL_INPOCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierPocket);
-                fileOutputStream = mContext.openFileOutput(DATASET_INPOCKET, Context.MODE_PRIVATE);
+                fileOutputStream = context.openFileOutput(DATASET_INPOCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(instancesPocket);
 
-                fileOutputStream = mContext.openFileOutput(MODEL_INDOOR, Context.MODE_PRIVATE);
+                fileOutputStream = context.openFileOutput(MODEL_INDOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierDoor);
-                fileOutputStream = mContext.openFileOutput(DATASET_INDOOR, Context.MODE_PRIVATE);
+                fileOutputStream = context.openFileOutput(DATASET_INDOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(instancesDoor);
 
-                fileOutputStream = mContext.openFileOutput(MODEL_UNDERGROUND, Context.MODE_PRIVATE);
+                fileOutputStream = context.openFileOutput(MODEL_UNDERGROUND, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierGround);
-                fileOutputStream = mContext.openFileOutput(DATASET_UNDERGROUND, Context.MODE_PRIVATE);
+                fileOutputStream = context.openFileOutput(DATASET_UNDERGROUND, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(instancesGround);
 
@@ -187,7 +185,7 @@ public class InferHelper extends BroadcastReceiver {
     }
 
     // Update the model by online learning
-    public void updateModel(String model, double[] sample, boolean label) throws Exception {
+    public void updateByLabel(String model, double[] sample, boolean label) throws Exception {
         double[] entry;
         Instance inst;
         int p;
@@ -224,6 +222,68 @@ public class InferHelper extends BroadcastReceiver {
                 break;
             default:
                 Log.e(TAG, "Wrong parameter of model type: " + model);
+                break;
+        }
+    }
+
+    // Get the feedback and
+    public void updateByFeedback(String feedback, double[] sample) throws Exception {
+        double[] entry;
+        Instance inst;
+        int p;
+        switch (feedback) {
+            case "Out-pocket":
+                // 10 Proximity, 12 temperature, 2 light density
+                entry = new double[]{sample[10], sample[12], sample[2], 0};
+                inst = new DenseInstance(1, entry);
+                inst.setDataset(instancesPocket);
+                p = AdaBoost.Poisson(LAMBDA);
+                for (int k = 0; k < p; k++) {
+                    classifierPocket.updateClassifier(inst);
+                }
+                break;
+            case "In-door":
+                // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
+                entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], 1};
+                inst = new DenseInstance(1, entry);
+                inst.setDataset(instancesDoor);
+                p = AdaBoost.Poisson(LAMBDA);
+                for (int k = 0; k < p; k++) {
+                    classifierDoor.updateClassifier(inst);
+                }
+                break;
+            case "Out-door":
+                // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
+                entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], 0};
+                inst = new DenseInstance(1, entry);
+                inst.setDataset(instancesDoor);
+                p = AdaBoost.Poisson(LAMBDA);
+                for (int k = 0; k < p; k++) {
+                    classifierDoor.updateClassifier(inst);
+                }
+                break;
+            case "Under-ground":
+                // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
+                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], 1};
+                inst = new DenseInstance(1, entry);
+                inst.setDataset(instancesGround);
+                p = AdaBoost.Poisson(LAMBDA);
+                for (int k = 0; k < p; k++) {
+                    classifierGround.updateClassifier(inst);
+                }
+                break;
+            case "On-ground":
+                // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
+                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], 0};
+                inst = new DenseInstance(1, entry);
+                inst.setDataset(instancesGround);
+                p = AdaBoost.Poisson(LAMBDA);
+                for (int k = 0; k < p; k++) {
+                    classifierGround.updateClassifier(inst);
+                }
+                break;
+            default:
+                Log.e(TAG, "Wrong parameter of feedback: " + feedback);
                 break;
         }
     }

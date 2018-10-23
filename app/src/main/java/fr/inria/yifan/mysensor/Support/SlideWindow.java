@@ -20,7 +20,7 @@ public class SlideWindow {
     // Adding a new value into the window
 
     public void putValue(float val) {
-        // Initial update
+        // Initial updateByLabel
         if (ct == 0) {
             for (int i = 0; i < storage.length; i++) {
                 storage[i] = val;

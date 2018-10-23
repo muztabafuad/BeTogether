@@ -2,8 +2,6 @@ package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
@@ -24,7 +22,6 @@ import fr.inria.yifan.mysensor.Inference.InferHelper;
 import fr.inria.yifan.mysensor.Sensing.ContextHelper;
 import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
 
-import static android.app.Notification.EXTRA_NOTIFICATION_ID;
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
 import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
@@ -46,10 +43,12 @@ public class DetectionActivity extends AppCompatActivity {
     private TextView mDoorView;
     private TextView mGroundView;
     private TextView mLocationView;
+    private TextView mHierarView;
     private TextView mActivityView;
     private Button mPocketButton;
     private Button mDoorButton;
     private Button mGroundButton;
+    private Button mHierarButton;
     private Button mStartButton;
     private Button mStopButton;
     private NotificationCompat.Builder mNotifyBuilder;
@@ -77,11 +76,13 @@ public class DetectionActivity extends AppCompatActivity {
         mPocketView = findViewById(R.id.pocket_text);
         mDoorView = findViewById(R.id.door_text);
         mGroundView = findViewById(R.id.ground_text);
+        mHierarView = findViewById(R.id.hierar_text);
         mActivityView = findViewById(R.id.activity_view);
         mLocationView = findViewById(R.id.location_view);
         mPocketButton = findViewById(R.id.pocket_button);
         mDoorButton = findViewById(R.id.door_button);
         mGroundButton = findViewById(R.id.ground_button);
+        mHierarButton = findViewById(R.id.hierar_button);
         mStartButton = findViewById(R.id.start_button);
         mStopButton = findViewById(R.id.stop_button);
         mStopButton.setVisibility(View.INVISIBLE);
@@ -93,6 +94,7 @@ public class DetectionActivity extends AppCompatActivity {
                 mPocketButton.setVisibility(View.VISIBLE);
                 mDoorButton.setVisibility(View.VISIBLE);
                 mGroundButton.setVisibility(View.VISIBLE);
+                mHierarButton.setVisibility(View.VISIBLE);
                 mStartButton.setVisibility(View.INVISIBLE);
                 mStopButton.setVisibility(View.VISIBLE);
             }
@@ -111,7 +113,7 @@ public class DetectionActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     boolean wrong = mInferHelper.infer("Pocket", mSample);
-                    mInferHelper.updateModel("Pocket", mSample, !wrong);
+                    mInferHelper.updateByLabel("Pocket", mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -123,7 +125,7 @@ public class DetectionActivity extends AppCompatActivity {
             public void onClick(View v) {
                 try {
                     boolean wrong = mInferHelper.infer("Door", mSample);
-                    mInferHelper.updateModel("Door", mSample, !wrong);
+                    mInferHelper.updateByLabel("Door", mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -134,11 +136,19 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    boolean wrong = mInferHelper.infer("Groung", mSample);
-                    mInferHelper.updateModel("Ground", mSample, !wrong);
+                    boolean wrong = mInferHelper.infer("Ground", mSample);
+                    mInferHelper.updateByLabel("Ground", mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+        });
+
+        mHierarButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO update the models hierarchically by a feedback
+
             }
         });
     }
@@ -154,6 +164,7 @@ public class DetectionActivity extends AppCompatActivity {
         mPocketButton.setVisibility(View.INVISIBLE);
         mDoorButton.setVisibility(View.INVISIBLE);
         mGroundButton.setVisibility(View.INVISIBLE);
+        mHierarButton.setVisibility(View.INVISIBLE);
     }
 
     // Notification bar initialization
@@ -274,19 +285,19 @@ public class DetectionActivity extends AppCompatActivity {
                                 System.out.println("Ground infer (ms): " + (endTime - startTime) / 1000000d);
 
                                 startTime = System.nanoTime();
-                                mInferHelper.updateModel("Pocket", mSample, 1);
+                                mInferHelper.updateByLabel("Pocket", mSample, 1);
                                 endTime = System.nanoTime();
-                                System.out.println("Pocket update (ms): " + (endTime - startTime) / 1000000d);
+                                System.out.println("Pocket updateByLabel (ms): " + (endTime - startTime) / 1000000d);
 
                                 startTime = System.nanoTime();
-                                mInferHelper.updateModel("Door", mSample, 1);
+                                mInferHelper.updateByLabel("Door", mSample, 1);
                                 endTime = System.nanoTime();
-                                System.out.println("Door update (ms): " + (endTime - startTime) / 1000000d);
+                                System.out.println("Door updateByLabel (ms): " + (endTime - startTime) / 1000000d);
 
                                 startTime = System.nanoTime();
-                                mInferHelper.updateModel("Ground", mSample, 1);
+                                mInferHelper.updateByLabel("Ground", mSample, 1);
                                 endTime = System.nanoTime();
-                                System.out.println("Ground update (ms): " + (endTime - startTime) / 1000000d);
+                                System.out.println("Ground updateByLabel (ms): " + (endTime - startTime) / 1000000d);
 
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -311,8 +322,9 @@ public class DetectionActivity extends AppCompatActivity {
                                 } else {
                                     mGroundView.setText("On-ground");
                                 }
-                                mNotifyBuilder.setContentText(mInferHelper.inferOneResult(mSample));
-                                mNotifyBuilder.mActions.clear();
+                                String result = mInferHelper.inferOneResult(mSample);
+                                mHierarView.setText(result);
+                                mNotifyBuilder.setContentText(result);
 
                                 // TODO intent when users click the feedback button
                                 Intent intent = new Intent();
@@ -320,7 +332,8 @@ public class DetectionActivity extends AppCompatActivity {
                                 intent.putExtra("infer_type", "pocket");
                                 PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0);
                                 Log.d(TAG, "Sent: " + pendingIntent);
-                                mNotifyBuilder.addAction(android.R.drawable.ic_delete, "Option", pendingIntent);
+                                mNotifyBuilder.mActions.clear();
+                                mNotifyBuilder.addAction(android.R.drawable.ic_delete, getString(R.string.feedback), pendingIntent);
 
                                 notificationManager.notify(1, mNotifyBuilder.build());
                             } catch (Exception e) {

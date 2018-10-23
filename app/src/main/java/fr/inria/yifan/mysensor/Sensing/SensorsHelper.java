@@ -251,7 +251,7 @@ public class SensorsHelper {
         return mMagnet.getMean();
     }
 
-    // Manually update sliding window
+    // Manually updateByLabel sliding window
     private void updateManual() {
         mLight.updateWindow();
         mMagnet.updateWindow();

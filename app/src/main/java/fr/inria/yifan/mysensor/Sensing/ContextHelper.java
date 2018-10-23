@@ -277,7 +277,7 @@ public class ContextHelper extends BroadcastReceiver {
         return mWifiRssi.getMean();
     }
 
-    // Manually update sliding window
+    // Manually updateByLabel sliding window
     private void updateManual() {
         mRssiLevel.updateWindow();
         mRssiValue.updateWindow();
