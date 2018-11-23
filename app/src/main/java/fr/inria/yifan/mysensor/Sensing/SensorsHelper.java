@@ -141,17 +141,17 @@ public class SensorsHelper {
         mSensorManager = (SensorManager) activity.getSystemService(Context.SENSOR_SERVICE);
         assert mSensorManager != null;
         mSensorLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        System.out.println("Light: mA " + mSensorLight.getPower());
+        System.out.println("Light: mA " + (mSensorLight != null ? mSensorLight.getPower() : 0));
         mSensorMagnet = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        System.out.println("Magnet: mA " + mSensorMagnet.getPower());
+        System.out.println("Magnet: mA " + (mSensorMagnet != null ? mSensorMagnet.getPower() : 0));
         mSensorProxy = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        System.out.println("Proxy: mA " + mSensorProxy.getPower());
+        System.out.println("Proxy: mA " + (mSensorProxy != null ? mSensorProxy.getPower() : 0));
         mSensorTemp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
-        System.out.println("Temp: mA " + mSensorTemp.getPower());
+        System.out.println("Temp: mA " + (mSensorTemp != null ? mSensorTemp.getPower() : 0));
         mSensorPress = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-        System.out.println("Press: mA " + mSensorPress.getPower());
+        System.out.println("Press: mA " + (mSensorPress != null ? mSensorPress.getPower() : 0));
         mSensorHumid = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
-        System.out.println("Humid: mA " + mSensorHumid.getPower());
+        System.out.println("Humid: mA " + (mSensorHumid != null ? mSensorHumid.getPower() : 0));
     }
 
     // Check if location service on system is enabled
