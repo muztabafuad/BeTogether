@@ -21,10 +21,10 @@ public class TrainModel {
     public static void main(String[] args) throws Exception {
 
         // Load data from csv file
-        DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
-        DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
-        //DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_lite.csv");
-        //DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505.csv");
+        DataSource source_train = new DataSource("/Users/yifan/OneDrive/INRIA/ContextSense/Training Data/GT-I9505.csv");
+        DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/ContextSense/Training Data/Redmi-Note4_2.csv");
+        //DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_2.csv");
+        //DataSource source_test = new DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4.csv");
         Instances train = source_train.getDataSet();
         Instances test = source_test.getDataSet();
 

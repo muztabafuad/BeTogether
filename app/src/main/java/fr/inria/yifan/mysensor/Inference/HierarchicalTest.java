@@ -37,8 +37,8 @@ public class HierarchicalTest {
             HoeffdingTree classifier_ground = (HoeffdingTree) SerializationHelper.read("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_ground.model");
 
             // Load data from csv file
-            //ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/Redmi-Note4_2.csv");
-            ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/Context Sense/Training Data/GT-I9505_lite.csv");
+            ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/ContextSense/Training Data/Redmi-Note4_2.csv");
+            //ConverterUtils.DataSource source_test = new ConverterUtils.DataSource("/Users/yifan/OneDrive/INRIA/ContextSense/Training Data/GT-I9505_2.csv");
             Instances test = source_test.getDataSet();
             test.randomize(new Random());
 
@@ -75,6 +75,17 @@ public class HierarchicalTest {
             test_ground = Filter.useFilter(test_ground, nominal);
             test_ground.setClassIndex(test_ground.numAttributes() - 1);
 
+            // Evaluate classifier on data set
+            //Evaluation eval = new Evaluation(test_pocket);
+            //eval.evaluateModel(classifier_pocket, test_pocket);
+            //System.out.println(eval.fMeasure(0));
+            //Evaluation eval = new Evaluation(test_door);
+            //eval.evaluateModel(classifier_door, test_door);
+            //System.out.println(eval.fMeasure(0));
+            //Evaluation eval = new Evaluation(test_ground);
+            //eval.evaluateModel(classifier_ground, test_ground);
+            //System.out.println(eval.fMeasure(0));
+
             double lambda = 10d;
             int count_err = 0;
             // Limit the feedback amount to 30
@@ -90,7 +101,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_pocket);
                         eva.evaluateModel(classifier_pocket, test_pocket);
-                        double acc = eva.pctCorrect();
+                        //double acc = eva.pctCorrect();
+                        double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", pocket accuracy: " + acc);
                         log_pocket.append(count_err).append(", ").append(acc).append("\n");
                     }
@@ -103,7 +115,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_door);
                         eva.evaluateModel(classifier_door, test_door);
-                        double acc = eva.pctCorrect();
+                        //double acc = eva.pctCorrect();
+                        double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", door accuracy: " + acc);
                         log_door.append(count_err).append(", ").append(acc).append("\n");
                     }
@@ -116,7 +129,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_ground);
                         eva.evaluateModel(classifier_ground, test_ground);
-                        double acc = eva.pctCorrect();
+                        //double acc = eva.pctCorrect();
+                        double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", ground accuracy: " + acc);
                         log_ground.append(count_err).append(", ").append(acc).append("\n");
                     }
@@ -129,7 +143,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_ground);
                         eva.evaluateModel(classifier_ground, test_ground);
-                        double acc = eva.pctCorrect();
+                        //double acc = eva.pctCorrect();
+                        double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", ground accuracy: " + acc);
                         log_ground.append(count_err).append(", ").append(acc).append("\n");
                     } else if (test_door.instance(j).classValue() == 0) {
@@ -140,7 +155,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_door);
                         eva.evaluateModel(classifier_door, test_door);
-                        double acc = eva.pctCorrect();
+                        //double acc = eva.pctCorrect();
+                        double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", door accuracy: " + acc);
                         log_door.append(count_err).append(", ").append(acc).append("\n");
                     }
