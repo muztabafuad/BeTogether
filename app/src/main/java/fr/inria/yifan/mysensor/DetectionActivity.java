@@ -112,8 +112,8 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    boolean wrong = mInferHelper.infer("Pocket", mSample);
-                    mInferHelper.updateByLabel("Pocket", mSample, !wrong);
+                    boolean wrong = mInferHelper.inferPocket(mSample);
+                    mInferHelper.updatePocket(mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -124,8 +124,8 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    boolean wrong = mInferHelper.infer("Door", mSample);
-                    mInferHelper.updateByLabel("Door", mSample, !wrong);
+                    boolean wrong = mInferHelper.inferDoor(mSample);
+                    mInferHelper.updateDoor(mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -136,8 +136,8 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    boolean wrong = mInferHelper.infer("Ground", mSample);
-                    mInferHelper.updateByLabel("Ground", mSample, !wrong);
+                    boolean wrong = mInferHelper.inferGround(mSample);
+                    mInferHelper.updateGround(mSample, !wrong);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -148,7 +148,6 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // TODO update the models hierarchically by a feedback
-
             }
         });
     }
@@ -305,24 +304,25 @@ public class DetectionActivity extends AppCompatActivity {
                             */
 
                             try {
-                                if (mInPocket = mInferHelper.infer("Pocket", mSample)) {
+                                if (mInPocket = mInferHelper.inferPocket(mSample)) {
                                     mPocketView.setText("In-pocket");
                                 } else {
                                     mPocketView.setText("Out-pocket");
                                 }
                                 //Log.d(TAG, String.valueOf(mInferHelper.InferIndoor(sample)));
-                                if (mInDoor = mInferHelper.infer("Door", mSample)) {
+                                if (mInDoor = mInferHelper.inferDoor(mSample)) {
                                     mDoorView.setText("In-door");
                                 } else {
                                     mDoorView.setText("Out-door");
                                 }
                                 //Log.d(TAG, String.valueOf(mInferHelper.InferUnderground(sample)));
-                                if (mUnderGround = mInferHelper.infer("Ground", mSample)) {
+                                if (mUnderGround = mInferHelper.inferGround(mSample)) {
                                     mGroundView.setText("Under-ground");
                                 } else {
                                     mGroundView.setText("On-ground");
                                 }
-                                String result = mInferHelper.inferOneResult(mSample);
+
+                                String result = mInferHelper.inferHierar(mSample);
                                 mHierarView.setText(result);
                                 mNotifyBuilder.setContentText(result);
 

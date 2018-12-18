@@ -40,6 +40,7 @@ public class InferHelper extends BroadcastReceiver {
     private HoeffdingTree classifierPocket;
     private HoeffdingTree classifierDoor;
     private HoeffdingTree classifierGround;
+    private int hierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
 
     // Load the base model and instances
     public InferHelper(Context context) {
@@ -143,148 +144,91 @@ public class InferHelper extends BroadcastReceiver {
     }
 
     // Get a single result from inference
-    public String inferOneResult(double[] sample) throws Exception {
-        if (infer("Pocket", sample)) {
+    public String inferHierar(double[] sample) throws Exception {
+        if (inferPocket(sample)) {
+            hierarResult = 1;
             return "In-Pocket (Do nothing)";
-        } else if (!infer("Door", sample)) {
+        } else if (!inferDoor(sample)) {
+            hierarResult = 2;
             return "Out-Door (Out-Pocket)";
-        } else if (infer("Ground", sample)) {
+        } else if (inferGround(sample)) {
+            hierarResult =3;
             return "Under-ground (In-Door)";
         } else {
+            hierarResult = 4;
             return "On-ground (In-Door)";
         }
     }
 
+    // Get the code of inference result indicator
+    public int getHierarCode(double[] sample) {
+        return hierarResult;
+    }
+
     // Inference on the new instance
-    public boolean infer(String model, double[] sample) throws Exception {
-        double[] entry;
-        Instance inst;
-        switch (model) {
-            case "Pocket":
-                // 10 Proximity, 12 temperature, 2 light density
-                entry = new double[]{sample[10], sample[12], sample[2]};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesPocket);
-                return classifierPocket.classifyInstance(inst) == 1;
-            case "Door":
-                // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
-                entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12]};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesDoor);
-                return classifierDoor.classifyInstance(inst) == 1;
-            case "Ground":
-                // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
-                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14]};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesGround);
-                return classifierGround.classifyInstance(inst) == 1;
-            default:
-                Log.e(TAG, "Wrong parameter of model type: " + model);
-                return false;
+    public boolean inferPocket(double[] sample) throws Exception {
+        // 10 Proximity, 12 temperature, 2 light density
+        double[] entry = new double[]{sample[10], sample[12], sample[2]};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesPocket);
+        return classifierPocket.classifyInstance(inst) == 1;
+    }
+
+    // Inference on the new instance
+    public boolean inferDoor(double[] sample) throws Exception {
+        // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
+        double[] entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12]};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesDoor);
+        return classifierDoor.classifyInstance(inst) == 1;
+
+    }
+
+    // Inference on the new instance
+    public boolean inferGround(double[] sample) throws Exception {
+        // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
+        double[] entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14]};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesGround);
+        return classifierGround.classifyInstance(inst) == 1;
+    }
+
+    // Update the model by online learning
+    public void updatePocket(double[] sample, boolean label) throws Exception {
+        int p;
+        // 10 Proximity, 12 temperature, 2 light density
+        double[] entry = new double[]{sample[10], sample[12], sample[2], label ? 1 : 0};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesPocket);
+        p = AdaBoost.Poisson(LAMBDA);
+        for (int k = 0; k < p; k++) {
+            classifierPocket.updateClassifier(inst);
         }
     }
 
     // Update the model by online learning
-    public void updateByLabel(String model, double[] sample, boolean label) throws Exception {
-        double[] entry;
-        Instance inst;
+    public void updateDoor(double[] sample, boolean label) throws Exception {
         int p;
-        switch (model) {
-            case "Pocket":
-                // 10 Proximity, 12 temperature, 2 light density
-                entry = new double[]{sample[10], sample[12], sample[2], label ? 1 : 0};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesPocket);
-                p = AdaBoost.Poisson(LAMBDA);
-                for (int k = 0; k < p; k++) {
-                    classifierPocket.updateClassifier(inst);
-                }
-                break;
-            case "Door":
-                // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
-                entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], label ? 1 : 0};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesDoor);
-                p = AdaBoost.Poisson(LAMBDA);
-                for (int k = 0; k < p; k++) {
-                    classifierDoor.updateClassifier(inst);
-                }
-                break;
-            case "Ground":
-                // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
-                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], label ? 1 : 0};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesGround);
-                p = AdaBoost.Poisson(LAMBDA);
-                for (int k = 0; k < p; k++) {
-                    classifierGround.updateClassifier(inst);
-                }
-                break;
-            default:
-                Log.e(TAG, "Wrong parameter of model type: " + model);
-                break;
+        // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
+        double[] entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], label ? 1 : 0};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesDoor);
+        p = AdaBoost.Poisson(LAMBDA);
+        for (int k = 0; k < p; k++) {
+            classifierDoor.updateClassifier(inst);
         }
     }
 
-    // Get the feedback and
-    public void updateByFeedback(String feedback, double[] sample) throws Exception {
-        double[] entry;
-        Instance inst;
+    // Update the model by online learning
+    public void updateGround(double[] sample, boolean label) throws Exception {
         int p;
-        switch (feedback) {
-            case "Out-pocket":
-                // 10 Proximity, 12 temperature, 2 light density
-                entry = new double[]{sample[10], sample[12], sample[2], 0};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesPocket);
-                p = AdaBoost.Poisson(LAMBDA);
-                for (int k = 0; k < p; k++) {
-                    classifierPocket.updateClassifier(inst);
-                }
-                break;
-            case "In-door":
-                // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
-                entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], 1};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesDoor);
-                p = AdaBoost.Poisson(LAMBDA);
-                for (int k = 0; k < p; k++) {
-                    classifierDoor.updateClassifier(inst);
-                }
-                break;
-            case "Out-door":
-                // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
-                entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], 0};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesDoor);
-                p = AdaBoost.Poisson(LAMBDA);
-                for (int k = 0; k < p; k++) {
-                    classifierDoor.updateClassifier(inst);
-                }
-                break;
-            case "Under-ground":
-                // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
-                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], 1};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesGround);
-                p = AdaBoost.Poisson(LAMBDA);
-                for (int k = 0; k < p; k++) {
-                    classifierGround.updateClassifier(inst);
-                }
-                break;
-            case "On-ground":
-                // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
-                entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], 0};
-                inst = new DenseInstance(1, entry);
-                inst.setDataset(instancesGround);
-                p = AdaBoost.Poisson(LAMBDA);
-                for (int k = 0; k < p; k++) {
-                    classifierGround.updateClassifier(inst);
-                }
-                break;
-            default:
-                Log.e(TAG, "Wrong parameter of feedback: " + feedback);
-                break;
+        // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
+        double[] entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], label ? 1 : 0};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesGround);
+        p = AdaBoost.Poisson(LAMBDA);
+        for (int k = 0; k < p; k++) {
+            classifierGround.updateClassifier(inst);
         }
     }
 
