@@ -1,9 +1,9 @@
 # Android_My_Sensor
-Android application "My Sensor" for research purpose, dealing with all embedded sensors.
+Android application "My Sensor" for research purpose of PhD project, leveraging all embedded sensors to contribute to mobile crowd sensing.
 
 * Physical context classification
   + Hierarchical inference and update
-* Environment sensing
+* Environment sensing and logging
   + Save and send observation data
-* Networking
+* In-network colaboration
   + Wifir Direct and neighbor aware networking
