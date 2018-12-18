@@ -80,6 +80,6 @@ public class TrainModel1Class {
         // Evaluate classifier on data set
         Evaluation eva = new Evaluation(newTest);
         eva.evaluateModel(classifier, newTest);
-        System.out.println(eva.toSummaryString());
+        System.out.println(eva.pctCorrect());
     }
 }

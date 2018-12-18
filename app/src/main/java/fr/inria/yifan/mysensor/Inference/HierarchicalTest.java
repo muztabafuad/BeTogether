@@ -3,8 +3,6 @@ package fr.inria.yifan.mysensor.Inference;
 import java.io.FileOutputStream;
 import java.util.Random;
 
-import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
-import weka.classifiers.Evaluation;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -27,6 +25,8 @@ public class HierarchicalTest {
         StringBuilder log_pocket = new StringBuilder();
         StringBuilder log_door = new StringBuilder();
         StringBuilder log_ground = new StringBuilder();
+
+        StringBuilder log_time = new StringBuilder();
 
         // Loop for multiple runs
         for (int i = 0; i < run; i++) {
@@ -86,6 +86,7 @@ public class HierarchicalTest {
             //eval.evaluateModel(classifier_ground, test_ground);
             //System.out.println(eval.fMeasure(0));
 
+            /*
             double lambda = 10d;
             int count_err = 0;
             // Limit the feedback amount to 30
@@ -101,8 +102,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_pocket);
                         eva.evaluateModel(classifier_pocket, test_pocket);
-                        //double acc = eva.pctCorrect();
-                        double acc = eva.fMeasure(0);
+                        double acc = eva.pctCorrect();
+                        //double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", pocket accuracy: " + acc);
                         log_pocket.append(count_err).append(", ").append(acc).append("\n");
                     }
@@ -115,8 +116,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_door);
                         eva.evaluateModel(classifier_door, test_door);
-                        //double acc = eva.pctCorrect();
-                        double acc = eva.fMeasure(0);
+                        double acc = eva.pctCorrect();
+                        //double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", door accuracy: " + acc);
                         log_door.append(count_err).append(", ").append(acc).append("\n");
                     }
@@ -129,8 +130,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_ground);
                         eva.evaluateModel(classifier_ground, test_ground);
-                        //double acc = eva.pctCorrect();
-                        double acc = eva.fMeasure(0);
+                        double acc = eva.pctCorrect();
+                        //double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", ground accuracy: " + acc);
                         log_ground.append(count_err).append(", ").append(acc).append("\n");
                     }
@@ -143,8 +144,8 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_ground);
                         eva.evaluateModel(classifier_ground, test_ground);
-                        //double acc = eva.pctCorrect();
-                        double acc = eva.fMeasure(0);
+                        double acc = eva.pctCorrect();
+                        //double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", ground accuracy: " + acc);
                         log_ground.append(count_err).append(", ").append(acc).append("\n");
                     } else if (test_door.instance(j).classValue() == 0) {
@@ -155,15 +156,38 @@ public class HierarchicalTest {
                         count_err += 1;
                         Evaluation eva = new Evaluation(test_door);
                         eva.evaluateModel(classifier_door, test_door);
-                        //double acc = eva.pctCorrect();
-                        double acc = eva.fMeasure(0);
+                        double acc = eva.pctCorrect();
+                        //double acc = eva.fMeasure(0);
                         System.out.println(i + "th run, feedback: " + count_err + ", door accuracy: " + acc);
                         log_door.append(count_err).append(", ").append(acc).append("\n");
                     }
                 }
             }
+            */
+
+            // Runtime evaluation
+            long startTime;
+            long endTime;
+            long totalTime;
+            int res = 0;
+
+            startTime = System.nanoTime();
+            if (classifier_pocket.classifyInstance(test_pocket.instance(99)) == 1) {
+                res = 1;
+            } else if (classifier_door.classifyInstance(test_door.instance(99)) == 0) {
+                res = 2;
+            } else if (classifier_ground.classifyInstance(test_ground.instance(99)) == 1) {
+                res = 3;
+            } else {
+                res = 4;
+            }
+            endTime = System.nanoTime();
+            totalTime = (endTime - startTime);
+            System.out.println("Runtime ms: " + totalTime / 1000000d);
+            log_time.append(i).append(", ").append(totalTime / 1000000d).append("\n");
         }
 
+        /*
         // Save the log file
         String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_pocket_Hierarchical_10";
         FileOutputStream output = new FileOutputStream(logfile);
@@ -174,6 +198,13 @@ public class HierarchicalTest {
         logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_ground_Hierarchical_10";
         output = new FileOutputStream(logfile);
         output.write(log_ground.toString().getBytes());
+        output.close();
+        */
+
+        // Save the log file
+        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/InferenceTime_Hierarchical_10";
+        FileOutputStream output = new FileOutputStream(logfile);
+        output.write(log_time.toString().getBytes());
         output.close();
     }
 }
