@@ -1,13 +1,8 @@
 package fr.inria.yifan.mysensor.Inference;
 
-import android.service.autofill.Dataset;
-
 import java.util.Random;
 
-import weka.classifiers.Evaluation;
 import weka.classifiers.trees.HoeffdingTree;
-import weka.core.DenseInstance;
-import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
@@ -15,7 +10,7 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.NumericToNominal;
 import weka.filters.unsupervised.attribute.Remove;
 
-public class TrainModel {
+public class TrainModelBinary {
 
     // Main method for generating original model
     public static void main(String[] args) throws Exception {
@@ -34,8 +29,6 @@ public class TrainModel {
         11 proximity (b), 12 sound level (dBA), 13 temperature (C), 14 pressure (hPa), 15 humidity (%),
         16 in-pocket label, 17 in-door label, 18 under-ground label
         */
-
-        //GPS, Wifi, Proximity
 
         // Only keep used attributes
         Remove remove = new Remove();

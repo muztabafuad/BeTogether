@@ -1,9 +1,7 @@
 package fr.inria.yifan.mysensor.Inference;
 
-import java.io.FileOutputStream;
 import java.util.Random;
 
-import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.Evaluation;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
@@ -65,128 +63,23 @@ public class TrainModel1Class {
         }
         System.out.println(" Target:" + newTest.classAttribute().name());
 
-        // Model evaluation
-        //HoeffdingTree classifier = new HoeffdingTree();
-
         // 10-fold cross validation
         //Evaluation cross = new Evaluation(newTrain);
         //cross.crossValidateModel(classifier, newTrain, 10, new Random());
         //System.out.println(cross.toSummaryString());
 
         // Build the classifier
-        //classifier.buildClassifier(newTrain);
+        HoeffdingTree classifier = new HoeffdingTree();
+        classifier.buildClassifier(newTrain);
+
+        // Save and load
+        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Classifier_one.model", classifier);
+        Instances dataSet = new Instances(newTrain, 0);
+        SerializationHelper.write("/Users/yifan/Documents/MySensor/app/src/main/assets/Dataset_one.model", dataSet);
 
         // Evaluate classifier on data set
-        //Evaluation eva = new Evaluation(newTest);
-        //eva.evaluateModel(classifier, newTest);
-        //System.out.println(eva.toSummaryString());
-
-        // Multiply runs for evaluation
-        int run = 500;
-        // For generating Poisson number
-        double lambda = 10d;
-
-        /*
-        // Runtime evaluation
-        long startTime;
-        long endTime;
-        long totalTime_b;
-        long totalTime_o;
-        long totalTime_i;
-
-        totalTime_b = 0;
-        totalTime_o = 0;
-        totalTime_i = 0;
-        for (int i = 0; i < run; i++) {
-            //HoeffdingTree classifier = new HoeffdingTree();
-            //IBk classifier = new IBk();
-            //KStar classifier = new KStar();
-            //LWL classifier = new LWL();
-            //NaiveBayesUpdateable classifier = new NaiveBayesUpdateable();
-            SGD classifier = new SGD();
-
-            startTime = System.nanoTime();
-            classifier.buildClassifier(newTrain);
-            endTime = System.nanoTime();
-            totalTime_b += (endTime - startTime);
-            //System.out.println((endTime - startTime) / 1000000d);
-
-            startTime = System.nanoTime();
-            classifier.updateClassifier(newTest.instance(i));
-            endTime = System.nanoTime();
-            totalTime_o += (endTime - startTime);
-            //System.out.println((endTime - startTime) / 1000000d);
-
-            startTime = System.nanoTime();
-            classifier.classifyInstance(newTest.instance(i));
-            endTime = System.nanoTime();
-            totalTime_i += (endTime - startTime);
-            //System.out.println((endTime - startTime) / 1000000d);
-        }
-        System.out.println("Training time (batch) ms: " + (totalTime_b / run) / 1000000d);
-        System.out.println("Updating time (online) ms: " + (totalTime_o / run) / 1000000d);
-        System.out.println("Classification time ms: " + (totalTime_i / run) / 1000000d);
-        */
-
-
-
-        // Accuracy evaluation
-        int count_err;
-        int count_max;
-        double acc_max;
-        StringBuilder log = new StringBuilder();
-
-        // Loop for multiple runs
-        for (int i = 0; i < run; i++) {
-            // Randomize each run!
-            Random random = new Random();
-            newTest.randomize(random);
-
-            // New classifier each run
-            HoeffdingTree classifier = new HoeffdingTree();
-            classifier.buildClassifier(newTrain);
-
-            count_err = 0;
-            count_max = 0;
-            // Evaluate classifier on data set
-            Evaluation eva1 = new Evaluation(newTest);
-            eva1.evaluateModel(classifier, newTest);
-            //System.out.println(eva1.toSummaryString());
-            acc_max = eva1.pctCorrect();
-
-            // Limit the feedback amount to 30
-            for (int j = 0; j < 30; j++) {
-                // Sequential feedback on wrong inference
-                if (classifier.classifyInstance(newTest.instance(j)) != newTest.instance(j).classValue()) {
-                    // Generate Poisson number
-                    int p = AdaBoost.Poisson(lambda);
-                    //System.out.println("K value = " + k);
-                    for (int k = 0; k < p; k++) {
-                        classifier.updateClassifier(newTest.instance(j));
-                    }
-                    count_err++;
-                    Evaluation eva2 = new Evaluation(newTest);
-                    eva2.evaluateModel(classifier, newTest);
-                    double acc = eva2.pctCorrect();
-                    //System.out.println("Accuracy: " + acc);
-                    // Record max accuracy and feedback count
-                    if (acc > acc_max) {
-                        acc_max = acc;
-                        count_max = count_err;
-                    }
-                }
-            }
-            System.out.println(i + "th run, number of feedback: " + count_max + ", max accuracy: " + acc_max);
-            log.append(count_max).append(", ").append(acc_max).append("\n");
-        }
-
-        // Save the log file
-        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/CA_HTree_Pocket_10_OneClass";
-        FileOutputStream output = new FileOutputStream(logfile);
-        output.write(log.toString().getBytes());
-        output.close();
-
-
-
+        Evaluation eva = new Evaluation(newTest);
+        eva.evaluateModel(classifier, newTest);
+        System.out.println(eva.toSummaryString());
     }
 }
