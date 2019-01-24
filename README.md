@@ -1,5 +1,5 @@
-# Android_My_Sensor
-Android application "My Sensor" for research purpose of PhD project, leveraging all embedded sensors to contribute to mobile crowd sensing.
+# Android_CoConSense
+Android application "CoConSense" for research purpose of PhD project, leveraging all embedded sensors to contribute to mobile crowd sensing.
 
 * Physical context classification
   + Hierarchical inference and update
