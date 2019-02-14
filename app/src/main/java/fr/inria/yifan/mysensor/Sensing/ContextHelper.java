@@ -189,6 +189,7 @@ public class ContextHelper extends BroadcastReceiver {
             mActivity.startActivityForResult(intent, ENABLE_REQUEST_LOCATION);
         }
 
+        // Google activity recognition API
         PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, 1,
                 new Intent("ActivityRecognitionResult"), PendingIntent.FLAG_UPDATE_CURRENT);
         ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(mActivity);
