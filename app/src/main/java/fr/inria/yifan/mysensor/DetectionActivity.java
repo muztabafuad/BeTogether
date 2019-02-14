@@ -112,8 +112,7 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    boolean wrong = mInferHelper.inferPocket(mSample);
-                    mInferHelper.updatePocket(mSample, !wrong);
+                    mInferHelper.updatePocket(mSample);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -124,8 +123,7 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    boolean wrong = mInferHelper.inferDoor(mSample);
-                    mInferHelper.updateDoor(mSample, !wrong);
+                    mInferHelper.updateDoor(mSample);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -136,8 +134,7 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    boolean wrong = mInferHelper.inferGround(mSample);
-                    mInferHelper.updateGround(mSample, !wrong);
+                    mInferHelper.updateGround(mSample);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -148,6 +145,11 @@ public class DetectionActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // TODO update the models hierarchically by a feedback
+                try {
+                    mInferHelper.updateHierar(mSample);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -324,9 +326,9 @@ public class DetectionActivity extends AppCompatActivity {
 
                                 String result = mInferHelper.inferHierar(mSample);
                                 mHierarView.setText(result);
-                                mNotifyBuilder.setContentText(result);
 
                                 // TODO intent when users click the feedback button
+                                mNotifyBuilder.setContentText(result);
                                 Intent intent = new Intent();
                                 intent.setAction(Intent.ACTION_MAIN);
                                 intent.putExtra("infer_type", "pocket");

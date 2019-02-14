@@ -3,6 +3,7 @@ package fr.inria.yifan.mysensor.Inference;
 import java.io.FileOutputStream;
 import java.util.Random;
 
+import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -22,9 +23,9 @@ public class HierarchicalTest {
 
         int run = 500;
 
-        StringBuilder log_pocket = new StringBuilder();
-        StringBuilder log_door = new StringBuilder();
-        StringBuilder log_ground = new StringBuilder();
+        //StringBuilder log_pocket = new StringBuilder();
+        //StringBuilder log_door = new StringBuilder();
+        //StringBuilder log_ground = new StringBuilder();
 
         StringBuilder log_time = new StringBuilder();
 
@@ -86,9 +87,10 @@ public class HierarchicalTest {
             //eval.evaluateModel(classifier_ground, test_ground);
             //System.out.println(eval.fMeasure(0));
 
-            /*
             double lambda = 10d;
             int count_err = 0;
+
+            /*
             // Limit the feedback amount to 30
             for (int j = 0; j < 30; j++) {
                 //System.out.println("Iteration: " + j);
@@ -172,6 +174,8 @@ public class HierarchicalTest {
             int res = 0;
 
             startTime = System.nanoTime();
+
+            /*
             if (classifier_pocket.classifyInstance(test_pocket.instance(99)) == 1) {
                 res = 1;
             } else if (classifier_door.classifyInstance(test_door.instance(99)) == 0) {
@@ -180,7 +184,43 @@ public class HierarchicalTest {
                 res = 3;
             } else {
                 res = 4;
+            }*/
+
+            if (classifier_pocket.classifyInstance(test_pocket.instance(99)) == 1) {
+                if (test_pocket.instance(99).classValue() == 0) {
+                    int p = AdaBoost.Poisson(lambda);
+                    for (int k = 0; k < p; k++) {
+                        classifier_pocket.updateClassifier(test_pocket.instance(99));
+                    }
+                }
+            } else if (classifier_door.classifyInstance(test_door.instance(99)) == 0) {
+                if (test_door.instance(99).classValue() == 1) {
+                    int p = AdaBoost.Poisson(lambda);
+                    for (int k = 0; k < p; k++) {
+                        classifier_door.updateClassifier(test_door.instance(99));
+                    }
+                }
+            } else if (classifier_ground.classifyInstance(test_ground.instance(99)) == 1) {
+                if (test_ground.instance(99).classValue() == 0) {
+                    int p = AdaBoost.Poisson(lambda);
+                    for (int k = 0; k < p; k++) {
+                        classifier_ground.updateClassifier(test_ground.instance(99));
+                    }
+                }
+            } else {
+                if (test_ground.instance(99).classValue() == 1) {
+                    int p = AdaBoost.Poisson(lambda);
+                    for (int k = 0; k < p; k++) {
+                        classifier_ground.updateClassifier(test_ground.instance(99));
+                    }
+                } else if (test_door.instance(99).classValue() == 0) {
+                    int p = AdaBoost.Poisson(lambda);
+                    for (int k = 0; k < p; k++) {
+                        classifier_door.updateClassifier(test_door.instance(99));
+                    }
+                }
             }
+
             endTime = System.nanoTime();
             totalTime = (endTime - startTime);
             System.out.println("Runtime ms: " + totalTime / 1000000d);
@@ -202,7 +242,7 @@ public class HierarchicalTest {
         */
 
         // Save the log file
-        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/InferenceTime_Hierarchical_10";
+        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/UpdateTime_Hierarchical_10";
         FileOutputStream output = new FileOutputStream(logfile);
         output.write(log_time.toString().getBytes());
         output.close();

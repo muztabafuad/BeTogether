@@ -3,6 +3,7 @@ package fr.inria.yifan.mysensor.Inference;
 import java.io.FileOutputStream;
 import java.util.Random;
 
+import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -51,9 +52,10 @@ public class OneClassTest {
             Instances newTest = Filter.useFilter(revTest, nominal);
             newTest.setClassIndex(newTest.numAttributes() - 1);
 
-            /*
             double lambda = 10d;
             int count_err = 0;
+
+            /*
             // Limit the feedback amount to 30
             for (int j = 0; j < 30; j++) {
                 //System.out.println("Iteration: " + j);
@@ -79,9 +81,18 @@ public class OneClassTest {
             long startTime;
             long endTime;
             long totalTime;
+            int res = 0;
 
             startTime = System.nanoTime();
-            classifier_one.classifyInstance(newTest.instance(99));
+            //res = (int) classifier_one.classifyInstance(newTest.instance(99));
+
+            if (classifier_one.classifyInstance(newTest.instance(99)) != newTest.instance(99).classValue()) {
+                int p = AdaBoost.Poisson(lambda);
+                for (int k = 0; k < p; k++) {
+                    classifier_one.updateClassifier(newTest.instance(99));
+                }
+            }
+
             endTime = System.nanoTime();
             totalTime = (endTime - startTime);
             System.out.println("Runtime (batch) ms: " + totalTime / 1000000d);
@@ -89,7 +100,7 @@ public class OneClassTest {
         }
 
         // Save the log file
-        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/InferenceTime_One_10";
+        String logfile = "/Users/yifan/Documents/MySensor/app/src/main/assets/UpdateTime_One_10";
         FileOutputStream output = new FileOutputStream(logfile);
         output.write(log_one.toString().getBytes());
         output.close();

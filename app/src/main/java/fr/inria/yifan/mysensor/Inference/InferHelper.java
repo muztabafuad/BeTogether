@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Random;
 
 import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.trees.HoeffdingTree;
@@ -160,9 +161,32 @@ public class InferHelper extends BroadcastReceiver {
         }
     }
 
-    // Get the code of inference result indicator
-    public int getHierarCode(double[] sample) {
-        return hierarResult;
+    // Update the classifier hierarchically
+    public void updateHierar(double[] sample) throws Exception {
+        switch (hierarResult) {
+            case 1:
+                updatePocket(sample);
+                break;
+            case 2:
+                updateDoor(sample);
+                break;
+            case 3:
+                updateGround(sample);
+                break;
+            case 4:
+                Random ran = new Random();
+                if (ran.nextInt(2) == 0) {
+                    Log.d(TAG, "Door update");
+                    updateDoor(sample);
+                } else {
+                    Log.d(TAG, "Ground update");
+                    updateGround(sample);
+                }
+                break;
+            default:
+                Log.e(TAG, "Wrong inference result code");
+                break;
+        }
     }
 
     // Inference on the new instance
@@ -194,10 +218,11 @@ public class InferHelper extends BroadcastReceiver {
     }
 
     // Update the model by online learning
-    public void updatePocket(double[] sample, boolean label) throws Exception {
+    public void updatePocket(double[] sample) throws Exception {
+        boolean wrong = inferPocket(sample);
         int p;
         // 10 Proximity, 12 temperature, 2 light density
-        double[] entry = new double[]{sample[10], sample[12], sample[2], label ? 1 : 0};
+        double[] entry = new double[]{sample[10], sample[12], sample[2], !wrong ? 1 : 0};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesPocket);
         p = AdaBoost.Poisson(LAMBDA);
@@ -207,10 +232,11 @@ public class InferHelper extends BroadcastReceiver {
     }
 
     // Update the model by online learning
-    public void updateDoor(double[] sample, boolean label) throws Exception {
+    public void updateDoor(double[] sample) throws Exception {
+        boolean wrong = inferDoor(sample);
         int p;
         // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
-        double[] entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], label ? 1 : 0};
+        double[] entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12], !wrong ? 1 : 0};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesDoor);
         p = AdaBoost.Poisson(LAMBDA);
@@ -220,10 +246,11 @@ public class InferHelper extends BroadcastReceiver {
     }
 
     // Update the model by online learning
-    public void updateGround(double[] sample, boolean label) throws Exception {
+    public void updateGround(double[] sample) throws Exception {
+        boolean wrong = inferGround(sample);
         int p;
         // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
-        double[] entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], label ? 1 : 0};
+        double[] entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14], !wrong ? 1 : 0};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesGround);
         p = AdaBoost.Poisson(LAMBDA);
