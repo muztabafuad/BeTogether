@@ -38,7 +38,7 @@ class CSVParser {
     }
 
     // Randomize the samples
-    public void shuffleSamples() {
+    void shuffleSamples() {
         // Implementing Fisher–Yates shuffle
         Random random = new Random();
         for (int i = samples.length - 1; i > 0; i--) {
@@ -50,7 +50,7 @@ class CSVParser {
         }
     }
 
-    public double[][] getSampleArray() {
+    double[][] getSampleArray() {
         return samples;
     }
 

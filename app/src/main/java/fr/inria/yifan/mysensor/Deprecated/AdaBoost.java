@@ -28,7 +28,7 @@ public class AdaBoost implements Serializable {
     }
 
     // Train model from a large samples array
-    public void BatchTrain(double[][] samples) {
+    void BatchTrain(double[][] samples) {
         // Initial the weights for all samples
         double[] weight = new double[samples.length];
         for (int j = 0; j < weight.length; j++) {
@@ -52,7 +52,7 @@ public class AdaBoost implements Serializable {
     }
 
     // Online AdaBoost from one new sample
-    public void OnlineUpdate(double[] sample) {
+    void OnlineUpdate(double[] sample) {
         double lambda = 1d;
         // Train all weak learners
         for (int i = 0; i < numLearn; i++) {
@@ -80,7 +80,7 @@ public class AdaBoost implements Serializable {
     }
 
     // Make inference for a new sample
-    public int Predict(double[] feature) {
+    int Predict(double[] feature) {
         // Predict new sample from all learners
         double result_1 = 0d;
         double result_0 = 0d;

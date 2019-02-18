@@ -17,14 +17,13 @@ public class MainActivity extends AppCompatActivity {
     private static final String OUTPUT_NODE = "O";
 
     private static final int[] INPUT_SIZE = {1, 3};
-    private InferHelper inferHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        inferHelper = new InferHelper(this);
+        InferHelper inferHelper = new InferHelper(this);
 
         final Button button = findViewById(R.id.button);
 
@@ -42,10 +41,10 @@ public class MainActivity extends AppCompatActivity {
 
                 float[] inputFloats = {num1, num2, num3};
 
-                float[] resu = {0, 0};
+                float[] result = {0, 0};
 
                 final TextView textViewR = findViewById(R.id.txtViewResult);
-                textViewR.setText(Float.toString(resu[0]) + ", " + Float.toString(resu[1]));
+                textViewR.setText(Float.toString(result[0]) + ", " + Float.toString(result[1]));
             }
         });
 

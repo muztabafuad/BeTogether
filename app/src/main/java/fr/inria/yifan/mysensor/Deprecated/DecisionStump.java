@@ -27,7 +27,7 @@ public class DecisionStump implements Serializable {
     }
 
     // Search best decision stump from large samples
-    public void BatchTrain(double[][] samples, double[] weight, int[] featureInd, int stepNum) {
+    void BatchTrain(double[][] samples, double[] weight, int[] featureInd, int stepNum) {
         // Iteration for each possible feature
         for (int i : featureInd) {
             // For each sample find Max and Min
@@ -74,7 +74,7 @@ public class DecisionStump implements Serializable {
     }
 
     // The simple adjusting for threshold
-    public void UpdateThreshold(double[] sample) {
+    void UpdateThreshold(double[] sample) {
         if (Predict(sample) != sample[sample.length - 1]) {
             //System.out.println("Current FE: " + index + ", OP: " + operation + ", TH: " + threshold +
             //        ", VA: " + sample[index] + ", HY: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
@@ -112,7 +112,7 @@ public class DecisionStump implements Serializable {
     }
 
     // Predict for one new sample
-    public int Predict(double[] features) {
+    int Predict(double[] features) {
         switch (operation) {
             case '(':
                 return features[index] <= threshold ? 1 : 0;
@@ -124,12 +124,12 @@ public class DecisionStump implements Serializable {
     }
 
     // Get the error for this decision stump
-    public double getError() {
+    double getError() {
         return error;
     }
 
     // Update the error for this decision stump
-    public void setError(double err) {
+    void setError(double err) {
         error = err;
     }
 

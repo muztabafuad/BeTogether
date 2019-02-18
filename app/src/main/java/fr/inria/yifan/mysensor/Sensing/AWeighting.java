@@ -4,7 +4,7 @@ package fr.inria.yifan.mysensor.Sensing;
  * This class implements the A-weighting for noise measurement.
  */
 
-public class AWeighting {
+class AWeighting {
 
     private int order; //always = aCoef.length - 1 = bCoef.length (but we keep it in a variable for convenience)
     private double[] aCoef;
@@ -97,7 +97,7 @@ public class AWeighting {
     }
 
     // Apply the A-weighting filter
-    public short[] apply(short input[]) {
+    short[] apply(short input[]) {
         short[] output = new short[input.length];
         for (int i = 0; i < input.length; i++) {
             double x_i = input[i];
