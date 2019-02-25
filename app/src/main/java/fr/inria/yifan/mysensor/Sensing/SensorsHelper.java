@@ -21,7 +21,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
 import static java.lang.System.currentTimeMillis;
 
 /**
- * This class provides functions including initialize and reading data from sensors.
+ * This class implements the sensor helper for a sensing device.
  */
 
 public class SensorsHelper {
@@ -34,7 +34,7 @@ public class SensorsHelper {
     // Audio recorder parameters for sampling
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
 
-    // Declare sensors and recorder
+    // Declare sensors and manager
     private AudioRecord mAudioRecord;
     private AWeighting mAWeighting;
     private Sensor mSensorLight;
@@ -191,17 +191,21 @@ public class SensorsHelper {
 
     // Unregister the broadcast receiver and listeners
     public void stopService() {
-        mAudioRecord.stop();
-        mSensorManager.unregisterListener(mListenerLight);
-        mSensorManager.unregisterListener(mListenerMagnet);
-        mSensorManager.unregisterListener(mListenerProxy);
-        mSensorManager.unregisterListener(mListenerTemp);
-        mSensorManager.unregisterListener(mListenerPress);
-        mSensorManager.unregisterListener(mListenerHumid);
+        try {
+            mAudioRecord.stop();
+            mSensorManager.unregisterListener(mListenerLight);
+            mSensorManager.unregisterListener(mListenerMagnet);
+            mSensorManager.unregisterListener(mListenerProxy);
+            mSensorManager.unregisterListener(mListenerTemp);
+            mSensorManager.unregisterListener(mListenerPress);
+            mSensorManager.unregisterListener(mListenerHumid);
+        } catch (Exception e) {
+            //Pass
+        }
         isSensingRun = false;
     }
 
-    // Get the most recent sound level, NOT in slide window
+    // Get the most recent sound level, NOT using slide window
     public int getSoundLevel() {
         short[] buffer = new short[BUFFER_SIZE];
         // r is the real measurement data length, normally r is less than buffer size
@@ -263,15 +267,11 @@ public class SensorsHelper {
 
     // Simple In/Out-pocket detection function
     /*public boolean isInPocket() {
-        //Toast.makeText(this, "In-pocket", Toast.LENGTH_SHORT).show();
-        //Toast.makeText(this, "Out-pocket", Toast.LENGTH_SHORT).show();
         return mProximity == 0 && mLight < 10;
     }*/
 
     // Simple Indoor/Outdoor detection function
     /*public boolean isInDoor() {
-        //Toast.makeText(this, "Indoor", Toast.LENGTH_SHORT).show();
-        //Toast.makeText(this, "Outdoor", Toast.LENGTH_SHORT).show();
         if (isDaytime() == 1) {
             return mLight < 1500;
         } else {
@@ -279,4 +279,3 @@ public class SensorsHelper {
         }
     }*/
 }
-

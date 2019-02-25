@@ -11,7 +11,7 @@ import android.widget.TextView;
 import java.util.List;
 
 /*
- * This activity provides functions including showing sensor and log sensing data.
+ * This activity shows the sensor list of current device on the layout
  */
 
 public class SensorsActivity extends AppCompatActivity {
@@ -32,7 +32,7 @@ public class SensorsActivity extends AppCompatActivity {
     // Clear all views content
     @SuppressLint("SetTextI18n")
     private void initialViews() {
-        mTextTitle.setText("Available Sensors:");
+        mTextTitle.setText("Available sensors list:");
         mTextMessage.setText("...");
     }
 
@@ -47,7 +47,7 @@ public class SensorsActivity extends AppCompatActivity {
         showSensorList();
     }
 
-    // Show all available sensors in list
+    // Show all available sensors in a list
     private void showSensorList() {
         List<Sensor> allSensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
         StringBuilder sb = new StringBuilder();

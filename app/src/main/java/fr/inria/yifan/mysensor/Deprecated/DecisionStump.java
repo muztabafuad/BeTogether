@@ -3,7 +3,7 @@ package fr.inria.yifan.mysensor.Deprecated;
 import java.io.Serializable;
 
 /*
- This class creates a basic decision stump
+ This class implements a basic decision stump model
  */
 
 public class DecisionStump implements Serializable {
@@ -13,40 +13,40 @@ public class DecisionStump implements Serializable {
 
     private double error; // Minimal error of prediction
     private int index; // Index of feature attribute
-    private char operation; // Operation > or <=
-    private double threshold; // Threshold value
-    private double stepValue; // Threshold steps
+    private char operation; // Operation '>' or '<='
+    private double threshold; // Value of threshold
+    private double stepValue; // Steps os threshold
 
-    // Something for constructor
+    // Constructor initialization
     DecisionStump() {
         error = Double.MAX_VALUE;
-        index = 0;
+        index = -1;
         operation = ' ';
         threshold = 0d;
         stepValue = 0d;
     }
 
-    // Search best decision stump from large samples
+    // Find the best decision stump from a sample set
     void BatchTrain(double[][] samples, double[] weight, int[] featureInd, int stepNum) {
-        // Iteration for each possible feature
+        // Iteration for each candidate feature
         for (int i : featureInd) {
-            // For each sample find Max and Min
+            // Find Max and Min for the feature
             double maxF_i = Double.NEGATIVE_INFINITY;
             double minF_i = Double.POSITIVE_INFINITY;
             for (double[] sample : samples) {
                 maxF_i = sample[i] > maxF_i ? sample[i] : maxF_i;
                 minF_i = sample[i] < minF_i ? sample[i] : minF_i;
             }
-            // Increasing step of threshold for feature
+            // Calculate step of threshold for the feature
             double stepValue_i = (maxF_i - minF_i) / stepNum;
-            // Iteration on all possible thresholds
+            // Iteration on all candidate threshold values
             for (int j = 0; j < stepNum; j++) {
                 double threshold_i = minF_i + j * stepValue_i;
                 double weightErrorLt = 0d; // Less than operation error
                 double weightErrorGt = 0d; // Greater than operation error
                 // Iteration on all samples
                 for (int k = 0; k < samples.length; k++) {
-                    // Weighted sum of prediction error, right prediction will give value 0
+                    // Weighted sum of prediction error, a right prediction gives 0
                     weightErrorLt += Math.abs(
                             (samples[k][i] <= threshold_i ? 1d : 0d) - samples[k][samples[k].length - 1]) * weight[k];
                     weightErrorGt += Math.abs(
@@ -60,7 +60,6 @@ public class DecisionStump implements Serializable {
                     threshold = threshold_i;
                     stepValue = stepValue_i;
                 }
-                // Update the minimal sum of weighted error
                 if (weightErrorGt < error) {
                     error = weightErrorGt;
                     index = i;
@@ -70,14 +69,14 @@ public class DecisionStump implements Serializable {
                 }
             }
         }
-        // Here the decision stump is found
+        // Here the best decision stump is found
     }
 
-    // The simple adjusting for threshold
+    // Update the threshold if the prediction is wrong
     void UpdateThreshold(double[] sample) {
         if (Predict(sample) != sample[sample.length - 1]) {
             //System.out.println("Current FE: " + index + ", OP: " + operation + ", TH: " + threshold +
-            //        ", VA: " + sample[index] + ", HY: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
+            // ", VA: " + sample[index] + ", HY: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
             switch (operation) {
                 case '(':
                     threshold += stepValue;
@@ -89,14 +88,14 @@ public class DecisionStump implements Serializable {
                     throw new IllegalArgumentException("Illegal operation: " + operation);
             }
             //System.out.println("New FE: " + index + ", OP: " + operation + ", TH: " + threshold +
-            //        ", VA: " + sample[index] + ", H: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
+            // ", VA: " + sample[index] + ", H: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
         }
     }
 
-    // The incremental method for threshold
+    // Update the threshold with no condition
     public void PoissonUpdate(double[] sample) {
-        System.out.println("Current FE: " + index + ", OP: " + operation + ", TH: " + threshold +
-                ", VA: " + sample[index] + ", HY: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
+        //System.out.println("Current FE: " + index + ", OP: " + operation + ", TH: " + threshold +
+        // ", VA: " + sample[index] + ", HY: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
         switch (operation) {
             case '(':
                 threshold += stepValue;
@@ -107,11 +106,11 @@ public class DecisionStump implements Serializable {
             default:
                 throw new IllegalArgumentException("Illegal operation: " + operation);
         }
-        System.out.println("New FE: " + index + ", OP: " + operation + ", TH: " + threshold +
-                ", VA: " + sample[index] + ", H: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
+        //System.out.println("New FE: " + index + ", OP: " + operation + ", TH: " + threshold +
+        // ", VA: " + sample[index] + ", H: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
     }
 
-    // Predict for one new sample
+    // Make inference on a new feature vector
     int Predict(double[] features) {
         switch (operation) {
             case '(':
@@ -123,12 +122,12 @@ public class DecisionStump implements Serializable {
         }
     }
 
-    // Get the error for this decision stump
+    // Get the error of this decision stump
     double getError() {
         return error;
     }
 
-    // Update the error for this decision stump
+    // Update the error of this decision stump
     void setError(double err) {
         error = err;
     }

@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.Sensor;
 import android.location.GpsSatellite;
 import android.location.Location;
 import android.location.LocationListener;
@@ -23,7 +22,6 @@ import android.support.annotation.RequiresApi;
 import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
-import android.util.ArrayMap;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -43,7 +41,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
 
 /**
- * This class represents the context helper of a sensing device.
+ * This class implements the context helper for a sensing device.
  */
 
 public class ContextHelper extends BroadcastReceiver {
@@ -53,6 +51,7 @@ public class ContextHelper extends BroadcastReceiver {
     // Thread running flag
     private boolean isSensingRun;
 
+    // Threshold for out-of-range
     private static final int WIFI_RSSI_OUT = -150;
     private static final int GSM_RSSI_OUT = -150;
     private static final int GPS_ACC_OUT = 1000;
@@ -76,11 +75,9 @@ public class ContextHelper extends BroadcastReceiver {
     //private boolean inPocket;
     //private boolean inDoor;
     //private boolean underGround;
-    private ArrayMap<Sensor, Boolean> sensorArray;
+    //private ArrayMap<Sensor, Boolean> sensorArray;
     private Location mLocation;
     private String userActivity;
-
-    //private TensorFlowInferenceInterface inferenceInterface;
 
     // Declare GSM RSSI state listener
     private PhoneStateListener mListenerPhone = new PhoneStateListener() {
@@ -106,9 +103,10 @@ public class ContextHelper extends BroadcastReceiver {
             mSpeed.putValue(location.getSpeed());
         }
 
+        @SuppressLint("MissingPermission")
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
-            //PASS
+            mLocation = mLocationManager.getLastKnownLocation(provider);
         }
 
         @SuppressLint("MissingPermission")
@@ -123,6 +121,7 @@ public class ContextHelper extends BroadcastReceiver {
         }
     };
 
+    // Constructor initialization
     @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public ContextHelper(Activity activity) {
@@ -157,8 +156,6 @@ public class ContextHelper extends BroadcastReceiver {
         //int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         //int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
         //float batteryPct = level / (float) scale;
-
-        //inferenceInterface = new TensorFlowInferenceInterface(mActivity.getAssets(), MODEL_FILE);
     }
 
     // Start the context service
@@ -179,6 +176,7 @@ public class ContextHelper extends BroadcastReceiver {
         mLocation = new Location("null");
 
         mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+
         // Check GPS enable switch
         if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             // Start GPS and location service
@@ -190,8 +188,8 @@ public class ContextHelper extends BroadcastReceiver {
         }
 
         // Google activity recognition API
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, 1,
-                new Intent("ActivityRecognitionResult"), PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, 1000,
+                new Intent("ActivityRecognitionResult"), PendingIntent.FLAG_CANCEL_CURRENT);
         ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(mActivity);
         activityRecognitionClient.requestActivityUpdates(LOCATION_UPDATE_TIME, pendingIntent);
         mActivity.registerReceiver(this, new IntentFilter("ActivityRecognitionResult"));
@@ -214,9 +212,13 @@ public class ContextHelper extends BroadcastReceiver {
 
     // Unregister the listeners
     public void stopService() {
-        mLocationManager.removeUpdates(mListenerLoc);
-        mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
-        mActivity.unregisterReceiver(this);
+        try {
+            mLocationManager.removeUpdates(mListenerLoc);
+            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
+            mActivity.unregisterReceiver(this);
+        } catch (Exception e) {
+            //Pass
+        }
         isSensingRun = false;
     }
 

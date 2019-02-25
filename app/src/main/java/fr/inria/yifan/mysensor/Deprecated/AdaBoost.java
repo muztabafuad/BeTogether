@@ -3,7 +3,7 @@ package fr.inria.yifan.mysensor.Deprecated;
 import java.io.Serializable;
 
 /*
- This class implements AdaBoost inference for 0-1 classes
+ This class implements the AdaBoost model for binary classification
  */
 
 public class AdaBoost implements Serializable {
@@ -11,14 +11,13 @@ public class AdaBoost implements Serializable {
     private static final String TAG = "AdaBoost";
     private static final long serialVersionUID = 1000L;
 
-    // Weak learners and respective weights
-    private int numLearn; // Number of weak learners (classifiers)
-    private int[] features; // The index of features to use for learn
+    private int numLearn; // Number of weak learners (decision stump)
+    private int[] features; // The indexes of features used for learning
     private int stepNumber; // Number of steps for threshold increasing
-    private DecisionStump[] dStumps; // An array of decision stumps
-    private double[] alphas; // Alpha coefficient for each decision stump
+    private DecisionStump[] dStumps; // An array storing decision stumps
+    private double[] alphas; // Alpha coefficient for all decision stumps
 
-    // Initialization
+    // Constructor initialization
     AdaBoost(int numLearner, int[] featureInd, int stepLearn) {
         numLearn = numLearner;
         features = featureInd;
@@ -27,22 +26,33 @@ public class AdaBoost implements Serializable {
         alphas = new double[numLearn];
     }
 
-    // Train model from a large samples array
+    // Public method to generate a Poisson number
+    public static int Poisson(double lambda) {
+        double L = Math.exp(-lambda);
+        double p = 1d;
+        int k = 0;
+        do {
+            k++;
+            p *= Math.random();
+        } while (p > L);
+        return k - 1;
+    }
+
+    // Train the model from a array of samples
     void BatchTrain(double[][] samples) {
         // Initial the weights for all samples
         double[] weight = new double[samples.length];
         for (int j = 0; j < weight.length; j++) {
             weight[j] = 1d / samples.length;
         }
-        // Train all weak learners
+        // Train each decision stump
         for (int i = 0; i < dStumps.length; i++) {
-            // For each weak learner
             dStumps[i] = new DecisionStump();
             dStumps[i].BatchTrain(samples, weight, features, stepNumber);
             double epsilon = dStumps[i].getError();
-            // The weight for classifier
+            // Calculate the coefficient
             alphas[i] = Math.log((1d - epsilon) / epsilon);
-            // Update the weight for all samples
+            // Update weights for all samples
             for (int j = 0; j < weight.length; j++) {
                 weight[j] = weight[j] * (dStumps[i].Predict(samples[j]) == samples[j][samples[j].length - 1]
                         ? 1d / (2d - 2d * epsilon)
@@ -51,10 +61,10 @@ public class AdaBoost implements Serializable {
         }
     }
 
-    // Online AdaBoost from one new sample
+    // Online AdaBoost update using only one sample
     void OnlineUpdate(double[] sample) {
         double lambda = 1d;
-        // Train all weak learners
+        // Update each decision stump
         for (int i = 0; i < numLearn; i++) {
             double lambda_right = 0d;
             double lambda_wrong = 0d;
@@ -63,6 +73,7 @@ public class AdaBoost implements Serializable {
                 //dStumps[i].PoissonUpdate(sample);
                 dStumps[i].UpdateThreshold(sample);
             }
+            // Calculate the coefficient
             if (dStumps[i].Predict(sample) == sample[sample.length - 1]) {
                 lambda_right = lambda_right + lambda;
                 double epsilon = lambda_wrong / (lambda_right + lambda_wrong);
@@ -79,11 +90,11 @@ public class AdaBoost implements Serializable {
         }
     }
 
-    // Make inference for a new sample
+    // Make inference on a new feature vector
     int Predict(double[] feature) {
-        // Predict new sample from all learners
         double result_1 = 0d;
         double result_0 = 0d;
+        // Predict the class using all decision stumps
         for (int i = 0; i < numLearn; i++) {
             if (dStumps[i].Predict(feature) == 1) {
                 result_1 += alphas[i];
@@ -94,17 +105,5 @@ public class AdaBoost implements Serializable {
             }
         }
         return result_1 > result_0 ? 1 : 0;
-    }
-
-    // Generate a Poisson number
-    public static int Poisson(double lambda) {
-        double L = Math.exp(-lambda);
-        double p = 1d;
-        int k = 0;
-        do {
-            k++;
-            p *= Math.random();
-        } while (p > L);
-        return k - 1;
     }
 }

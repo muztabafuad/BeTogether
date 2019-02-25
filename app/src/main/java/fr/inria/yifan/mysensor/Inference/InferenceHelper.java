@@ -27,25 +27,26 @@ import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INPOCKET;
 import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_UNDERGROUND;
 
 /**
- * This class represents the inference helper for environmental contexts.
+ * This class implements the inference helper to detect physical contexts
  */
 
 public class InferenceHelper extends BroadcastReceiver {
 
     private static final String TAG = "Inference helper";
 
-    // Three empty instances for initialization
+    // Instances for data set initialization
     private Instances instancesPocket;
     private Instances instancesDoor;
     private Instances instancesGround;
+    // H.Tree for classifiers initialization
     private HoeffdingTree classifierPocket;
     private HoeffdingTree classifierDoor;
     private HoeffdingTree classifierGround;
     private int hierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
 
-    // Load the base model and instances
+    // Load the trained models and register instances
     public InferenceHelper(Context context) {
-        // Check local model existence
+
         File filePocket = context.getFileStreamPath(MODEL_INPOCKET);
         File fileDoor = context.getFileStreamPath(MODEL_INDOOR);
         File fileGround = context.getFileStreamPath(MODEL_UNDERGROUND);
@@ -55,9 +56,10 @@ public class InferenceHelper extends BroadcastReceiver {
         FileOutputStream fileOutputStream;
         ObjectOutputStream objectOutputStream;
 
+        // Check local model existence
         if (!filePocket.exists() || !fileDoor.exists() || !fileGround.exists()) {
-            Log.d(TAG, "Local model does not exist.");
-            // Initialize trained model
+            Log.d(TAG, "Local models do not exist.");
+            // Initialize trained models
             try {
                 fileInputStream = context.getAssets().openFd(MODEL_INPOCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
@@ -112,7 +114,7 @@ public class InferenceHelper extends BroadcastReceiver {
                 Log.d(TAG, "Error when loading from file: " + e);
             }
         } else {
-            Log.d(TAG, "Local model already exist.");
+            Log.d(TAG, "Local models already exist.");
             try {
                 fileInputStream = context.openFileInput(MODEL_INPOCKET);
                 objectInputStream = new ObjectInputStream(fileInputStream);
@@ -141,51 +143,6 @@ public class InferenceHelper extends BroadcastReceiver {
             } catch (Exception e) {
                 Log.d(TAG, "Error when loading model file: " + e);
             }
-        }
-    }
-
-    // Get a single result from inference
-    public String inferHierar(double[] sample) throws Exception {
-        if (inferPocket(sample)) {
-            hierarResult = 1;
-            return "In-Pocket (Do nothing)";
-        } else if (!inferDoor(sample)) {
-            hierarResult = 2;
-            return "Out-Door (Out-Pocket)";
-        } else if (inferGround(sample)) {
-            hierarResult =3;
-            return "Under-ground (In-Door)";
-        } else {
-            hierarResult = 4;
-            return "On-ground (In-Door)";
-        }
-    }
-
-    // Update the classifier hierarchically
-    public void updateHierar(double[] sample) throws Exception {
-        switch (hierarResult) {
-            case 1:
-                updatePocket(sample);
-                break;
-            case 2:
-                updateDoor(sample);
-                break;
-            case 3:
-                updateGround(sample);
-                break;
-            case 4:
-                Random ran = new Random();
-                if (ran.nextInt(2) == 0) {
-                    Log.d(TAG, "Door update");
-                    updateDoor(sample);
-                } else {
-                    Log.d(TAG, "Ground update");
-                    updateGround(sample);
-                }
-                break;
-            default:
-                Log.e(TAG, "Wrong inference result code");
-                break;
         }
     }
 
@@ -259,7 +216,52 @@ public class InferenceHelper extends BroadcastReceiver {
         }
     }
 
-    // Receive user feedback from broadcast
+    // Get a hierarchical inference result from inference
+    public String inferHierar(double[] sample) throws Exception {
+        if (inferPocket(sample)) {
+            hierarResult = 1;
+            return "In-Pocket (Do nothing)";
+        } else if (!inferDoor(sample)) {
+            hierarResult = 2;
+            return "Out-Door (Out-Pocket)";
+        } else if (inferGround(sample)) {
+            hierarResult = 3;
+            return "Under-ground (In-Door)";
+        } else {
+            hierarResult = 4;
+            return "On-ground (In-Door)";
+        }
+    }
+
+    // Update the classifiers hierarchically
+    public void updateHierar(double[] sample) throws Exception {
+        switch (hierarResult) {
+            case 1:
+                updatePocket(sample);
+                break;
+            case 2:
+                updateDoor(sample);
+                break;
+            case 3:
+                updateGround(sample);
+                break;
+            case 4:
+                Random ran = new Random();
+                if (ran.nextInt(2) == 0) {
+                    Log.d(TAG, "Door update");
+                    updateDoor(sample);
+                } else {
+                    Log.d(TAG, "Ground update");
+                    updateGround(sample);
+                }
+                break;
+            default:
+                Log.e(TAG, "Wrong inference result code");
+                break;
+        }
+    }
+
+    // Receiver for user feedback broadcast
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Received: " + intent);
