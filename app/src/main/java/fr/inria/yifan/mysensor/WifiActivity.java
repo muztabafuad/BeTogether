@@ -21,12 +21,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.inria.yifan.mysensor.Network.WifiDirectHelper;
+import fr.inria.yifan.mysensor.Network.WifiHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
 import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
 
-public class NetworkActivity extends AppCompatActivity {
+public class WifiActivity extends AppCompatActivity {
 
     private static final String TAG = "Wifi Direct activity";
 
@@ -35,7 +35,7 @@ public class NetworkActivity extends AppCompatActivity {
     private ArrayList<WifiP2pDevice> mDeviceList;
 
     // Wifi Direct helper
-    private WifiDirectHelper mWifiDirectHelper;
+    private WifiHelper mWifiHelper;
     private Map<String, String> record;
 
     // Initially bind all views
@@ -48,7 +48,7 @@ public class NetworkActivity extends AppCompatActivity {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void onClick(View view) {
-                mWifiDirectHelper.startService(record);
+                mWifiHelper.startService(record);
                 welcomeView.setText(R.string.open_network);
             }
         });
@@ -65,7 +65,7 @@ public class NetworkActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 WifiP2pDevice device = mAdapterWifi.getItem(position);
-                mWifiDirectHelper.connectTo(device);
+                mWifiHelper.connectTo(device);
             }
         });
     }
@@ -75,10 +75,10 @@ public class NetworkActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_network);
+        setContentView(R.layout.activity_wifi);
         bindViews();
-        mWifiDirectHelper = new WifiDirectHelper(this);
-        mWifiDirectHelper.setAdapterWifi(mAdapterWifi);
+        mWifiHelper = new WifiHelper(this);
+        mWifiHelper.setAdapterWifi(mAdapterWifi);
 
         //  Create a string map containing information about your service.
         record = new HashMap<>();
@@ -92,15 +92,7 @@ public class NetworkActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        mWifiDirectHelper.stopService();
-    }
-
-    // Go to the detection activity
-    public void goDetection(View view) {
-        Intent goToDetection = new Intent();
-        goToDetection.setClass(this, DetectionActivity.class);
-        startActivity(goToDetection);
-        finish();
+        mWifiHelper.stopService();
     }
 
     // Go to the sensing activity
@@ -117,7 +109,7 @@ public class NetworkActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case ENABLE_REQUEST_WIFI: {
-                mWifiDirectHelper.startService(record);
+                mWifiHelper.startService(record);
             }
         }
     }

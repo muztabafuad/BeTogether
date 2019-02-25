@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fr.inria.yifan.mysensor.NetworkActivity">
+    tools:context="fr.inria.yifan.mysensor.WifiActivity">
 
     <TextView
         android:id="@+id/welcome_view"
@@ -44,10 +44,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/green_square"
-            android:onClick="goDetection"
-            android:text="@string/title_detect" />
+            android:drawablePadding="@dimen/activity_vertical_padding"
+            android:text="@string/title_bluetooth" />
 
         <Button
             android:id="@+id/sensing_button"
@@ -55,8 +54,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/red_round"
+            android:drawablePadding="@dimen/activity_vertical_padding"
             android:onClick="goSensing"
             android:text="@string/title_sensing" />
 
@@ -67,9 +66,9 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:clickable="false"
-            android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/blue_square"
-            android:text="@string/title_network" />
+            android:drawablePadding="@dimen/activity_vertical_padding"
+            android:text="@string/title_wifi" />
     </LinearLayout>
 
 </RelativeLayout>

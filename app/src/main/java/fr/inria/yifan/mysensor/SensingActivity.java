@@ -3,7 +3,6 @@ package fr.inria.yifan.mysensor;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -276,18 +275,10 @@ public class SensingActivity extends AppCompatActivity {
         }
     }
 
-    // Go to the detection activity
-    public void goDetection(View view) {
-        Intent goToDetection = new Intent();
-        goToDetection.setClass(this, DetectionActivity.class);
-        startActivity(goToDetection);
-        finish();
-    }
-
     // Go to the network activity
     public void goNetwork(View view) {
         Intent goToNetwork = new Intent();
-        goToNetwork.setClass(this, NetworkActivity.class);
+        goToNetwork.setClass(this, WifiActivity.class);
         startActivity(goToNetwork);
         finish();
     }

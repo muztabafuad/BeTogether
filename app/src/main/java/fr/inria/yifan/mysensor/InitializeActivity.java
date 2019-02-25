@@ -125,14 +125,6 @@ public class InitializeActivity extends AppCompatActivity {
         startActivity(goToSensors);
     }
 
-    // Go to the detection activity
-    public void goDetection(View view) {
-        Intent goToDetection = new Intent();
-        goToDetection.setClass(this, DetectionActivity.class);
-        startActivity(goToDetection);
-        finish();
-    }
-
     // Go to the sensing activity
     public void goSensing(View view) {
         Intent goToSensing = new Intent();
@@ -144,7 +136,7 @@ public class InitializeActivity extends AppCompatActivity {
     // Go to the network activity
     public void goNetwork(View view) {
         Intent goToNetwork = new Intent();
-        goToNetwork.setClass(this, NetworkActivity.class);
+        goToNetwork.setClass(this, WifiActivity.class);
         startActivity(goToNetwork);
         finish();
     }

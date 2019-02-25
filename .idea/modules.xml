@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/MyGroup.iml" filepath="$PROJECT_DIR$/.idea/MyGroup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SenseGroupTogether.iml" filepath="$PROJECT_DIR$/SenseGroupTogether.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

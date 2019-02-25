@@ -48,19 +48,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".DetectionActivity"
+            android:name=".BluetoothActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".SensingActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".NetworkActivity"
+            android:name=".WifiActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".SensorsActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".MessageActivity"
             android:screenOrientation="portrait" />
     </application>
 

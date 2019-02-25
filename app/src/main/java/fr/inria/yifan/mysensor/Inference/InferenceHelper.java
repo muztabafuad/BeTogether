@@ -30,7 +30,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_UNDERGROUND;
  * This class represents the inference helper for environmental contexts.
  */
 
-public class InferHelper extends BroadcastReceiver {
+public class InferenceHelper extends BroadcastReceiver {
 
     private static final String TAG = "Inference helper";
 
@@ -44,7 +44,7 @@ public class InferHelper extends BroadcastReceiver {
     private int hierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
 
     // Load the base model and instances
-    public InferHelper(Context context) {
+    public InferenceHelper(Context context) {
         // Check local model existence
         File filePocket = context.getFileStreamPath(MODEL_INPOCKET);
         File fileDoor = context.getFileStreamPath(MODEL_INDOOR);

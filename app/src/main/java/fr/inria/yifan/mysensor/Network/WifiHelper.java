@@ -31,7 +31,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
  * This class provides functions functions related to the Wifi Direct service..
  */
 
-public class WifiDirectHelper extends BroadcastReceiver {
+public class WifiHelper extends BroadcastReceiver {
 
     private static final String TAG = "Wifi Direct helper";
 
@@ -69,7 +69,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
 
     // Constructor
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    public WifiDirectHelper(Activity activity) {
+    public WifiHelper(Activity activity) {
         mActivity = activity;
 
         IntentFilter mIntentFilter = new IntentFilter();

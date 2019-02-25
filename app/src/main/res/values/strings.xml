@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">My Sensor</string>
-    <string name="title_detect">Detection</string>
+    <string name="app_name">SenseGroupTogether</string>
+    <string name="title_bluetooth">Bluetooth</string>
     <string name="title_sensing">Sensing</string>
-    <string name="title_network">Network</string>
+    <string name="title_wifi">Wifi-Direct</string>
     <string name="button_sensors">Show all sensors</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
