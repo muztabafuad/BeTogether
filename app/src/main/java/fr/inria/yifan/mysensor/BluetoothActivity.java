@@ -103,6 +103,14 @@ public class BluetoothActivity extends AppCompatActivity {
         finish();
     }
 
+    // Go to the network activity
+    public void goWifi(View view) {
+        Intent goToWifi = new Intent();
+        goToWifi.setClass(this, WifiActivity.class);
+        startActivity(goToWifi);
+        finish();
+    }
+
     // Callback for user enabling Wifi switch
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override

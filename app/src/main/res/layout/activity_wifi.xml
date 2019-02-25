@@ -46,6 +46,7 @@
             android:layout_weight="1"
             android:drawableTop="@drawable/green_square"
             android:drawablePadding="@dimen/activity_vertical_padding"
+            android:onClick="goBluetooth"
             android:text="@string/title_bluetooth" />
 
         <Button

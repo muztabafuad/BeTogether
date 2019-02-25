@@ -125,6 +125,14 @@ public class InitializeActivity extends AppCompatActivity {
         startActivity(goToSensors);
     }
 
+    // Go to the network activity
+    public void goBluetooth(View view) {
+        Intent goToBluetooth = new Intent();
+        goToBluetooth.setClass(this, BluetoothActivity.class);
+        startActivity(goToBluetooth);
+        finish();
+    }
+
     // Go to the sensing activity
     public void goSensing(View view) {
         Intent goToSensing = new Intent();
@@ -134,10 +142,10 @@ public class InitializeActivity extends AppCompatActivity {
     }
 
     // Go to the network activity
-    public void goNetwork(View view) {
-        Intent goToNetwork = new Intent();
-        goToNetwork.setClass(this, WifiActivity.class);
-        startActivity(goToNetwork);
+    public void goWifi(View view) {
+        Intent goToWifi = new Intent();
+        goToWifi.setClass(this, WifiActivity.class);
+        startActivity(goToWifi);
         finish();
     }
 

@@ -15,7 +15,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -32,7 +31,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
 
 /*
- * This activity provides functions including labeling scene and logging sensing data.
+ * This activity provides functions including labeling contexts and storing/sending sensing data
  */
 
 public class SensingActivity extends AppCompatActivity {
@@ -41,11 +40,10 @@ public class SensingActivity extends AppCompatActivity {
 
     private final Object mLock; // Thread locker
     private boolean isGetSenseRun; // Running flag
-    private int mSenseRound; // Sensing counter
+    private int mSenseRound; // Sensing round
     private PowerManager.WakeLock mWakeLock; // Awake locker
 
     // Declare all related views in UI
-    private TextView mWelcomeView;
     private Button mStartButton;
     private Button mStopButton;
     private Switch mSwitchLog;
@@ -69,18 +67,19 @@ public class SensingActivity extends AppCompatActivity {
 
     // Initially bind all views
     private void bindViews() {
-        mWelcomeView = findViewById(R.id.welcome_view);
+        TextView mWelcomeView = findViewById(R.id.welcome_view);
         mWelcomeView.setText(R.string.hint_sensing);
         mStartButton = findViewById(R.id.start_button);
         mStopButton = findViewById(R.id.stop_button);
         mStopButton.setVisibility(View.INVISIBLE);
         mSwitchLog = findViewById(R.id.switch_log);
         mSwitchMail = findViewById(R.id.switch_mail);
+        mSwitchMail.setVisibility(View.INVISIBLE);
 
         // Build an adapter to feed the list with the content of a string array
         mSensingData = new ArrayList<>();
         mAdapterSensing = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mSensingData);
-        // then attache the adapter to the list view
+        // Then attache the adapter to the list view
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(mAdapterSensing);
 
@@ -145,6 +144,16 @@ public class SensingActivity extends AppCompatActivity {
                 mStopButton.setVisibility(View.INVISIBLE);
             }
         });
+        mSwitchLog.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mSwitchLog.isChecked()) {
+                    mSwitchMail.setVisibility(View.VISIBLE);
+                } else {
+                    mSwitchMail.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
     }
 
     // Main activity initialization
@@ -154,17 +163,12 @@ public class SensingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensing);
         bindViews();
+
         mSensorHelper = new SensorsHelper(this);
         mContextHelper = new ContextHelper(this);
         mFilesIOHelper = new FilesIOHelper(this);
 
         //acquireWakeLock();
-        if (mSensorHelper != null) {
-            mSensorHelper.startService();
-        }
-        if (mContextHelper != null) {
-            mContextHelper.startService();
-        }
     }
 
     // Stop thread when exit!
@@ -180,12 +184,8 @@ public class SensingActivity extends AppCompatActivity {
         }
         //releaseWakeLock();
         isGetSenseRun = false;
-        if (mSensorHelper != null) {
-            mSensorHelper.stopService();
-        }
-        if (mContextHelper != null) {
-            mContextHelper.stopService();
-        }
+        mSensorHelper.stopService();
+        mContextHelper.stopService();
     }
 
     // Start the sensing thread
@@ -194,21 +194,14 @@ public class SensingActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing and recording");
             return;
         }
-        //mSensorHelper.startService();
+        mSensorHelper.startService();
+        mContextHelper.startService();
         isGetSenseRun = true;
         mSenseRound = 0;
         new Thread(new Runnable() {
             @Override
             public void run() {
                 while (isGetSenseRun) {
-                    // Sampling time delay
-                    synchronized (mLock) {
-                        try {
-                            mLock.wait(SAMPLE_WINDOW_MS);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -234,16 +227,25 @@ public class SensingActivity extends AppCompatActivity {
                             //Log.d(TAG, String.valueOf(mSenseRound));
                         }
                     });
+                    // Sampling time delay
+                    synchronized (mLock) {
+                        try {
+                            mLock.wait(SAMPLE_WINDOW_MS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             }
         }).start();
     }
 
-    // Stop the sound sensing
+    // Stop the sensing
     @SuppressLint("SetTextI18n")
     private void stopRecord() {
-        //mSensorHelper.stopService();
         isGetSenseRun = false;
+        mSensorHelper.stopService();
+        mContextHelper.stopService();
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             final EditText editName = new EditText(this);
@@ -269,6 +271,7 @@ public class SensingActivity extends AppCompatActivity {
             dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
+                    //Pass
                 }
             });
             dialog.show();
@@ -276,10 +279,18 @@ public class SensingActivity extends AppCompatActivity {
     }
 
     // Go to the network activity
-    public void goNetwork(View view) {
-        Intent goToNetwork = new Intent();
-        goToNetwork.setClass(this, WifiActivity.class);
-        startActivity(goToNetwork);
+    public void goBluetooth(View view) {
+        Intent goToBluetooth = new Intent();
+        goToBluetooth.setClass(this, BluetoothActivity.class);
+        startActivity(goToBluetooth);
+        finish();
+    }
+
+    // Go to the network activity
+    public void goWifi(View view) {
+        Intent goToWifi = new Intent();
+        goToWifi.setClass(this, WifiActivity.class);
+        startActivity(goToWifi);
         finish();
     }
 
@@ -309,12 +320,6 @@ public class SensingActivity extends AppCompatActivity {
             mWakeLock.release();
             mWakeLock = null;
         }
-    }
-
-    // Get the string name of current scene
-    private String getSceneString(int radioId) {
-        RadioButton radio = findViewById(radioId);
-        return String.valueOf(radio.getText());
     }
 
     // Get the binary label for this scene

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fr.inria.yifan.mysensor.WifiActivity">
+    tools:context="fr.inria.yifan.mysensor.BluetoothActivity">
 
     <TextView
         android:id="@+id/welcome_view"
@@ -65,9 +65,9 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:clickable="false"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/blue_square"
+            android:onClick="goWifi"
             android:text="@string/title_wifi" />
     </LinearLayout>
 

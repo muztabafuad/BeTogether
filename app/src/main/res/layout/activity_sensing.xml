@@ -154,6 +154,7 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/green_square"
+            android:onClick="goBluetooth"
             android:text="@string/title_bluetooth" />
 
         <Button
@@ -175,7 +176,7 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/blue_square"
-            android:onClick="goNetwork"
+            android:onClick="goWifi"
             android:text="@string/title_wifi" />
     </LinearLayout>
 

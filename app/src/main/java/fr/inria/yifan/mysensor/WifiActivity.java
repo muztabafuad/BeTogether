@@ -95,6 +95,14 @@ public class WifiActivity extends AppCompatActivity {
         mWifiHelper.stopService();
     }
 
+    // Go to the network activity
+    public void goBluetooth(View view) {
+        Intent goToBluetooth = new Intent();
+        goToBluetooth.setClass(this, BluetoothActivity.class);
+        startActivity(goToBluetooth);
+        finish();
+    }
+
     // Go to the sensing activity
     public void goSensing(View view) {
         Intent goToSensing = new Intent();
