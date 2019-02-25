@@ -1,5 +1,8 @@
 package fr.inria.yifan.mysensor.Network;
 
+import android.os.Build;
+import android.support.annotation.RequiresApi;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -8,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
 
@@ -15,9 +19,9 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
  * Create a ClientSocket and make connection to a server on a specified port.
  */
 
-public class GroupClient {
+public class WifiClient {
 
-    private static final String TAG = "Group client";
+    private static final String TAG = "Wifi-Direct client";
 
     // Socket and thread flag
     private Socket mClientSocket;
@@ -31,14 +35,15 @@ public class GroupClient {
     private String mContent;
 
     // Constructor
-    GroupClient(final InetAddress server) {
+    WifiClient(final InetAddress server) {
         isClientRun = true;
         new Thread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
                 try {
                     mClientSocket = new Socket(server, SERVER_PORT);
-                    in = new BufferedReader(new InputStreamReader(mClientSocket.getInputStream(), "UTF-8"));
+                    in = new BufferedReader(new InputStreamReader(mClientSocket.getInputStream(), StandardCharsets.UTF_8));
                     out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(mClientSocket.getOutputStream())), true);
                     while (isClientRun) {
                         if (mClientSocket.isConnected() && !mClientSocket.isInputShutdown()) {

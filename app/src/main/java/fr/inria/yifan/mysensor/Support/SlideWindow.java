@@ -1,10 +1,12 @@
 package fr.inria.yifan.mysensor.Support;
 
-import java.util.Arrays;
+/**
+ * This class implements slide window for the sensing data.
+ */
 
 public class SlideWindow {
-    private float[] storage;
-    private int ct;
+    private float[] storage; // Data array
+    private int ct; // Counter
 
     // Constructor requiring size and initial values
     public SlideWindow(int size, float initVal) {
@@ -17,8 +19,7 @@ public class SlideWindow {
         //System.out.println(Arrays.toString(storage));
     }
 
-    // Adding a new value into the window
-
+    // Adding a new value into the window FIFO
     public void putValue(float val) {
         // Initial updateByLabel
         if (ct == 0) {
@@ -30,6 +31,7 @@ public class SlideWindow {
         ct++;
         //System.out.println(Arrays.toString(storage));
     }
+
     // Return the mean value of the window
     public float getMean() {
         float sum = 0;
@@ -45,7 +47,7 @@ public class SlideWindow {
     }
 
     // Update the window by adding the last value
-    public void updateWindow(){
+    public void updateWindow() {
         this.putValue(this.getLast());
     }
 

@@ -15,7 +15,7 @@ import static fr.inria.yifan.mysensor.Support.Configuration.STORAGE_FILE_PATH;
 import static java.lang.System.currentTimeMillis;
 
 /**
- * This class provides functions including storing and reading sensing data file.
+ * This class provides methods including storing and reading data file.
  */
 
 public class FilesIOHelper {
@@ -24,6 +24,7 @@ public class FilesIOHelper {
 
     private Context mContext;
 
+    // Constructor
     public FilesIOHelper(Context context) {
         super();
         this.mContext = context;
@@ -65,7 +66,7 @@ public class FilesIOHelper {
 
     // Read file from storage
     public String readFile(String filename) throws IOException {
-        StringBuilder sb = new StringBuilder("");
+        StringBuilder sb = new StringBuilder();
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             filename = Environment.getExternalStorageDirectory().getCanonicalPath() + STORAGE_FILE_PATH + "/" + filename;
             FileInputStream input = new FileInputStream(filename);

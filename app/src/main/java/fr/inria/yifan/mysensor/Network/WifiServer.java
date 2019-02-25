@@ -1,5 +1,8 @@
 package fr.inria.yifan.mysensor.Network;
 
+import android.os.Build;
+import android.support.annotation.RequiresApi;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -9,6 +12,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,9 +23,9 @@ import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
  * Create a ServerSocket and waits for a connection from a client on a specified port in a background thread.
  */
 
-public class GroupServer {
+public class WifiServer {
 
-    private static final String TAG = "Group server";
+    private static final String TAG = "Wifi-Direct server";
 
     // Server socket loop thread flag
     private boolean isServerRun;
@@ -30,7 +34,7 @@ public class GroupServer {
     private ArrayList<Socket> mClientList = new ArrayList<>();
 
     // Constructor
-    GroupServer() {
+    WifiServer() {
         isServerRun = true;
         new Thread(new Runnable() {
             @Override
@@ -51,12 +55,13 @@ public class GroupServer {
     }
 
     // Send message to a specific client
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean sendMsgTo(String msg, InetAddress destination) {
         for (Socket client : mClientList) {
             if (client.getInetAddress() == destination) {
                 PrintWriter pout;
                 try {
-                    pout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(client.getOutputStream(), "UTF-8")), true);
+                    pout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8)), true);
                     pout.println(msg);
                     return true;
                 } catch (IOException e) {
@@ -73,6 +78,7 @@ public class GroupServer {
         private Socket socket;
         private BufferedReader in;
 
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         Service(Socket socket) {
             this.socket = socket;
             try {
@@ -84,6 +90,7 @@ public class GroupServer {
             }
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
         public void run() {
             try {
@@ -107,13 +114,14 @@ public class GroupServer {
         }
 
         // Send message to all clients
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         private void broadCastMsg() {
             int num = mClientList.size();
             for (int index = 0; index < num; index++) {
                 Socket client = mClientList.get(index);
                 PrintWriter pout;
                 try {
-                    pout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(client.getOutputStream(), "UTF-8")), true);
+                    pout = new PrintWriter(new BufferedWriter(new OutputStreamWriter(client.getOutputStream(), StandardCharsets.UTF_8)), true);
                     pout.println(msg);
                 } catch (IOException e) {
                     e.printStackTrace();

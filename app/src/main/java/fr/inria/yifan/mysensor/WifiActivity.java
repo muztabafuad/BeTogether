@@ -32,7 +32,6 @@ public class WifiActivity extends AppCompatActivity {
 
     // Declare adapter and device list
     private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
-    private ArrayList<WifiP2pDevice> mDeviceList;
 
     // Wifi Direct helper
     private WifiHelper mWifiHelper;
@@ -54,7 +53,7 @@ public class WifiActivity extends AppCompatActivity {
         });
 
         // Build an adapter to feed the list with the content of an array of strings
-        mDeviceList = new ArrayList<>();
+        ArrayList<WifiP2pDevice> mDeviceList = new ArrayList<>();
         mAdapterWifi = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mDeviceList);
 
         // Attache the adapter to the list view
@@ -76,6 +75,7 @@ public class WifiActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_wifi);
+
         bindViews();
         mWifiHelper = new WifiHelper(this);
         mWifiHelper.setAdapterWifi(mAdapterWifi);

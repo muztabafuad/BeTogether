@@ -40,8 +40,6 @@ public class WifiHelper extends BroadcastReceiver {
 
     // Declare references and variables
     private Activity mActivity;
-    private GroupServer mGroupServer;
-    private GroupClient mGroupClient;
     private ArrayAdapter<WifiP2pDevice> mAdapterWifi;
 
     // Declare channel and Wifi Direct manager
@@ -57,12 +55,12 @@ public class WifiHelper extends BroadcastReceiver {
                 // Do whatever tasks are specific to the group owner.
                 // One common case is creating a group owner thread and accepting incoming connections.
                 Toast.makeText(mActivity, "I am the group owner.", Toast.LENGTH_LONG).show();
-                mGroupServer = new GroupServer();
+                WifiServer mWifiServer = new WifiServer();
             } else if (wifiP2pInfo.groupFormed) {
                 // The other device acts as the peer (client).
                 // In this case, you'll want to create a peer thread that connects to the group owner.
                 Toast.makeText(mActivity, "I am the group member of " + groupOwnerAddress, Toast.LENGTH_LONG).show();
-                mGroupClient = new GroupClient(groupOwnerAddress);
+                WifiClient mWifiClient = new WifiClient(groupOwnerAddress);
             }
         }
     };

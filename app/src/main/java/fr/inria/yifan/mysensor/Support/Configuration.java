@@ -17,6 +17,8 @@ public class Configuration implements Serializable {
     public static final int PERMS_REQUEST_LOCATION = 1002;
     public static final int ENABLE_REQUEST_LOCATION = 1003;
     public static final int ENABLE_REQUEST_WIFI = 1004;
+    public static final int ENABLE_REQUEST_BT = 1005;
+
     // Wifi Direct network parameters
     public static final int SERVER_PORT = 8888;
     // Parameters for audio sound signal sampling
