@@ -21,8 +21,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import fr.inria.yifan.mysensor.Sensing.ContextHelper;
-import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
+import fr.inria.yifan.mysensor.Context.Sensing.ContextHelper;
+import fr.inria.yifan.mysensor.Context.Sensing.SensorsHelper;
 import fr.inria.yifan.mysensor.Support.FilesIOHelper;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.DST_MAIL_ADDRESS;

@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Sensing;
+package fr.inria.yifan.mysensor.Context.Sensing;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;

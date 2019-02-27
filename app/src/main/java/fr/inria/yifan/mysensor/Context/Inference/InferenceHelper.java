@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Inference;
+package fr.inria.yifan.mysensor.Context.Inference;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

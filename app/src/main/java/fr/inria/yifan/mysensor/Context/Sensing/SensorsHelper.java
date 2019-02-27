@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Sensing;
+package fr.inria.yifan.mysensor.Context.Sensing;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,6 +11,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
 
+import fr.inria.yifan.mysensor.Support.AWeighting;
 import fr.inria.yifan.mysensor.Support.SlideWindow;
 
 import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
