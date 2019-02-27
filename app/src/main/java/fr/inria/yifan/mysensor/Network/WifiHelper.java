@@ -28,7 +28,7 @@ import java.util.Map;
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
 
 /**
- * This class provides functions functions related to the Wifi Direct service..
+ * This class provides functions functions related to the Wifi Direct service.
  */
 
 public class WifiHelper extends BroadcastReceiver {

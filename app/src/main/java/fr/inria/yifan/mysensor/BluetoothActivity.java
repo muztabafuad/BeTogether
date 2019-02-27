@@ -1,7 +1,7 @@
 package fr.inria.yifan.mysensor;
 
 /*
- * This activity provides functions related to the Wifi Direct service.
+ * This activity provides functions related to the Bluetooth service.
  */
 
 import android.content.Intent;
@@ -16,7 +16,6 @@ import fr.inria.yifan.mysensor.Network.BluetoothHelper;
 public class BluetoothActivity extends AppCompatActivity {
 
     private static final String TAG = "Bluetooth activity";
-
 
     // Bluetooth helper
     private BluetoothHelper mBluetoothHelper;

@@ -37,6 +37,7 @@ public class WifiServer {
     WifiServer() {
         isServerRun = true;
         new Thread(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
                 try {

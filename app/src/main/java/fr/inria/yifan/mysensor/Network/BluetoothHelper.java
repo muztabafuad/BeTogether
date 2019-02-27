@@ -16,7 +16,7 @@ import java.util.Map;
 import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_BT;
 
 /**
- * This class provides functions functions related to the Bluetooth service..
+ * This class provides functions functions related to the Bluetooth service.
  */
 
 public class BluetoothHelper extends BroadcastReceiver {
@@ -35,10 +35,6 @@ public class BluetoothHelper extends BroadcastReceiver {
         // Register for broadcasts when a device is discovered.
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         mActivity.registerReceiver(this, filter);
-
-
-
-
     }
 
     // Set the service record information and startService thr service
@@ -55,12 +51,12 @@ public class BluetoothHelper extends BroadcastReceiver {
         }
     }
 
-    // Close all registered services related to Wifi Direct
+    // Close all registered services related to Bluetooth
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void stopService() {
         mActivity.unregisterReceiver(this);
     }
-    
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
