@@ -29,4 +29,6 @@
     <string name="switch_mail">&amp; Mail log</string>
     <string name="notify_title">Inference Result</string>
     <string name="notify_content">…</string>
+    <string name="feedback_button">WRONG INFERENCE!</string>
+    <string name="welcome_text">This is a test activity…</string>
 </resources>
