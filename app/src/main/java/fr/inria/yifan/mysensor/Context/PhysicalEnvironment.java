@@ -1,7 +1,10 @@
 package fr.inria.yifan.mysensor.Context;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -9,7 +12,6 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,21 +27,25 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.Random;
 
+import fr.inria.yifan.mysensor.Deprecated.AdaBoost;
 import weka.classifiers.trees.HoeffdingTree;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
+import static fr.inria.yifan.mysensor.Support.Configuration.LAMBDA;
+
 /**
- * This class provides context information about physical environments.
+ * This class provides context information about the physical environments.
  */
 
-public class PhysicalEnvironment {
+public class PhysicalEnvironment extends BroadcastReceiver {
 
     private static final String TAG = "Physical environment";
 
-    // Load the learning model file from this path
+    // Define the learning model files to load
     private static final String MODEL_POCKET = "Classifier_pocket.model";
     private static final String MODEL_DOOR = "Classifier_door.model";
     private static final String MODEL_GROUND = "Classifier_ground.model";
@@ -47,21 +53,23 @@ public class PhysicalEnvironment {
     private static final String DATASET_DOOR = "Dataset_door.model";
     private static final String DATASET_GROUND = "Dataset_ground.model";
 
-    private HashMap<String, String> mPhysicalEnv;
-
     // Instances for data set initialization
     private Instances instancesPocket;
     private Instances instancesDoor;
     private Instances instancesGround;
-    // H.Tree for classifiers initialization
+    // Hoeffding Tree for classifiers initialization
     private HoeffdingTree classifierPocket;
     private HoeffdingTree classifierDoor;
     private HoeffdingTree classifierGround;
 
+    // Variables
+    private Context mContext;
+    private HashMap<String, String> mPhysicalEnv;
     private SensorManager mSensorManager;
     private TelephonyManager mTelephonyManager;
     private LocationManager mLocationManager;
     private WifiManager mWifiManager;
+    private int mHierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
 
     private float mLight;
     private float mRssiLevel;
@@ -73,6 +81,7 @@ public class PhysicalEnvironment {
     private float mPressure;
     private float mHumidity;
 
+    // Declare light sensor listener
     private SensorEventListener mListenerLight = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -84,15 +93,18 @@ public class PhysicalEnvironment {
         }
     };
 
+    // Declare GSM RSSI state listener
+
     private PhoneStateListener mListenerPhone = new PhoneStateListener() {
-        @RequiresApi(api = Build.VERSION_CODES.M)
         @Override
+        @RequiresApi(api = Build.VERSION_CODES.M)
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
             mRssiLevel = signalStrength.getLevel();
             mRssiValue = signalStrength.getGsmSignalStrength() * 2 - 113; // -> dBm
         }
     };
 
+    // Declare location service listener
     private LocationListener mListenerLoc = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
@@ -112,6 +124,7 @@ public class PhysicalEnvironment {
         }
     };
 
+    // Declare proximity sensor listener
     private SensorEventListener mListenerProxy = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -123,6 +136,7 @@ public class PhysicalEnvironment {
         }
     };
 
+    // Declare temperature sensor listener
     private SensorEventListener mListenerTemp = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -134,6 +148,7 @@ public class PhysicalEnvironment {
         }
     };
 
+    // Declare pressure sensor listener
     private SensorEventListener mListenerPress = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -145,6 +160,7 @@ public class PhysicalEnvironment {
         }
     };
 
+    // Declare humidity sensor listener
     private SensorEventListener mListenerHumid = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
@@ -156,22 +172,26 @@ public class PhysicalEnvironment {
         }
     };
 
+    // Constructor initialization
     public PhysicalEnvironment(Context context) {
-        loadModels(context);
-        mLight = 0;
-        mRssiLevel = 0;
-        mRssiValue = 0;
-        mAccuracy = 0;
-        mWifiRssi = 0;
-        mProximity = 0;
-        mTemperature = 0;
-        mPressure = 0;
-        mHumidity = 0;
+        mContext = context;
+        loadModels(mContext);
 
-        mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        mWifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        // Initial values are set to indoor
+        mLight = 1000;
+        mRssiLevel = 3;
+        mRssiValue = -100;
+        mAccuracy = 1000;
+        mWifiRssi = -100;
+        mProximity = 8;
+        mTemperature = 25;
+        mPressure = 1007;
+        mHumidity = 65;
+
+        mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+        mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+        mWifiManager = (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         mPhysicalEnv = new HashMap<>();
         mPhysicalEnv.put("InPocket", null);
@@ -181,60 +201,157 @@ public class PhysicalEnvironment {
 
     @SuppressLint("MissingPermission")
     public void startService() {
-        // Register listeners for all environmental sensors
-        mSensorManager.registerListener(mListenerLight, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_FASTEST);
-        mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 1, mListenerLoc);
-        mSensorManager.registerListener(mListenerProxy, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(mListenerTemp, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(mListenerPress, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_FASTEST);
-        mSensorManager.registerListener(mListenerHumid, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_FASTEST);
+        // Register listeners for all sensors and components
+        try {
+            mSensorManager.registerListener(mListenerLight, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
+            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 1, mListenerLoc);
+            mContext.registerReceiver(this, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+            mSensorManager.registerListener(mListenerProxy, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(mListenerTemp, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(mListenerPress, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(mListenerHumid, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
+        } catch (Exception e) {
+            //Pass
+        }
     }
 
     public void stopService() {
-
+        try {
+            mSensorManager.unregisterListener(mListenerLight);
+            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
+            mLocationManager.removeUpdates(mListenerLoc);
+            mContext.unregisterReceiver(this);
+            mSensorManager.unregisterListener(mListenerProxy);
+            mSensorManager.unregisterListener(mListenerTemp);
+            mSensorManager.unregisterListener(mListenerPress);
+            mSensorManager.unregisterListener(mListenerHumid);
+        } catch (Exception e) {
+            //Pass
+        }
     }
 
+    // // Get the most recent physical environment
     public HashMap getPhysicalEnv() {
-        // Wifi RSSI has no callback listener
-        if (mWifiManager.isWifiEnabled()) {
-            WifiInfo wifiInfo = mWifiManager.getConnectionInfo();
-            if (wifiInfo != null) {
-                mWifiRssi = wifiInfo.getRssi();
-            }
+        if (inferPocket()) {
+            hierarResult = 1;
+            return "In-Pocket (Do nothing)";
+        } else if (!inferDoor()) {
+            hierarResult = 2;
+            return "Out-Door (Out-Pocket)";
+        } else if (inferGround()) {
+            hierarResult = 3;
+            return "Under-ground (In-Door)";
+        } else {
+            hierarResult = 4;
+            return "On-ground (In-Door)";
         }
+
         return mPhysicalEnv;
     }
-    //Log.d(TAG, Arrays.toString(mSample));
-
 
     // Inference on the new instance
-    public boolean inferPocket(double[] sample) throws Exception {
+    public boolean inferPocket() throws Exception {
         // 10 Proximity, 12 temperature, 2 light density
-        double[] entry = new double[]{sample[10], sample[12], sample[2]};
+        double[] entry = new double[]{mProximity, mTemperature, mLight};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesPocket);
         return classifierPocket.classifyInstance(inst) == 1;
     }
 
     // Inference on the new instance
-    public boolean inferDoor(double[] sample) throws Exception {
+    public boolean inferDoor() throws Exception {
         // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
-        double[] entry = new double[]{sample[7], sample[5], sample[6], sample[9], sample[2], sample[12]};
+        double[] entry = new double[]{mAccuracy, mRssiLevel, mRssiValue, mWifiRssi, mLight, mTemperature};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesDoor);
         return classifierDoor.classifyInstance(inst) == 1;
+
     }
 
     // Inference on the new instance
-    public boolean inferGround(double[] sample) throws Exception {
+    public boolean inferGround() throws Exception {
         // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
-        double[] entry = new double[]{sample[5], sample[7], sample[12], sample[6], sample[13], sample[9], sample[14]};
+        double[] entry = new double[]{mRssiLevel, mAccuracy, mTemperature, mRssiValue, mPressure, mWifiRssi, mHumidity};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesGround);
         return classifierGround.classifyInstance(inst) == 1;
     }
 
+    // Update the model by online learning
+    public void updatePocket() throws Exception {
+        boolean wrong = inferPocket();
+        // 10 Proximity, 12 temperature, 2 light density
+        double[] entry = new double[]{mProximity, mTemperature, mLight, !wrong ? 1 : 0};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesPocket);
+        int p = AdaBoost.Poisson(LAMBDA);
+        for (int k = 0; k < p; k++) {
+            classifierPocket.updateClassifier(inst);
+        }
+    }
+
+    // Update the model by online learning
+    public void updateDoor() throws Exception {
+        boolean wrong = inferDoor();
+        // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
+        double[] entry = new double[]{mAccuracy, mRssiLevel, mRssiValue, mWifiRssi, mLight, mTemperature, !wrong ? 1 : 0};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesDoor);
+        int p = AdaBoost.Poisson(LAMBDA);
+        for (int k = 0; k < p; k++) {
+            classifierDoor.updateClassifier(inst);
+        }
+    }
+
+    // Update the model by online learning
+    public void updateGround() throws Exception {
+        boolean wrong = inferGround();
+        // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
+        double[] entry = new double[]{mRssiLevel, mAccuracy, mTemperature, mRssiValue, mPressure, mWifiRssi, mHumidity, !wrong ? 1 : 0};
+        Instance inst = new DenseInstance(1, entry);
+        inst.setDataset(instancesGround);
+        int p = AdaBoost.Poisson(LAMBDA);
+        for (int k = 0; k < p; k++) {
+            classifierGround.updateClassifier(inst);
+        }
+    }
+
+    // Get a hierarchical inference result from inference
+    public String inferHierar(double[] sample) {
+
+    }
+
+    // Update the classifiers hierarchically
+    public void updateModels() throws Exception {
+        switch (hierarResult) {
+            case 1:
+                updatePocket();
+                break;
+            case 2:
+                updateDoor();
+                break;
+            case 3:
+                updateGround();
+                break;
+            case 4:
+                Random ran = new Random();
+                if (ran.nextInt(2) == 0) {
+                    Log.d(TAG, "Door update");
+                    updateDoor();
+                } else {
+                    Log.d(TAG, "Ground update");
+                    updateGround();
+                }
+                break;
+            default:
+                Log.e(TAG, "Wrong inference result code");
+                break;
+        }
+    }
+
+
+    // Load models and data set format from files
     private void loadModels(Context context) {
         File filePocket = context.getFileStreamPath(MODEL_POCKET);
         File fileDoor = context.getFileStreamPath(MODEL_DOOR);
@@ -334,5 +451,15 @@ public class PhysicalEnvironment {
             }
         }
 
+    }
+
+    // Wifi signal strength detected callback
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        try {
+            mWifiRssi = mWifiManager.getConnectionInfo().getRssi();
+        } catch (Exception e) {
+            //Pass
+        }
     }
 }

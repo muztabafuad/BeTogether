@@ -13,7 +13,7 @@ import com.google.android.gms.location.ActivityRecognitionResult;
 import java.util.HashMap;
 
 /**
- * This class provides context information about user activity.
+ * This class provides context information about the user activity.
  */
 
 public class UserActivity extends BroadcastReceiver {
@@ -23,10 +23,12 @@ public class UserActivity extends BroadcastReceiver {
     // Time interval between activity updates (milliseconds)
     private static final int ACTIVITY_UPDATE_TIME = 500;
 
+    // Variables
     private Context mContext;
     private int mActivityType;
     private HashMap<String, String> mActivity;
 
+    // Constructor initialization
     public UserActivity(Context context) {
         mContext = context;
         mActivityType = -1;
@@ -38,14 +40,17 @@ public class UserActivity extends BroadcastReceiver {
         // Google activity recognition API
         PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 1001, new Intent("ActivityRecognitionResult"), PendingIntent.FLAG_CANCEL_CURRENT);
         ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(mContext);
+        // Register the update receiver
         activityRecognitionClient.requestActivityUpdates(ACTIVITY_UPDATE_TIME, pendingIntent);
         mContext.registerReceiver(this, new IntentFilter("ActivityRecognitionResult"));
     }
 
     public void stopService() {
+        // Unregister the update receiver
         mContext.unregisterReceiver(this);
     }
 
+    // Get the most recent user activity
     public HashMap getUserActivity() {
         switch (mActivityType) {
             case 0:
@@ -67,6 +72,7 @@ public class UserActivity extends BroadcastReceiver {
         return mActivity;
     }
 
+    // Callback when receive a user activity result
     @Override
     public void onReceive(Context context, Intent intent) {
         if (ActivityRecognitionResult.hasResult(intent)) {

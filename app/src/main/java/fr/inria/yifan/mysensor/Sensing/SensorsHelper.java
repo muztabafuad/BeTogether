@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Context.Sensing;
+package fr.inria.yifan.mysensor.Sensing;
 
 import android.app.Activity;
 import android.content.Context;
