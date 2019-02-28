@@ -64,7 +64,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
     // Variables
     private Context mContext;
-    private HashMap<String, String> mPhysicalEnv;
+    private HashMap<String, Boolean> mPhysicalEnv;
     private SensorManager mSensorManager;
     private TelephonyManager mTelephonyManager;
     private LocationManager mLocationManager;
@@ -246,24 +246,24 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         try {
             if (inferInPocket()) {
                 mHierarResult = 1;
-                mPhysicalEnv.put("InPocket", "TRUE");
+                mPhysicalEnv.put("InPocket", true);
                 mPhysicalEnv.put("InDoor", null);
                 mPhysicalEnv.put("UnderGround", null);
             } else if (!inferInDoor()) {
                 mHierarResult = 2;
-                mPhysicalEnv.put("InPocket", "FALSE");
-                mPhysicalEnv.put("InDoor", "FALSE");
+                mPhysicalEnv.put("InPocket", false);
+                mPhysicalEnv.put("InDoor", false);
                 mPhysicalEnv.put("UnderGround", null);
             } else if (inferUnderGround()) {
                 mHierarResult = 3;
-                mPhysicalEnv.put("InPocket", "FALSE");
-                mPhysicalEnv.put("InDoor", "TRUE");
-                mPhysicalEnv.put("UnderGround", "TRUE");
+                mPhysicalEnv.put("InPocket", false);
+                mPhysicalEnv.put("InDoor", true);
+                mPhysicalEnv.put("UnderGround", true);
             } else {
                 mHierarResult = 4;
-                mPhysicalEnv.put("InPocket", "FALSE");
-                mPhysicalEnv.put("InDoor", "TRUE");
-                mPhysicalEnv.put("UnderGround", "FALSE");
+                mPhysicalEnv.put("InPocket", false);
+                mPhysicalEnv.put("InDoor", true);
+                mPhysicalEnv.put("UnderGround", false);
             }
         } catch (Exception e) {
             e.printStackTrace();
