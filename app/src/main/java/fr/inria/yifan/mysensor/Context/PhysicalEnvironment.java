@@ -232,21 +232,25 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     }
 
     // // Get the most recent physical environment
-    public HashMap getPhysicalEnv() {
+    public HashMap getPhysicalEnv() throws Exception {
         if (inferPocket()) {
-            hierarResult = 1;
-            return "In-Pocket (Do nothing)";
+            mHierarResult = 1;
+            mPhysicalEnv.put("InPocket", "true");
         } else if (!inferDoor()) {
-            hierarResult = 2;
-            return "Out-Door (Out-Pocket)";
+            mHierarResult = 2;
+            mPhysicalEnv.put("InPocket", "false");
+            mPhysicalEnv.put("InDoor", "false");
         } else if (inferGround()) {
-            hierarResult = 3;
-            return "Under-ground (In-Door)";
+            mHierarResult = 3;
+            mPhysicalEnv.put("InPocket", "false");
+            mPhysicalEnv.put("InDoor", "true");
+            mPhysicalEnv.put("UnderGround", "true");
         } else {
-            hierarResult = 4;
-            return "On-ground (In-Door)";
+            mHierarResult = 4;
+            mPhysicalEnv.put("InPocket", "false");
+            mPhysicalEnv.put("InDoor", "true");
+            mPhysicalEnv.put("UnderGround", "false");
         }
-
         return mPhysicalEnv;
     }
 
@@ -317,14 +321,9 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         }
     }
 
-    // Get a hierarchical inference result from inference
-    public String inferHierar(double[] sample) {
-
-    }
-
     // Update the classifiers hierarchically
     public void updateModels() throws Exception {
-        switch (hierarResult) {
+        switch (mHierarResult) {
             case 1:
                 updatePocket();
                 break;
@@ -337,10 +336,10 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             case 4:
                 Random ran = new Random();
                 if (ran.nextInt(2) == 0) {
-                    Log.d(TAG, "Door update");
+                    //Log.d(TAG, "Door update");
                     updateDoor();
                 } else {
-                    Log.d(TAG, "Ground update");
+                    //Log.d(TAG, "Ground update");
                     updateGround();
                 }
                 break;
@@ -349,7 +348,6 @@ public class PhysicalEnvironment extends BroadcastReceiver {
                 break;
         }
     }
-
 
     // Load models and data set format from files
     private void loadModels(Context context) {
