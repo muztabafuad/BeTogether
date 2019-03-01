@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Network;
+package fr.inria.yifan.mysensor.Deprecated.Network;
 
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SERVER_PORT;
 
 /**
  * Create a ServerSocket and waits for a connection from a client on a specified port in a background thread.

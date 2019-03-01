@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor;
+package fr.inria.yifan.mysensor.Deprecated;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
@@ -21,13 +21,14 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import fr.inria.yifan.mysensor.Sensing.ContextHelper;
-import fr.inria.yifan.mysensor.Sensing.SensorsHelper;
-import fr.inria.yifan.mysensor.Support.FilesIOHelper;
+import fr.inria.yifan.mysensor.Deprecated.Sensing.ContextHelper;
+import fr.inria.yifan.mysensor.Deprecated.Sensing.SensorsHelper;
+import fr.inria.yifan.mysensor.Deprecated.Support.FilesIOHelper;
+import fr.inria.yifan.mysensor.R;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.DST_MAIL_ADDRESS;
-import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.DST_MAIL_ADDRESS;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.ENABLE_REQUEST_LOCATION;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
 
 /*

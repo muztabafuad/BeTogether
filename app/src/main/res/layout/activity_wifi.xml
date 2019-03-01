@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fr.inria.yifan.mysensor.WifiActivity">
+    tools:context="fr.inria.yifan.mysensor.Deprecated.WifiActivity">
 
     <TextView
         android:id="@+id/welcome_view"

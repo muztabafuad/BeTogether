@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor;
+package fr.inria.yifan.mysensor.Deprecated;
 
 /*
  * This activity provides functions related to the Bluetooth service.
@@ -11,7 +11,8 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import fr.inria.yifan.mysensor.Network.BluetoothHelper;
+import fr.inria.yifan.mysensor.Deprecated.Network.BluetoothHelper;
+import fr.inria.yifan.mysensor.R;
 
 public class BluetoothActivity extends AppCompatActivity {
 

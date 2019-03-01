@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Support;
+package fr.inria.yifan.mysensor.Deprecated.Support;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.STORAGE_FILE_PATH;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.STORAGE_FILE_PATH;
 import static java.lang.System.currentTimeMillis;
 
 /**

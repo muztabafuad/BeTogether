@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Inference;
+package fr.inria.yifan.mysensor.Deprecated.Inference;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,13 +18,13 @@ import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.DATASET_INDOOR;
-import static fr.inria.yifan.mysensor.Support.Configuration.DATASET_INPOCKET;
-import static fr.inria.yifan.mysensor.Support.Configuration.DATASET_UNDERGROUND;
-import static fr.inria.yifan.mysensor.Support.Configuration.LAMBDA;
-import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INDOOR;
-import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_INPOCKET;
-import static fr.inria.yifan.mysensor.Support.Configuration.MODEL_UNDERGROUND;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.DATASET_INDOOR;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.DATASET_INPOCKET;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.DATASET_UNDERGROUND;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.LAMBDA;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.MODEL_INDOOR;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.MODEL_INPOCKET;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.MODEL_UNDERGROUND;
 
 /**
  * This class implements the inference helper to detect physical contexts

@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Network;
+package fr.inria.yifan.mysensor.Deprecated.Network;
 
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -13,7 +13,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SERVER_PORT;
 
 /**
  * Create a ClientSocket and make connection to a server on a specified port.

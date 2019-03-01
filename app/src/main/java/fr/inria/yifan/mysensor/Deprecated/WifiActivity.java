@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor;
+package fr.inria.yifan.mysensor.Deprecated;
 
 /*
  * This activity provides functions related to the Wifi Direct service.
@@ -21,10 +21,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.inria.yifan.mysensor.Network.WifiHelper;
+import fr.inria.yifan.mysensor.Deprecated.Network.WifiHelper;
+import fr.inria.yifan.mysensor.R;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
-import static fr.inria.yifan.mysensor.Support.Configuration.SERVER_PORT;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.ENABLE_REQUEST_WIFI;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SERVER_PORT;
 
 public class WifiActivity extends AppCompatActivity {
 

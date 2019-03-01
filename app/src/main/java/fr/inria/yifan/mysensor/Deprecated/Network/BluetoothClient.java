@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Network;
+package fr.inria.yifan.mysensor.Deprecated.Network;
 
 /**
  * Create a ClientSocket and make connection to a server on a specified port.

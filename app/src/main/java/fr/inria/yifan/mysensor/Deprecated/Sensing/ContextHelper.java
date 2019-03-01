@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Sensing;
+package fr.inria.yifan.mysensor.Deprecated.Sensing;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -31,13 +31,13 @@ import com.google.android.gms.location.ActivityRecognitionResult;
 
 import java.util.Calendar;
 
-import fr.inria.yifan.mysensor.Support.SlideWindow;
+import fr.inria.yifan.mysensor.Deprecated.Support.SlideWindow;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_DISTANCE;
-import static fr.inria.yifan.mysensor.Support.Configuration.LOCATION_UPDATE_TIME;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.ENABLE_REQUEST_LOCATION;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.LOCATION_UPDATE_DISTANCE;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.LOCATION_UPDATE_TIME;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SAMPLE_NUM_WINDOW;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
 
 /**

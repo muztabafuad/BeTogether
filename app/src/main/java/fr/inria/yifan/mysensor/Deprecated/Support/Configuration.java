@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Support;
+package fr.inria.yifan.mysensor.Deprecated.Support;
 
 import java.io.Serializable;
 

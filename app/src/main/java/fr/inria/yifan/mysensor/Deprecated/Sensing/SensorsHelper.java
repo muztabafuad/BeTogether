@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Sensing;
+package fr.inria.yifan.mysensor.Deprecated.Sensing;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,14 +11,14 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
 
-import fr.inria.yifan.mysensor.Support.AWeighting;
-import fr.inria.yifan.mysensor.Support.SlideWindow;
+import fr.inria.yifan.mysensor.Deprecated.Support.AWeighting;
+import fr.inria.yifan.mysensor.Deprecated.Support.SlideWindow;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.INTERCEPT;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_NUM_WINDOW;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_RATE_IN_HZ;
-import static fr.inria.yifan.mysensor.Support.Configuration.SAMPLE_WINDOW_MS;
-import static fr.inria.yifan.mysensor.Support.Configuration.SLOPE;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.INTERCEPT;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SAMPLE_NUM_WINDOW;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SAMPLE_RATE_IN_HZ;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SAMPLE_WINDOW_MS;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SLOPE;
 import static java.lang.System.currentTimeMillis;
 
 /**

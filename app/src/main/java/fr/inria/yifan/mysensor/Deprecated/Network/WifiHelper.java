@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Network;
+package fr.inria.yifan.mysensor.Deprecated.Network;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -25,7 +25,7 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_WIFI;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.ENABLE_REQUEST_WIFI;
 
 /**
  * This class provides functions functions related to the Wifi Direct service.

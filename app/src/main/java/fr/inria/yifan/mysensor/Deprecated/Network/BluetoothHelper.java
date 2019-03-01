@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Network;
+package fr.inria.yifan.mysensor.Deprecated.Network;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 import java.util.Map;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.ENABLE_REQUEST_BT;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.ENABLE_REQUEST_BT;
 
 /**
  * This class provides functions functions related to the Bluetooth service.

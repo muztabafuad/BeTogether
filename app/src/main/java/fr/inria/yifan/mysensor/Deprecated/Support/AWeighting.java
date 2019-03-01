@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Support;
+package fr.inria.yifan.mysensor.Deprecated.Support;
 
 /**
  * This class implements the A-weighting for noise measurement.

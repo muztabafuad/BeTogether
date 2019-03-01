@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor;
+package fr.inria.yifan.mysensor.Deprecated;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -14,9 +14,11 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_RECORD;
-import static fr.inria.yifan.mysensor.Support.Configuration.PERMS_REQUEST_STORAGE;
+import fr.inria.yifan.mysensor.R;
+
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.PERMS_REQUEST_LOCATION;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.PERMS_REQUEST_RECORD;
+import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.PERMS_REQUEST_STORAGE;
 
 /**
  * This activity has to be started in the beginning of the application to ensure all user permissions are enabled
