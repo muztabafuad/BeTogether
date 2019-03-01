@@ -1,6 +1,8 @@
 package fr.inria.yifan.mysensor;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -55,12 +57,14 @@ public class TestActivity extends AppCompatActivity {
         mPhysicalEnvironment.startService();
 
         mDeviceAttribute = new DeviceAttribute(this);
+        mDeviceAttribute.startService();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true) {
                     runOnUiThread(new Runnable() {
+                        @RequiresApi(api = Build.VERSION_CODES.M)
                         @Override
                         public void run() {
                             mActivityResult = mUserActivity.getUserActivity().toString();
@@ -86,5 +90,7 @@ public class TestActivity extends AppCompatActivity {
         }).start();
 
         //mUserActivity.stopService();
+        //mPhysicalEnvironment.stopService();
+        //mDeviceAttribute.startService();
     }
 }
