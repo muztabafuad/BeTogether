@@ -36,6 +36,7 @@ import weka.core.Instances;
 
 /**
  * This class provides context information about the physical environments.
+ * The keys to retrieve the values are "InPocket", "InDoor" and "UnderGround".
  */
 
 public class PhysicalEnvironment extends BroadcastReceiver {

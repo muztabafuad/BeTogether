@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import fr.inria.yifan.mysensor.Context.DeviceAttribute;
 import fr.inria.yifan.mysensor.Context.PhysicalEnvironment;
 import fr.inria.yifan.mysensor.Context.UserActivity;
 
@@ -18,10 +19,14 @@ public class TestActivity extends AppCompatActivity {
     private final Object mLock; // Thread locker
     private UserActivity mUserActivity;
     private PhysicalEnvironment mPhysicalEnvironment;
+    private DeviceAttribute mDeviceAttribute;
+
     private String mActivityResult;
-    private String mEnvironmentRsult;
+    private String mEnvironmentResult;
+    private String mAttributeResult;
     private TextView activityView;
     private TextView environmentView;
+    private TextView attributeView;
 
     public TestActivity() {
         mLock = new Object();
@@ -33,7 +38,9 @@ public class TestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test);
         activityView = findViewById(R.id.activity_view);
         environmentView = findViewById(R.id.environment_view);
+        attributeView = findViewById(R.id.attribute_view);
         Button feedbackButton = findViewById(R.id.feedback_button);
+
         feedbackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -43,9 +50,11 @@ public class TestActivity extends AppCompatActivity {
 
         mUserActivity = new UserActivity(this);
         mUserActivity.startService();
+
         mPhysicalEnvironment = new PhysicalEnvironment(this);
         mPhysicalEnvironment.startService();
 
+        mDeviceAttribute = new DeviceAttribute(this);
 
         new Thread(new Runnable() {
             @Override
@@ -56,8 +65,12 @@ public class TestActivity extends AppCompatActivity {
                         public void run() {
                             mActivityResult = mUserActivity.getUserActivity().toString();
                             activityView.setText(mActivityResult);
-                            mEnvironmentRsult = mPhysicalEnvironment.getPhysicalEnv().toString();
-                            environmentView.setText(mEnvironmentRsult);
+
+                            mEnvironmentResult = mPhysicalEnvironment.getPhysicalEnv().toString();
+                            environmentView.setText(mEnvironmentResult);
+
+                            mActivityResult = mDeviceAttribute.getDeviceAttr().toString();
+                            attributeView.setText(mActivityResult);
                         }
                     });
 

@@ -14,6 +14,7 @@ import java.util.HashMap;
 
 /**
  * This class provides context information about the user activity.
+ * The key to retrieve the value is "UserActivity".
  */
 
 public class UserActivity extends BroadcastReceiver {
@@ -26,14 +27,14 @@ public class UserActivity extends BroadcastReceiver {
     // Variables
     private Context mContext;
     private int mActivityType;
-    private HashMap<String, String> mActivity;
+    private HashMap<String, String> mUserActiv;
 
     // Constructor initialization
     public UserActivity(Context context) {
         mContext = context;
         mActivityType = -1;
-        mActivity = new HashMap<>();
-        mActivity.put("UserActivity", null);
+        mUserActiv = new HashMap<>();
+        mUserActiv.put("UserActivity", null);
     }
 
     public void startService() {
@@ -54,22 +55,22 @@ public class UserActivity extends BroadcastReceiver {
     public HashMap getUserActivity() {
         switch (mActivityType) {
             case 0:
-                mActivity.put("UserActivity", "VEHICLE");
+                mUserActiv.put("UserActivity", "VEHICLE");
                 break;
             case 1:
-                mActivity.put("UserActivity", "BICYCLE");
+                mUserActiv.put("UserActivity", "BICYCLE");
                 break;
             case 2:
-                mActivity.put("UserActivity", "FOOT");
+                mUserActiv.put("UserActivity", "FOOT");
                 break;
             case 3:
-                mActivity.put("UserActivity", "STILL");
+                mUserActiv.put("UserActivity", "STILL");
                 break;
             default:
-                mActivity.put("UserActivity", "UNKNOWN");
+                mUserActiv.put("UserActivity", "UNKNOWN");
                 break;
         }
-        return mActivity;
+        return mUserActiv;
     }
 
     // Callback when receive a user activity result
