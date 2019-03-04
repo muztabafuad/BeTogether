@@ -4,13 +4,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import fr.inria.yifan.mysensor.Context.DeviceAttribute;
-import fr.inria.yifan.mysensor.Context.PhysicalEnvironment;
-import fr.inria.yifan.mysensor.Context.UserActivity;
+import java.util.HashMap;
+
+import fr.inria.yifan.mysensor.Context.FeatureHelper;
 
 /**
  * This activity has to be started in the beginning of the application to ensure all user permissions are enabled
@@ -18,17 +19,15 @@ import fr.inria.yifan.mysensor.Context.UserActivity;
 
 public class TestActivity extends AppCompatActivity {
 
-    private final Object mLock; // Thread locker
-    private UserActivity mUserActivity;
-    private PhysicalEnvironment mPhysicalEnvironment;
-    private DeviceAttribute mDeviceAttribute;
+    private static final String TAG = "Test Activity";
 
-    private String mActivityResult;
-    private String mEnvironmentResult;
-    private String mAttributeResult;
-    private TextView activityView;
-    private TextView environmentView;
-    private TextView attributeView;
+    private final Object mLock; // Thread locker
+
+    private TextView contextView;
+    //private TextView environmentView;
+    //private TextView attributeView;
+
+    private FeatureHelper mFeatureHelper;
 
     public TestActivity() {
         mLock = new Object();
@@ -38,26 +37,21 @@ public class TestActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
-        activityView = findViewById(R.id.activity_view);
-        environmentView = findViewById(R.id.environment_view);
-        attributeView = findViewById(R.id.attribute_view);
+        contextView = findViewById(R.id.activity_view);
+        //environmentView = findViewById(R.id.environment_view);
+        //attributeView = findViewById(R.id.attribute_view);
         Button feedbackButton = findViewById(R.id.feedback_button);
+
+        mFeatureHelper = new FeatureHelper(this);
 
         feedbackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mPhysicalEnvironment.updateModels();
+                mFeatureHelper.updateModels();
             }
         });
 
-        mUserActivity = new UserActivity(this);
-        mUserActivity.startService();
-
-        mPhysicalEnvironment = new PhysicalEnvironment(this);
-        mPhysicalEnvironment.startService();
-
-        mDeviceAttribute = new DeviceAttribute(this);
-        mDeviceAttribute.startService();
+        mFeatureHelper.startService();
 
         new Thread(new Runnable() {
             @Override
@@ -67,14 +61,15 @@ public class TestActivity extends AppCompatActivity {
                         @RequiresApi(api = Build.VERSION_CODES.M)
                         @Override
                         public void run() {
-                            mActivityResult = mUserActivity.getUserActivity().toString();
-                            activityView.setText(mActivityResult);
 
-                            mEnvironmentResult = mPhysicalEnvironment.getPhysicalEnv().toString();
-                            environmentView.setText(mEnvironmentResult);
+                            contextView.setText(mFeatureHelper.getContext().toString());
 
-                            mActivityResult = mDeviceAttribute.getDeviceAttr().toString();
-                            attributeView.setText(mActivityResult);
+                            HashMap<String, String> rules = new HashMap<>();
+                            rules.put("InPocket", "False");
+                            rules.put("UserActivity", "STILL");
+                            rules.put("Internet", "WIFI");
+                            Log.e(TAG, "Rule applied: " + rules.toString());
+                            Log.e(TAG, "Matched rules: " + mFeatureHelper.matchRules(rules));
                         }
                     });
 
@@ -89,8 +84,6 @@ public class TestActivity extends AppCompatActivity {
             }
         }).start();
 
-        //mUserActivity.stopService();
-        //mPhysicalEnvironment.stopService();
-        //mDeviceAttribute.startService();
+        //mFeatureHelper.stopService();
     }
 }

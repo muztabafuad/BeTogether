@@ -34,6 +34,9 @@ import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
+import static fr.inria.yifan.mysensor.Context.FeatureHelper.LAMBDA;
+import static fr.inria.yifan.mysensor.Context.FeatureHelper.MIN_UPDATE_TIME;
+
 /**
  * This class provides context information about the physical environments.
  * The keys to retrieve the values are "InPocket", "InDoor" and "UnderGround".
@@ -42,9 +45,6 @@ import weka.core.Instances;
 public class PhysicalEnvironment extends BroadcastReceiver {
 
     private static final String TAG = "Physical environment";
-
-    // The lambda parameter for learning model update
-    public static final int LAMBDA = 10;
 
     // Define the learning model files to load
     private static final String MODEL_POCKET = "Classifier_pocket.model";
@@ -65,7 +65,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
     // Variables
     private Context mContext;
-    private HashMap<String, Boolean> mPhysicalEnv;
+    private HashMap<String, String> mPhysicalEnv;
     private SensorManager mSensorManager;
     private TelephonyManager mTelephonyManager;
     private LocationManager mLocationManager;
@@ -85,6 +85,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     private SensorEventListener mListenerLight = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
+            //Log.e(TAG, "Light chnged: " + sensorEvent.values[0]);
             mLight = sensorEvent.values[0];
         }
 
@@ -127,6 +128,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     private SensorEventListener mListenerProxy = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
+            //Log.e(TAG, "Proximity changed: " + sensorEvent.values[0]);
             mProximity = sensorEvent.values[0];
         }
 
@@ -216,12 +218,13 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         try {
             mSensorManager.registerListener(mListenerLight, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
             mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 1, mListenerLoc);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_UPDATE_TIME, 1, mListenerLoc);
             mContext.registerReceiver(this, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
             mSensorManager.registerListener(mListenerProxy, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(mListenerTemp, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(mListenerPress, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(mListenerHumid, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
+            //Log.e(TAG, "Register success!");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -244,27 +247,28 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
     // Get the most recent physical environment
     public HashMap getPhysicalEnv() {
+        //Log.e(TAG, mProximity + " " + mTemperature + " " + mLight);
         try {
             if (inferInPocket()) {
                 mHierarResult = 1;
-                mPhysicalEnv.put("InPocket", true);
+                mPhysicalEnv.put("InPocket", "True");
                 mPhysicalEnv.put("InDoor", null);
                 mPhysicalEnv.put("UnderGround", null);
             } else if (!inferInDoor()) {
                 mHierarResult = 2;
-                mPhysicalEnv.put("InPocket", false);
-                mPhysicalEnv.put("InDoor", false);
+                mPhysicalEnv.put("InPocket", "False");
+                mPhysicalEnv.put("InDoor", "False");
                 mPhysicalEnv.put("UnderGround", null);
             } else if (inferUnderGround()) {
                 mHierarResult = 3;
-                mPhysicalEnv.put("InPocket", false);
-                mPhysicalEnv.put("InDoor", true);
-                mPhysicalEnv.put("UnderGround", true);
+                mPhysicalEnv.put("InPocket", "False");
+                mPhysicalEnv.put("InDoor", "True");
+                mPhysicalEnv.put("UnderGround", "True");
             } else {
                 mHierarResult = 4;
-                mPhysicalEnv.put("InPocket", false);
-                mPhysicalEnv.put("InDoor", true);
-                mPhysicalEnv.put("UnderGround", false);
+                mPhysicalEnv.put("InPocket", "False");
+                mPhysicalEnv.put("InDoor", "True");
+                mPhysicalEnv.put("UnderGround", "False");
             }
         } catch (Exception e) {
             e.printStackTrace();

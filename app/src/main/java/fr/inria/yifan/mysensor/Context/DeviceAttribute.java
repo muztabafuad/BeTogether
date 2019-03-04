@@ -12,7 +12,6 @@ import android.net.NetworkCapabilities;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 
 import java.io.RandomAccessFile;
 import java.util.HashMap;
@@ -25,37 +24,32 @@ public class DeviceAttribute {
 
     private static final String TAG = "Device attributes";
 
-    // Variables
     private Context mContext;
 
-    // Constant
-    private float mCpuFrequency;
-    private float mMemorySize;
+    // Variables
+    private HashMap<String, String> mDeviceAttr;
 
-    private HashMap<String, Integer> mSensorAcc;
-    private HashMap<String, Float> mSensorPow;
-    private HashMap<String, Object> mDeviceAttr;
-
-    public DeviceAttribute(Context context) {
+    DeviceAttribute(Context context) {
         mContext = context;
         mDeviceAttr = new HashMap<>();
-        mSensorAcc = new HashMap<>();
-        mSensorPow = new HashMap<>();
     }
-
 
     public void startService() {
         try {
             // Get the maximum CPU frequency GHz
             RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
-            mCpuFrequency = (Float.parseFloat(reader.readLine()) / 1e6f);
+            // Constant
+            float mCpuFrequency = (Float.parseFloat(reader.readLine()) / 1e6f);
             reader.close();
 
             // Get the total memory size GB
             ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
             ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
             am.getMemoryInfo(memInfo);
-            mMemorySize = memInfo.totalMem / 1e9f;
+            float mMemorySize = memInfo.totalMem / 1e9f;
+
+            mDeviceAttr.put("CPU", String.valueOf(mCpuFrequency));
+            mDeviceAttr.put("Memory", String.valueOf(mMemorySize));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -63,35 +57,35 @@ public class DeviceAttribute {
         SensorManager mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
         // Get the sensors attributes
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE) == null) {
-            mSensorAcc.put("TemperatureAcc", 0);
-            mSensorAcc.put("TemperaturePow", 999);
+            mDeviceAttr.put("TemperatureAcc", String.valueOf(0));
+            mDeviceAttr.put("TemperaturePow", String.valueOf(999));
         } else {
-            mSensorAcc.put("TemperatureAcc", 10);
-            mSensorPow.put("TemperaturePow", mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE).getPower());
+            mDeviceAttr.put("TemperatureAcc", String.valueOf(10));
+            mDeviceAttr.put("TemperaturePow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE).getPower()));
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT) == null) {
-            mSensorAcc.put("LightAcc", 0);
-            mSensorAcc.put("LightPow", 999);
+            mDeviceAttr.put("LightAcc", String.valueOf(0));
+            mDeviceAttr.put("LightPow", String.valueOf(999));
         } else {
-            mSensorAcc.put("LightAcc", 10);
-            mSensorPow.put("LightPow", mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).getPower());
+            mDeviceAttr.put("LightAcc", String.valueOf(10));
+            mDeviceAttr.put("LightPow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).getPower()));
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE) == null) {
-            mSensorAcc.put("PressureAcc", 0);
-            mSensorAcc.put("PressurePow", 999);
+            mDeviceAttr.put("PressureAcc", String.valueOf(0));
+            mDeviceAttr.put("PressurePow", String.valueOf(999));
         } else {
-            mSensorAcc.put("PressureAcc", 10);
-            mSensorPow.put("PressurePow", mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).getPower());
+            mDeviceAttr.put("PressureAcc", String.valueOf(10));
+            mDeviceAttr.put("PressurePow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).getPower()));
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY) == null) {
-            mSensorAcc.put("HumidityAcc", 0);
-            mSensorAcc.put("HumidityPow", 999);
+            mDeviceAttr.put("HumidityAcc", String.valueOf(0));
+            mDeviceAttr.put("HumidityPow", String.valueOf(999));
         } else {
-            mSensorAcc.put("HumidityAcc", 10);
-            mSensorPow.put("HumidityPow", mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY).getPower());
+            mDeviceAttr.put("HumidityAcc", String.valueOf(10));
+            mDeviceAttr.put("HumidityPow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY).getPower()));
         }
-        mSensorAcc.put("NoiseAcc", 10);
-        mSensorPow.put("NoisePow", 0.5f);
+        mDeviceAttr.put("NoiseAcc", String.valueOf(10));
+        mDeviceAttr.put("NoisePow", String.valueOf(0.5));
     }
 
     public void stopService() {
@@ -100,7 +94,7 @@ public class DeviceAttribute {
 
     // Get the most recent device attributes
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public HashMap getDeviceAttr() {
+    HashMap getDeviceAttr() {
         try {
             // Get the remaining battery %
             IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -113,26 +107,21 @@ public class DeviceAttribute {
             // Get the Internet connection type
             ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkCapabilities capability = cm.getNetworkCapabilities(cm.getActiveNetwork());
-            Log.d(TAG, capability.toString());
+            //Log.d(TAG, capability.toString());
             String mInternetType = getNetworkType(capability);
+            mDeviceAttr.put("Internet", mInternetType);
 
             // Get the location service type
             LocationManager lm = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
             if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mDeviceAttr.put("Location", "GPS");
             } else if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                mDeviceAttr.put("Location", "Network");
+                mDeviceAttr.put("Location", "NETWORK");
             } else {
                 mDeviceAttr.put("Location", null);
             }
+            mDeviceAttr.put("Battery", String.valueOf(mRemainBattery));
 
-            mDeviceAttr.put("Battery", mRemainBattery);
-            mDeviceAttr.put("CPU", mCpuFrequency);
-            mDeviceAttr.put("Memory", mMemorySize);
-            mDeviceAttr.put("Internet", mInternetType);
-
-            mDeviceAttr.putAll(mSensorAcc);
-            mDeviceAttr.putAll(mSensorPow);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -140,8 +129,8 @@ public class DeviceAttribute {
     }
 
     // Set the accuracy % of a specific sensor
-    public void setSensorAcc(String sensor, int accuracy) {
-        mSensorAcc.put(sensor, accuracy);
+    public void setSensorAcc(String sensor, float accuracy) {
+        mDeviceAttr.put(sensor, String.valueOf(accuracy));
     }
 
     // Get the Internet type from network capability

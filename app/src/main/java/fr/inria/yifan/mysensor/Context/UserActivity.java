@@ -12,6 +12,8 @@ import com.google.android.gms.location.ActivityRecognitionResult;
 
 import java.util.HashMap;
 
+import static fr.inria.yifan.mysensor.Context.FeatureHelper.MIN_UPDATE_TIME;
+
 /**
  * This class provides context information about the user activity.
  * The key to retrieve the value is "UserActivity".
@@ -20,9 +22,6 @@ import java.util.HashMap;
 public class UserActivity extends BroadcastReceiver {
 
     private static final String TAG = "User activity";
-
-    // Time interval between activity updates (milliseconds)
-    private static final int ACTIVITY_UPDATE_TIME = 500;
 
     // Variables
     private Context mContext;
@@ -42,7 +41,7 @@ public class UserActivity extends BroadcastReceiver {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 1001, new Intent("ActivityRecognitionResult"), PendingIntent.FLAG_CANCEL_CURRENT);
         ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(mContext);
         // Register the update receiver
-        activityRecognitionClient.requestActivityUpdates(ACTIVITY_UPDATE_TIME, pendingIntent);
+        activityRecognitionClient.requestActivityUpdates(MIN_UPDATE_TIME, pendingIntent);
         mContext.registerReceiver(this, new IntentFilter("ActivityRecognitionResult"));
     }
 

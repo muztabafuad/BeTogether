@@ -32,6 +32,7 @@
         tools:ignore="ProtectedPermissions" />
 
     <!--android:name=".InitializeActivity"-->
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
     <application
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
