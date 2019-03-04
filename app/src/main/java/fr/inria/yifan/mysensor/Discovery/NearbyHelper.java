@@ -33,6 +33,9 @@ public class NearbyHelper {
     private static final String TAG = "Nearby helper";
 
     private static final String ServiceID = "CrowdSensingGroup";
+
+    private Context mContext;
+
     // Callback when received the payload from the other
     private final PayloadCallback mPayloadCallback =
             new PayloadCallback() {
@@ -46,7 +49,7 @@ public class NearbyHelper {
                     // Payload progress has updated.
                 }
             };
-    private Context mContext;
+
     // Callback when the Nearby connection state is changed
     private final ConnectionLifecycleCallback connectionLifecycleCallback =
             new ConnectionLifecycleCallback() {
@@ -79,6 +82,7 @@ public class NearbyHelper {
                     // sent or received.
                 }
             };
+
     // Callback when the discoverer have find an advertiser
     private final EndpointDiscoveryCallback endpointDiscoveryCallback =
             new EndpointDiscoveryCallback() {
