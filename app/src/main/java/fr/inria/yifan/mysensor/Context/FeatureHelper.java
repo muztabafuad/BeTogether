@@ -11,7 +11,7 @@ import java.util.Objects;
  * This class deals with a HashMap containing all three context information.
  * Available key-value paris are: ("UserActivity", <"VEHICLE", "BICYCLE", "FOOT", "STILL", "UNKNOWN">),
  * (<"InPocket", "InDoor", "UnderGround">, <"True", "False", null>),
- * ("Location", <"GPS", "NETWORK", null>), ("Internet", <"WIFI", "Cellular", null>), ("Battery", <Float>),
+ * ("Location", <"GPS", "NETWORK", null>), ("LocationAcc", <Float>), ("Internet", <"WIFI", "Cellular", null>), ("Battery", <Float>),
  * ("CPU", <Float>); ("Memory", <Float>), (<"TemperatureAcc", "LightAcc", "PressureAcc", "HumidityAcc", "NoiseAcc">, <Float>),
  * (<"TemperaturePow", "LightPow", "PressurePow", "HumidityPow", "NoisePow">, <Float>)
  */
@@ -29,9 +29,9 @@ public class FeatureHelper {
     private UserActivity mUserActivity;
     private PhysicalEnvironment mPhysicalEnvironment;
     private DeviceAttribute mDeviceAttribute;
-
     private HashMap<String, String> mFeature;
 
+    // Constructor initialization
     public FeatureHelper(Context context) {
         mFeature = new HashMap<>();
         mUserActivity = new UserActivity(context);
@@ -51,6 +51,7 @@ public class FeatureHelper {
         mDeviceAttribute.stopService();
     }
 
+    // Get the most recent context hash map
     @SuppressWarnings("unchecked")
     @RequiresApi(api = Build.VERSION_CODES.M)
     public HashMap getContext() {
@@ -60,10 +61,12 @@ public class FeatureHelper {
         return mFeature;
     }
 
+    // Clear the current context hahs map
     public void clearContext() {
         mFeature.clear();
     }
 
+    // Check if the indicated rules is matched
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean matchRules(HashMap<String, String> rules) {
         for (String key : rules.keySet()) {
@@ -75,10 +78,12 @@ public class FeatureHelper {
         return true;
     }
 
+    // Calculate the intent value to be a proxy
     public int getIntentValue() {
         return 0;
     }
 
+    // Update the learning models for physical environments
     public void updateModels() {
         mPhysicalEnvironment.updateModels();
     }

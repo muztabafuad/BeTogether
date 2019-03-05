@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "151900580630",
+    "firebase_url": "https://groupsensing.firebaseio.com",
+    "project_id": "groupsensing",
+    "storage_bucket": "groupsensing.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151900580630:android:0afad58f5e694c44",
+        "android_client_info": {
+          "package_name": "fr.inria.yifan.mysensor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "151900580630-6umeqkink5bjkuj7o6uvfq30u2rqi9d1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAU5cIKMQggIY1gagbPweIiw0EfBSB7oJU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

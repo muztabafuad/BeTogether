@@ -1,5 +1,6 @@
 package fr.inria.yifan.mysensor.Context;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
@@ -93,6 +94,7 @@ public class DeviceAttribute {
     }
 
     // Get the most recent device attributes
+    @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.M)
     HashMap getDeviceAttr() {
         try {
@@ -115,10 +117,13 @@ public class DeviceAttribute {
             LocationManager lm = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
             if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mDeviceAttr.put("Location", "GPS");
+                mDeviceAttr.put("LocationAcc", String.valueOf(lm.getLastKnownLocation(LocationManager.GPS_PROVIDER).getAccuracy()));
             } else if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 mDeviceAttr.put("Location", "NETWORK");
+                mDeviceAttr.put("LocationAcc", String.valueOf(lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER).getAccuracy()));
             } else {
                 mDeviceAttr.put("Location", null);
+                mDeviceAttr.put("LocationAcc", "0");
             }
             mDeviceAttr.put("Battery", String.valueOf(mRemainBattery));
 
