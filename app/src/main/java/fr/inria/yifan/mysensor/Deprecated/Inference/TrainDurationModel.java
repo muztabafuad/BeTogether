@@ -57,8 +57,7 @@ public class TrainDurationModel {
         double[] entry1 = new double[]{1, 12, 27, 5, 0};
         Instance inst1 = new DenseInstance(1, entry1);
         inst1.setDataset(insts);
-
-        System.out.println(model.toString());
+        
         System.out.println(model.classifyInstance(inst1));
 
         /*
