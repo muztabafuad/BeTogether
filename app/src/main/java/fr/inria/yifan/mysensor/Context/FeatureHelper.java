@@ -11,8 +11,10 @@ import java.util.Objects;
  * This class deals with a HashMap containing all three context information.
  * Available key-value paris are: ("UserActivity", <"VEHICLE", "BICYCLE", "FOOT", "STILL", "UNKNOWN">),
  * (<"InPocket", "InDoor", "UnderGround">, <"True", "False", null>),
- * ("Location", <"GPS", "NETWORK", null>), ("LocationAcc", <Float>), ("Internet", <"WIFI", "Cellular", null>), ("Battery", <Float>),
- * ("CPU", <Float>); ("Memory", <Float>), (<"TemperatureAcc", "LightAcc", "PressureAcc", "HumidityAcc", "NoiseAcc">, <Float>),
+ * ("Location", <"GPS", "NETWORK", null>), ("LocationAcc", <Float>), ("LocationPower", <Float>
+ * ("Internet", <"WIFI", "Cellular", null>), ("UpBandwidth", <Float>), ("InternetPower", <Float>
+ * ("Battery", <Float>), ("CPU", <Float>); ("Memory", <Float>),
+ * (<"TemperatureAcc", "LightAcc", "PressureAcc", "HumidityAcc", "NoiseAcc">, <Float>),
  * (<"TemperaturePow", "LightPow", "PressurePow", "HumidityPow", "NoisePow">, <Float>)
  */
 

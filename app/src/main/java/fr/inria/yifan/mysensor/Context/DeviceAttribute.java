@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.location.Location;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
@@ -112,18 +113,35 @@ public class DeviceAttribute {
             //Log.d(TAG, capability.toString());
             String mInternetType = getNetworkType(capability);
             mDeviceAttr.put("Internet", mInternetType);
+            switch (mInternetType) {
+                case "Wifi":
+                    mDeviceAttr.put("InternetPower", "20");
+                    break;
+                case "Cellular":
+                    mDeviceAttr.put("InternetPower", "40");
+                    break;
+                default:
+                    mDeviceAttr.put("InternetPower", "999");
+                    break;
+            }
+            mDeviceAttr.put("UpBandwidth", String.valueOf(capability.getLinkUpstreamBandwidthKbps()));
 
             // Get the location service type
             LocationManager lm = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
             if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mDeviceAttr.put("Location", "GPS");
-                mDeviceAttr.put("LocationAcc", String.valueOf(lm.getLastKnownLocation(LocationManager.GPS_PROVIDER).getAccuracy()));
+                Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                mDeviceAttr.put("LocationAcc", loc != null ? String.valueOf(loc.getAccuracy()) : "0");
+                mDeviceAttr.put("LocationPower", "50");
             } else if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 mDeviceAttr.put("Location", "NETWORK");
-                mDeviceAttr.put("LocationAcc", String.valueOf(lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER).getAccuracy()));
+                Location loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                mDeviceAttr.put("LocationAcc", loc != null ? String.valueOf(loc.getAccuracy()) : "0");
+                mDeviceAttr.put("LocationPower", "20");
             } else {
                 mDeviceAttr.put("Location", null);
                 mDeviceAttr.put("LocationAcc", "0");
+                mDeviceAttr.put("LocationPower", "999");
             }
             mDeviceAttr.put("Battery", String.valueOf(mRemainBattery));
 
