@@ -150,7 +150,7 @@ public class TrainDurationModel {
         model.buildClassifier(insts);
 
         // Prediction on new instance
-        // Day 1-7; Hour 0-23; Minute 0-59; Indoor 0 or 1; label 0
+        // Day 1-7; Hour 0-23; Minute 0-59; Underground 0 or 1; label 0
         double[] test = new double[]{1, 12, 35, 1, 0};
         Instance test_inst = new DenseInstance(1, test);
         test_inst.setDataset(insts);

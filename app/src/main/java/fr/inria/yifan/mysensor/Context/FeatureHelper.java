@@ -3,7 +3,9 @@ package fr.inria.yifan.mysensor.Context;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -31,7 +33,14 @@ public class FeatureHelper {
     private UserActivity mUserActivity;
     private PhysicalEnvironment mPhysicalEnvironment;
     private DeviceAttribute mDeviceAttribute;
+    private DurationPredict mDurationPredict;
     private HashMap<String, String> mFeature;
+    private String previousUA;
+    private Calendar startTimeUA;
+    private String previousIndoor;
+    private Calendar startTimeDoor;
+    private String previousUnderground;
+    private Calendar startTimeGround;
 
     // Constructor initialization
     public FeatureHelper(Context context) {
@@ -39,6 +48,7 @@ public class FeatureHelper {
         mUserActivity = new UserActivity(context);
         mPhysicalEnvironment = new PhysicalEnvironment(context);
         mDeviceAttribute = new DeviceAttribute(context);
+        mDurationPredict = new DurationPredict(context);
     }
 
     public void startService() {
@@ -54,12 +64,50 @@ public class FeatureHelper {
     }
 
     // Get the most recent context hash map
-    @SuppressWarnings("unchecked")
     @RequiresApi(api = Build.VERSION_CODES.M)
     public HashMap getContext() {
         mFeature.putAll(mUserActivity.getUserActivity());
         mFeature.putAll(mPhysicalEnvironment.getPhysicalEnv());
         mFeature.putAll(mDeviceAttribute.getDeviceAttr());
+
+        // User activity duration update
+        String currentUA = (String) mUserActivity.getUserActivity().get("UserActivity");
+        if (previousUA == null) {
+            startTimeUA = Calendar.getInstance();
+            previousUA = currentUA;
+        } else if (currentUA != null && !currentUA.equals(previousUA)) {
+            Log.e(TAG, "Activity is: " + currentUA + ", time is: " + startTimeUA.getTimeInMillis());
+            mDurationPredict.updateActivityModel(startTimeUA, previousUA);
+            startTimeUA = Calendar.getInstance();
+            previousUA = currentUA;
+        }
+        mFeature.put("DurationUA", String.valueOf(mDurationPredict.predictActivityDuration(currentUA)));
+
+        // In-door/Out-door duration update
+        String currentDoor = (String) mPhysicalEnvironment.getPhysicalEnv().get("InDoor");
+        if (previousIndoor == null) {
+            startTimeDoor = Calendar.getInstance();
+            previousIndoor = currentDoor;
+        } else if (currentDoor != null && !currentDoor.equals(previousIndoor)) {
+            Log.e(TAG, "Indoor is: " + currentDoor + ", time is: " + startTimeDoor.getTimeInMillis());
+            mDurationPredict.updateDoorModel(startTimeDoor, previousIndoor);
+            startTimeDoor = Calendar.getInstance();
+            previousIndoor = currentDoor;
+        }
+        mFeature.put("DurationDoor", String.valueOf(mDurationPredict.predictDoorDuration(currentDoor)));
+
+        // Under-ground/On-ground duration update
+        String currentGround = (String) mPhysicalEnvironment.getPhysicalEnv().get("UnderGround");
+        if (previousUnderground == null) {
+            startTimeGround = Calendar.getInstance();
+            previousUnderground = currentGround;
+        } else if (currentGround != null && !currentGround.equals(previousUnderground)) {
+            Log.e(TAG, "Underground is: " + currentGround + ", time is: " + startTimeGround.getTimeInMillis());
+            mDurationPredict.updateGroundModel(startTimeGround, previousUnderground);
+            startTimeGround = Calendar.getInstance();
+            previousUnderground = currentGround;
+        }
+        mFeature.put("DurationGround", String.valueOf(mDurationPredict.predictGroundDuration(currentGround)));
         return mFeature;
     }
 
@@ -80,8 +128,13 @@ public class FeatureHelper {
         return true;
     }
 
-    // Calculate the intent value to be a proxy
-    public int getIntentValue() {
+    // Calculate the intent value to be a role
+    // "Coordinator, locator, proxy, aggregator, sensor"
+    public int getIntentValue(String role) {
+        return 0;
+    }
+
+    private float sigmoidFunction(float x, float x0) {
         return 0;
     }
 

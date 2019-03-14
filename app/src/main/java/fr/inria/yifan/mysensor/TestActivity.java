@@ -4,7 +4,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -58,7 +57,7 @@ public class TestActivity extends AppCompatActivity {
             public void run() {
                 while (true) {
                     runOnUiThread(new Runnable() {
-                        @RequiresApi(api = Build.VERSION_CODES.M)
+                        @RequiresApi(api = Build.VERSION_CODES.O)
                         @Override
                         public void run() {
 
@@ -68,8 +67,8 @@ public class TestActivity extends AppCompatActivity {
                             rules.put("InPocket", "False");
                             rules.put("UserActivity", "STILL");
                             rules.put("Internet", "WIFI");
-                            Log.e(TAG, "Rule applied: " + rules.toString());
-                            Log.e(TAG, "Matched rules: " + mFeatureHelper.matchRules(rules));
+                            //Log.e(TAG, "Rule applied: " + rules.toString());
+                            //Log.e(TAG, "Matched rules: " + mFeatureHelper.matchRules(rules));
                         }
                     });
 
