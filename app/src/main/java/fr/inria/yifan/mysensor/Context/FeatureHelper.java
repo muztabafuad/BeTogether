@@ -65,6 +65,7 @@ public class FeatureHelper {
 
     // Get the most recent context hash map
     @RequiresApi(api = Build.VERSION_CODES.M)
+    @SuppressWarnings("unchecked")
     public HashMap getContext() {
         mFeature.putAll(mUserActivity.getUserActivity());
         mFeature.putAll(mPhysicalEnvironment.getPhysicalEnv());
@@ -135,7 +136,7 @@ public class FeatureHelper {
     }
 
     private float sigmoidFunction(float x, float x0) {
-        return 0;
+        return (float) (1 / (1 + Math.pow(Math.E, -1 * (x - x0))));
     }
 
     // Update the learning models for physical environments
