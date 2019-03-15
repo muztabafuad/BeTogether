@@ -130,13 +130,32 @@ public class FeatureHelper {
     }
 
     // Calculate the intent value to be a role
-    // "Coordinator, locator, proxy, aggregator, sensor"
+    // "Coordinator", "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     public int getIntentValue(String role) {
+        switch (role) {
+            case "Coordinator":
+                break;
+            case "Locator":
+                break;
+            case "Proxy":
+                break;
+            case "Aggregator":
+                break;
+            case "Temperature":
+                break;
+            case "Light":
+                break;
+            case "Pressure":
+                break;
+            case "Humidity":
+                break;
+        }
         return 0;
     }
 
-    private float sigmoidFunction(float x, float x0) {
-        return (float) (1 / (1 + Math.pow(Math.E, -1 * (x - x0))));
+    // The logistic function ranging from -1 to 1
+    private float sigmoidFunction(float x, float k, float x0) {
+        return (float) ((Math.exp(2 * k * (x - x0)) - 1) / (Math.exp(2 * k * (x - x0)) + 1));
     }
 
     // Update the learning models for physical environments
