@@ -5,6 +5,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Objects;
@@ -37,10 +38,13 @@ public class FeatureHelper {
     private HashMap<String, String> mFeature;
     private String previousUA;
     private Calendar startTimeUA;
+    private float durationUA;
     private String previousIndoor;
     private Calendar startTimeDoor;
+    private float durationDoor;
     private String previousUnderground;
     private Calendar startTimeGround;
+    private float durationGround;
 
     // Constructor initialization
     public FeatureHelper(Context context) {
@@ -82,7 +86,8 @@ public class FeatureHelper {
             startTimeUA = Calendar.getInstance();
             previousUA = currentUA;
         }
-        mFeature.put("DurationUA", String.valueOf(mDurationPredict.predictActivityDuration(currentUA)));
+        durationUA = mDurationPredict.predictActivityDuration(currentUA);
+        mFeature.put("DurationUA", String.valueOf(durationUA));
 
         // In-door/Out-door duration update
         String currentDoor = (String) mPhysicalEnvironment.getPhysicalEnv().get("InDoor");
@@ -95,7 +100,8 @@ public class FeatureHelper {
             startTimeDoor = Calendar.getInstance();
             previousIndoor = currentDoor;
         }
-        mFeature.put("DurationDoor", String.valueOf(mDurationPredict.predictDoorDuration(currentDoor)));
+        durationDoor = mDurationPredict.predictDoorDuration(currentDoor);
+        mFeature.put("DurationDoor", String.valueOf(durationDoor));
 
         // Under-ground/On-ground duration update
         String currentGround = (String) mPhysicalEnvironment.getPhysicalEnv().get("UnderGround");
@@ -108,7 +114,8 @@ public class FeatureHelper {
             startTimeGround = Calendar.getInstance();
             previousUnderground = currentGround;
         }
-        mFeature.put("DurationGround", String.valueOf(mDurationPredict.predictGroundDuration(currentGround)));
+        durationGround = mDurationPredict.predictGroundDuration(currentGround);
+        mFeature.put("DurationGround", String.valueOf(durationGround));
         return mFeature;
     }
 
@@ -129,18 +136,42 @@ public class FeatureHelper {
         return true;
     }
 
+    // Calculate the intent value to be a "Coordinator"
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public float getCoordinatorIntent(int[] timesNeighbors) {
+        float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10);
+        float delta = sigmoidFunction(Math.max(0, timesNeighbors.length - 1), 1, 4);
+        float h = sigmoidFunction(Arrays.stream(timesNeighbors).sum(), 1, 2);
+        return d + delta + h;
+    }
+
     // Calculate the intent value to be a role
-    // "Coordinator", "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    public int getIntentValue(String role) {
+    // "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public float getRoleIntent(String role) {
+        float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
+        float b = sigmoidFunction(bat, 0.001f, 2500);
         switch (role) {
-            case "Coordinator":
-                break;
             case "Locator":
-                break;
+                float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
+                float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
+                float l = -sigmoidFunction(locAcc, 0.1f, 20) - sigmoidFunction(locPow, 0.1f, 20);
+                return l + b;
             case "Proxy":
-                break;
+                float p;
+                if (mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi") {
+                    p = 1;
+                } else {
+                    p = 0.6f;
+                }
+                float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
+                float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
+                float n = p * sigmoidFunction(netBw, 0.00001f, 200000) - sigmoidFunction(netPow, 0.1f, 20);
+                return n + b;
             case "Aggregator":
-                break;
+                float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
+                float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
+                return sigmoidFunction(cpu, 0.001f, 1000) + sigmoidFunction(ram, 0.001f, 2000) + b;
             case "Temperature":
                 break;
             case "Light":
