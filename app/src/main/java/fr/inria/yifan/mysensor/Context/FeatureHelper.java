@@ -138,10 +138,10 @@ public class FeatureHelper {
 
     // Calculate the intent value to be a "Coordinator"
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public float getCoordinatorIntent(int[] timesNeighbors) {
-        float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10);
-        float delta = sigmoidFunction(Math.max(0, timesNeighbors.length - 1), 1, 4);
-        float h = sigmoidFunction(Arrays.stream(timesNeighbors).sum(), 1, 2);
+    public float getCoordinatorIntent(int[] historyNeighbors) {
+        float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
+        float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 1), 1f, 4f);
+        float h = sigmoidFunction(Arrays.stream(historyNeighbors).sum(), 1f, 3f);
         return d + delta + h;
     }
 
@@ -150,36 +150,48 @@ public class FeatureHelper {
     @RequiresApi(api = Build.VERSION_CODES.M)
     public float getRoleIntent(String role) {
         float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
-        float b = sigmoidFunction(bat, 0.001f, 2500);
+        float b = sigmoidFunction(bat, 0.001f, 2500f);
         switch (role) {
             case "Locator":
                 float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
                 float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
-                float l = -sigmoidFunction(locAcc, 0.1f, 20) - sigmoidFunction(locPow, 0.1f, 20);
+                float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 20f);
                 return l + b;
             case "Proxy":
                 float p;
                 if (mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi") {
-                    p = 1;
+                    p = 1f;
                 } else {
                     p = 0.6f;
                 }
                 float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
                 float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
-                float n = p * sigmoidFunction(netBw, 0.00001f, 200000) - sigmoidFunction(netPow, 0.1f, 20);
+                float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.1f, 20f);
                 return n + b;
             case "Aggregator":
                 float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
                 float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
-                return sigmoidFunction(cpu, 0.001f, 1000) + sigmoidFunction(ram, 0.001f, 2000) + b;
+                return sigmoidFunction(cpu, 0.001f, 1000f) + sigmoidFunction(ram, 0.001f, 2000f) + b;
             case "Temperature":
-                break;
+                float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
+                float tpow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow");
+                return sigmoidFunction(tacc, 0.05f, 50f) - sigmoidFunction(tpow, 0.5f, 0.1f);
             case "Light":
-                break;
+                float lacc = (float) mDeviceAttribute.getDeviceAttr().get("LightAcc");
+                float lpow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow");
+                return sigmoidFunction(lacc, 0.05f, 50f) - sigmoidFunction(lpow, 0.5f, 0.1f);
             case "Pressure":
-                break;
+                float pacc = (float) mDeviceAttribute.getDeviceAttr().get("PressureAcc");
+                float ppow = (float) mDeviceAttribute.getDeviceAttr().get("Pressurepow");
+                return sigmoidFunction(pacc, 0.05f, 50f) - sigmoidFunction(ppow, 0.5f, 0.1f);
             case "Humidity":
-                break;
+                float hacc = (float) mDeviceAttribute.getDeviceAttr().get("HumidityAcc");
+                float hpow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow");
+                return sigmoidFunction(hacc, 0.05f, 50f) - sigmoidFunction(hpow, 0.5f, 0.1f);
+            case "Noise":
+                float nacc = (float) mDeviceAttribute.getDeviceAttr().get("NoiseAcc");
+                float npow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow");
+                return sigmoidFunction(nacc, 0.05f, 50f) - sigmoidFunction(npow, 0.5f, 0.1f);
         }
         return 0;
     }

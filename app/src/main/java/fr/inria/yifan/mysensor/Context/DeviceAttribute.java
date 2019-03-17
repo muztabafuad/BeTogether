@@ -62,31 +62,31 @@ public class DeviceAttribute {
             mDeviceAttr.put("TemperatureAcc", String.valueOf(0));
             mDeviceAttr.put("TemperaturePow", String.valueOf(999));
         } else {
-            mDeviceAttr.put("TemperatureAcc", String.valueOf(10));
+            mDeviceAttr.put("TemperatureAcc", String.valueOf(50));
             mDeviceAttr.put("TemperaturePow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE).getPower()));
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT) == null) {
             mDeviceAttr.put("LightAcc", String.valueOf(0));
             mDeviceAttr.put("LightPow", String.valueOf(999));
         } else {
-            mDeviceAttr.put("LightAcc", String.valueOf(10));
+            mDeviceAttr.put("LightAcc", String.valueOf(50));
             mDeviceAttr.put("LightPow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).getPower()));
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE) == null) {
             mDeviceAttr.put("PressureAcc", String.valueOf(0));
             mDeviceAttr.put("PressurePow", String.valueOf(999));
         } else {
-            mDeviceAttr.put("PressureAcc", String.valueOf(10));
+            mDeviceAttr.put("PressureAcc", String.valueOf(50));
             mDeviceAttr.put("PressurePow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).getPower()));
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY) == null) {
             mDeviceAttr.put("HumidityAcc", String.valueOf(0));
             mDeviceAttr.put("HumidityPow", String.valueOf(999));
         } else {
-            mDeviceAttr.put("HumidityAcc", String.valueOf(10));
+            mDeviceAttr.put("HumidityAcc", String.valueOf(50));
             mDeviceAttr.put("HumidityPow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY).getPower()));
         }
-        mDeviceAttr.put("NoiseAcc", String.valueOf(10));
+        mDeviceAttr.put("NoiseAcc", String.valueOf(50));
         mDeviceAttr.put("NoisePow", String.valueOf(0.5));
     }
 
