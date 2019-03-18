@@ -24,8 +24,11 @@ public class ServiceHelper {
     // Variables
     private WifiP2pManager.Channel mChannel;
     private WifiP2pManager mManager;
+    private WifiP2pDnsSdServiceInfo mServiceInfo;
+    private WifiP2pDnsSdServiceRequest mServiceRequest;
+
     private String mDeviceId;
-    private HashMap<String, String> mDevices;
+    //private HashMap<String, String> mDevices;
     private ArrayAdapter<String> mAdapterDevices;
 
     private WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
@@ -56,7 +59,7 @@ public class ServiceHelper {
     public ServiceHelper(Context context, ArrayAdapter adapter) {
         mManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(context, context.getMainLooper(), null);
-        mDevices = new HashMap<>();
+        //mDevices = new HashMap<>();
         mDeviceId = UUID.randomUUID().toString();
         mAdapterDevices = adapter;
     }
@@ -64,62 +67,28 @@ public class ServiceHelper {
     // Start the service
     @SuppressWarnings("unchecked")
     public void startService(HashMap service) {
-        // Service information.
-        // Pass it an instance name, service type _protocol._transport layer , and the map containing information other devices will want once they connect to this one.
-        WifiP2pDnsSdServiceInfo serviceInfo = WifiP2pDnsSdServiceInfo.newInstance(mDeviceId, "_presence._tcp", service);
-
+        // Service information. Pass it an instance name, service type _protocol._transport layer , and the map containing information other devices will want once they connect to this one.
+        mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance(mDeviceId, "_presence._tcp", service);
         // Add the local service, sending the service info, network channel, and listener that will be used to indicate success or failure of the request.
-        mManager.addLocalService(mChannel, serviceInfo, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // Command successful! Code isn't necessarily needed here, unless you want to update the UI or add logging statements.
-            }
-
-            @Override
-            public void onFailure(int arg0) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-            }
-        });
+        mManager.addLocalService(mChannel, mServiceInfo, null);
     }
 
     // Stop the service
     public void stopService() {
-
+        mManager.removeLocalService(mChannel, mServiceInfo, null);
+        mManager.removeServiceRequest(mChannel, mServiceRequest, null);
     }
 
     // Discovery services
     public void discoverService() {
         mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
-        WifiP2pDnsSdServiceRequest serviceRequest = WifiP2pDnsSdServiceRequest.newInstance();
-        mManager.addServiceRequest(mChannel, serviceRequest, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // Success!
-            }
-
-            @Override
-            public void onFailure(int code) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-            }
-        });
-        mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                // Success!
-            }
-
-            @Override
-            public void onFailure(int code) {
-                // Command failed.  Check for P2P_UNSUPPORTED, ERROR, or BUSY
-                if (code == WifiP2pManager.P2P_UNSUPPORTED) {
-                    Log.d(TAG, "P2P isn't supported on this device.");
-                }
-            }
-        });
+        mServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
+        mManager.addServiceRequest(mChannel, mServiceRequest, null);
+        mManager.discoverServices(mChannel, null);
     }
 
     public void onFoundDevice() {
-        
+
     }
 
 }
