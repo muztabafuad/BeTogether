@@ -29,10 +29,8 @@ public class ServiceHelper {
     private ArrayAdapter<String> mAdapterDevices;
 
     private WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
-        /* Callback includes:
-         * fullDomain: full domain name: e.g "printer._ipp._tcp.local."
-         * record: TXT record dta as a map of key/value pairs.
-         * device: The device running the advertised service.
+        /* Callback includes: fullDomain: full domain name: e.g "printer._ipp._tcp.local."
+         * record: TXT record dta as a map of key/value pairs. device: The device running the advertised service.
          */
         @Override
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
@@ -44,10 +42,8 @@ public class ServiceHelper {
     };
 
     private WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, resourceType) -> {
-        // Update the device name with the human-friendly version from
-        // the DnsTxtRecord, assuming one arrived.
+        // Update the device name with the human-friendly version from the DnsTxtRecord, assuming one arrived.
         //resourceType.deviceName = mDevices.containsKey(resourceType.deviceAddress) ? mDevices.get(resourceType.deviceAddress) : resourceType.deviceName;
-
         // Add to the custom adapter defined specifically for showing wifi devices.
         //mAdapterDevices.add(instanceName);
         //mAdapterDevices.notifyDataSetChanged();
@@ -120,6 +116,10 @@ public class ServiceHelper {
                 }
             }
         });
+    }
+
+    public void onFoundDevice() {
+        
     }
 
 }

@@ -41,7 +41,7 @@ public class ServiceActivity extends AppCompatActivity {
     // Initially bind all views
     private void bindViews() {
         final TextView welcomeView = findViewById(R.id.welcome_view);
-        welcomeView.setText(R.string.hint_network);
+        welcomeView.setText(R.string.hint_discovery);
 
         Button startButton = findViewById(R.id.start_button);
         startButton.setOnClickListener(view -> {
@@ -53,7 +53,7 @@ public class ServiceActivity extends AppCompatActivity {
         Button stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(view -> {
             mServiceHelper.stopService();
-            welcomeView.setText(R.string.hint_network);
+            welcomeView.setText(R.string.hint_discovery);
         });
 
         // Build an adapter to feed the list with the content of an array of strings

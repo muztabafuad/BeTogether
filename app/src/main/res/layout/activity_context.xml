@@ -6,10 +6,19 @@
     tools:context="fr.inria.yifan.mysensor.ContextActivity">
 
     <TextView
-        android:id="@+id/context_view"
+        android:id="@+id/context_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:text="@string/hint_context"
+        android:textSize="@dimen/font_size_normal" />
+
+    <TextView
+        android:id="@+id/context_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/context_name"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:textSize="@dimen/font_size_normal" />
 
@@ -22,10 +31,19 @@
         android:text="@string/feedback_button" />
 
     <TextView
-        android:id="@+id/intents_view"
+        android:id="@+id/intent_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/feedback_button"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:text="@string/hint_intents"
+        android:textSize="@dimen/font_size_normal" />
+
+    <TextView
+        android:id="@+id/intents_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/intent_name"
         android:layout_above="@id/three_buttons"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:textSize="@dimen/font_size_normal" />

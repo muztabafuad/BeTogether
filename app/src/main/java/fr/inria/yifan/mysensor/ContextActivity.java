@@ -64,14 +64,14 @@ public class ContextActivity extends AppCompatActivity {
                 }
 
                 runOnUiThread(() -> {
-                    contextView.setText("Current context: \n" + mFeatureHelper.getContext().toString());
+                    contextView.setText(mFeatureHelper.getContext().toString());
                     HashMap<String, String> rules = new HashMap<>();
                     rules.put("InPocket", "False");
                     rules.put("UserActivity", "STILL");
                     rules.put("Internet", "WIFI");
                     Log.e(TAG, "Rule applied: " + rules.toString());
                     Log.e(TAG, "Matched rules: " + mFeatureHelper.matchRules(rules));
-                    attributeView.setText("Current intents: \n" + mFeatureHelper.getIntentValues(new int[]{0, 0, 0, 0, 0}).toString());
+                    attributeView.setText(mFeatureHelper.getIntentValues(new int[]{0, 0, 0, 0, 0}).toString());
                 });
 
             }
