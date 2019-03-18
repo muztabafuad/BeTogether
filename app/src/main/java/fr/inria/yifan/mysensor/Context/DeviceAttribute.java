@@ -41,7 +41,7 @@ public class DeviceAttribute {
             // Get the maximum CPU frequency MHz
             RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
             // Constant
-            float mCpuFrequency = (Float.parseFloat(reader.readLine()) / 1e3f);
+            float mCpuFrequency = Float.parseFloat(reader.readLine()) / 1e3f;
             reader.close();
 
             // Get the total memory size MB
@@ -91,7 +91,7 @@ public class DeviceAttribute {
     }
 
     public void stopService() {
-        mDeviceAttr.clear();
+        //mDeviceAttr.clear();
     }
 
     // Get the most recent device attributes

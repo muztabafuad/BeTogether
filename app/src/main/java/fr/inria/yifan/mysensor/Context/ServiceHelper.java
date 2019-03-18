@@ -37,22 +37,21 @@ public class ServiceHelper {
         @Override
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
             Log.d(TAG, "DnsSdTxtRecord available -" + record.toString());
-            mDevices.put(device.deviceAddress, (String) record.get("device_id"));
+            mAdapterDevices.add(device.deviceName + " " + record.toString());
+            mAdapterDevices.notifyDataSetChanged();
+            //mDevices.put(device.deviceAddress, (String) record.get("device_id"));
         }
     };
 
-    private WifiP2pManager.DnsSdServiceResponseListener servListener = new WifiP2pManager.DnsSdServiceResponseListener() {
-        @Override
-        public void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice resourceType) {
-            // Update the device name with the human-friendly version from
-            // the DnsTxtRecord, assuming one arrived.
-            resourceType.deviceName = mDevices.containsKey(resourceType.deviceAddress) ? mDevices.get(resourceType.deviceAddress) : resourceType.deviceName;
+    private WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, resourceType) -> {
+        // Update the device name with the human-friendly version from
+        // the DnsTxtRecord, assuming one arrived.
+        //resourceType.deviceName = mDevices.containsKey(resourceType.deviceAddress) ? mDevices.get(resourceType.deviceAddress) : resourceType.deviceName;
 
-            // Add to the custom adapter defined specifically for showing wifi devices.
-            mAdapterDevices.add(instanceName);
-            mAdapterDevices.notifyDataSetChanged();
-            Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
-        }
+        // Add to the custom adapter defined specifically for showing wifi devices.
+        //mAdapterDevices.add(instanceName);
+        //mAdapterDevices.notifyDataSetChanged();
+        Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
     };
 
     // Constructor

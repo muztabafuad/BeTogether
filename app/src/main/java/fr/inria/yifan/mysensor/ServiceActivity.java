@@ -7,8 +7,10 @@ package fr.inria.yifan.mysensor;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -20,6 +22,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import fr.inria.yifan.mysensor.Context.FeatureHelper;
 import fr.inria.yifan.mysensor.Context.ServiceHelper;
 import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 
@@ -32,7 +35,8 @@ public class ServiceActivity extends AppCompatActivity {
 
     // Service helper
     private ServiceHelper mServiceHelper;
-    private HashMap<String, String> mService;
+    private HashMap<String, Object> mService;
+    private FeatureHelper mFeatureHelper;
 
     // Initially bind all views
     private void bindViews() {
@@ -68,6 +72,8 @@ public class ServiceActivity extends AppCompatActivity {
     }
 
     // Main activity initialization
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @SuppressWarnings("unchecked")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,14 +82,16 @@ public class ServiceActivity extends AppCompatActivity {
         mServiceHelper = new ServiceHelper(this, mAdapterDevices);
         mService = new HashMap<>();
         mService.put("Service", "Crowdsensing");
-        //mWifiDirectHelper.setAdapterWifi(mAdapterWifi);
+        mFeatureHelper = new FeatureHelper(this);
+        mFeatureHelper.startService();
+        mService.putAll(mFeatureHelper.getIntentValues(new int[]{0, 0, 0, 0, 0}));
     }
 
     // Stop thread when exit!
     @Override
     protected void onPause() {
         super.onPause();
-        //mServiceHelper;
+        mFeatureHelper.stopService();
     }
 
     private void checkWifiActive() {

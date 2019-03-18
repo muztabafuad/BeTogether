@@ -29,7 +29,6 @@ public class ContextActivity extends AppCompatActivity {
 
     private TextView contextView;
     private TextView attributeView;
-
     private FeatureHelper mFeatureHelper;
 
     public ContextActivity() {
@@ -46,13 +45,12 @@ public class ContextActivity extends AppCompatActivity {
         setContentView(R.layout.activity_context);
         contextView = findViewById(R.id.context_view);
         attributeView = findViewById(R.id.intents_view);
-        Button feedbackButton = findViewById(R.id.feedback_button);
 
         mFeatureHelper = new FeatureHelper(this);
-
-        feedbackButton.setOnClickListener(v -> mFeatureHelper.updateModels());
-
         mFeatureHelper.startService();
+
+        Button feedbackButton = findViewById(R.id.feedback_button);
+        feedbackButton.setOnClickListener(v -> mFeatureHelper.updateModels());
 
         new Thread(() -> {
             while (isRunning) {

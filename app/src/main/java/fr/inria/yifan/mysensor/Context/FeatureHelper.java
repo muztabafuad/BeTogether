@@ -35,7 +35,7 @@ public class FeatureHelper {
     private DeviceAttribute mDeviceAttribute;
     private DurationPredict mDurationPredict;
     private HashMap<String, String> mFeature;
-    private HashMap<String, Float> mIntents;
+    private HashMap<String, String> mIntents;
 
     // Variables for duration prediction update
     private String previousUA;
@@ -151,14 +151,14 @@ public class FeatureHelper {
         int sum = 0;
         for (int i : historyNeighbors) sum += i;
         float h = sigmoidFunction(sum, 1f, 3f);
-        mIntents.put("Coordinator", d + delta + h);
+        mIntents.put("Coordinator", String.valueOf(d + delta + h));
         float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
         float b = sigmoidFunction(bat, 0.001f, 2500f);
         // Locator
         float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
         float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
         float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 20f);
-        mIntents.put("Locator", l + b);
+        mIntents.put("Locator", String.valueOf(l + b));
         // Proxy
         float p;
         if (mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi") {
@@ -169,31 +169,31 @@ public class FeatureHelper {
         float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
         float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
         float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.1f, 20f);
-        mIntents.put("Proxy", n + b);
+        mIntents.put("Proxy", String.valueOf(n + b));
         // Aggregator
         float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
         float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
-        mIntents.put("Aggregator", sigmoidFunction(cpu, 0.001f, 1000f) + sigmoidFunction(ram, 0.001f, 2000f) + b);
+        mIntents.put("Aggregator", String.valueOf(sigmoidFunction(cpu, 0.001f, 1000f) + sigmoidFunction(ram, 0.001f, 2000f) + b));
         // Temperature
         float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
         float tpow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow");
-        mIntents.put("Temperature", sigmoidFunction(tacc, 0.05f, 50f) - sigmoidFunction(tpow, 0.5f, 0.1f));
+        mIntents.put("Temperature", String.valueOf(sigmoidFunction(tacc, 0.05f, 50f) - sigmoidFunction(tpow, 0.5f, 0.1f)));
         // Light
         float lacc = (float) mDeviceAttribute.getDeviceAttr().get("LightAcc");
         float lpow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow");
-        mIntents.put("Light", sigmoidFunction(lacc, 0.05f, 50f) - sigmoidFunction(lpow, 0.5f, 0.1f));
+        mIntents.put("Light", String.valueOf(sigmoidFunction(lacc, 0.05f, 50f) - sigmoidFunction(lpow, 0.5f, 0.1f)));
         // Pressure
         float pacc = (float) mDeviceAttribute.getDeviceAttr().get("PressureAcc");
         float ppow = (float) mDeviceAttribute.getDeviceAttr().get("PressurePow");
-        mIntents.put("Pressure", sigmoidFunction(pacc, 0.05f, 50f) - sigmoidFunction(ppow, 0.5f, 0.1f));
+        mIntents.put("Pressure", String.valueOf(sigmoidFunction(pacc, 0.05f, 50f) - sigmoidFunction(ppow, 0.5f, 0.1f)));
         // Humidity
         float hacc = (float) mDeviceAttribute.getDeviceAttr().get("HumidityAcc");
         float hpow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow");
-        mIntents.put("Humidity", sigmoidFunction(hacc, 0.05f, 50f) - sigmoidFunction(hpow, 0.5f, 0.1f));
+        mIntents.put("Humidity", String.valueOf(sigmoidFunction(hacc, 0.05f, 50f) - sigmoidFunction(hpow, 0.5f, 0.1f)));
         // Noise
         float nacc = (float) mDeviceAttribute.getDeviceAttr().get("NoiseAcc");
         float npow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow");
-        mIntents.put("Noise", sigmoidFunction(nacc, 0.05f, 50f) - sigmoidFunction(npow, 0.5f, 0.1f));
+        mIntents.put("Noise", String.valueOf(sigmoidFunction(nacc, 0.05f, 50f) - sigmoidFunction(npow, 0.5f, 0.1f)));
         return mIntents;
     }
 
