@@ -28,10 +28,10 @@ public class UserActivity extends BroadcastReceiver {
     private int mActivityType;
     private HashMap<String, String> mUserActiv;
 
-    // Constructor initialization
+    // Constructor
     public UserActivity(Context context) {
         mContext = context;
-        mActivityType = -1;
+        mActivityType = -1; // UNKNOWN
         mUserActiv = new HashMap<>();
         mUserActiv.put("UserActivity", null);
     }
@@ -52,6 +52,7 @@ public class UserActivity extends BroadcastReceiver {
 
     // Get the most recent user activity
     public HashMap getUserActivity() {
+        // Map the numeric to a string
         switch (mActivityType) {
             case 0:
                 mUserActiv.put("UserActivity", "VEHICLE");
@@ -78,7 +79,6 @@ public class UserActivity extends BroadcastReceiver {
         if (ActivityRecognitionResult.hasResult(intent)) {
             ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
             mActivityType = result.getMostProbableActivity().getType();
-            //Log.e(TAG, "Received intent: " + result.getMostProbableActivity().toString());
         }
     }
 }

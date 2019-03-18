@@ -54,11 +54,11 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     private static final String DATASET_DOOR = "Dataset_door.model";
     private static final String DATASET_GROUND = "Dataset_ground.model";
 
-    // Instances for data set initialization
+    // Instances for data set description
     private Instances instancesPocket;
     private Instances instancesDoor;
     private Instances instancesGround;
-    // Hoeffding Tree for classifiers initialization
+    // Hoeffding Tree classifiers declaration
     private HoeffdingTree classifierPocket;
     private HoeffdingTree classifierDoor;
     private HoeffdingTree classifierGround;
@@ -66,11 +66,13 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     // Variables
     private Context mContext;
     private HashMap<String, String> mPhysicalEnv;
+    private int mHierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
+
     private SensorManager mSensorManager;
     private TelephonyManager mTelephonyManager;
     private LocationManager mLocationManager;
     private WifiManager mWifiManager;
-    private int mHierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
+
     private float mLight;
     private float mRssiLevel;
     private float mRssiValue;
@@ -85,7 +87,6 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     private SensorEventListener mListenerLight = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            //Log.e(TAG, "Light chnged: " + sensorEvent.values[0]);
             mLight = sensorEvent.values[0];
         }
 
@@ -128,7 +129,6 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     private SensorEventListener mListenerProxy = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
-            //Log.e(TAG, "Proximity changed: " + sensorEvent.values[0]);
             mProximity = sensorEvent.values[0];
         }
 
@@ -173,21 +173,21 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         }
     };
 
-    // Constructor initialization
+    // Constructor
     public PhysicalEnvironment(Context context) {
         mContext = context;
         loadModels(mContext);
 
-        // Initial values are set to indoor
-        mLight = 1000;
-        mRssiLevel = 3;
-        mRssiValue = -100;
-        mAccuracy = 1000;
-        mWifiRssi = -100;
-        mProximity = 8;
-        mTemperature = 25;
-        mPressure = 1007;
-        mHumidity = 65;
+        // Initial values are set to out-pocket in-door on-ground state
+        mLight = 1000f;
+        mRssiLevel = 3f;
+        mRssiValue = -100f;
+        mAccuracy = 1000f;
+        mWifiRssi = -100f;
+        mProximity = 8f;
+        mTemperature = 25f;
+        mPressure = 1007f;
+        mHumidity = 65f;
 
         mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
         mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
@@ -200,7 +200,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         mPhysicalEnv.put("UnderGround", null);
     }
 
-    // Public method to generate a Poisson number
+    // Method to generate a Poisson number
     private static int Poisson() {
         double L = Math.exp(-LAMBDA);
         double p = 1d;
@@ -220,11 +220,11 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_UPDATE_TIME, 1, mListenerLoc);
             mContext.registerReceiver(this, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+
             mSensorManager.registerListener(mListenerProxy, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(mListenerTemp, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(mListenerPress, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(mListenerHumid, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
-            //Log.e(TAG, "Register success!");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -236,6 +236,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
             mLocationManager.removeUpdates(mListenerLoc);
             mContext.unregisterReceiver(this);
+
             mSensorManager.unregisterListener(mListenerProxy);
             mSensorManager.unregisterListener(mListenerTemp);
             mSensorManager.unregisterListener(mListenerPress);
@@ -246,8 +247,8 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     }
 
     // Get the most recent physical environment
+    // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
     public HashMap getPhysicalEnv() {
-        //Log.e(TAG, mProximity + " " + mTemperature + " " + mLight);
         try {
             if (inferInPocket()) {
                 mHierarResult = 1;
@@ -278,7 +279,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
     // Inference on the new instance
     private boolean inferInPocket() throws Exception {
-        // 10 Proximity, 12 temperature, 2 light density
+        // Proximity, temperature, light density
         double[] entry = new double[]{mProximity, mTemperature, mLight};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesPocket);
@@ -287,7 +288,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
     // Inference on the new instance
     private boolean inferInDoor() throws Exception {
-        // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
+        // GPS accuracy, RSSI level, RSSI value, Wifi RSSI, light density, temperature
         double[] entry = new double[]{mAccuracy, mRssiLevel, mRssiValue, mWifiRssi, mLight, mTemperature};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesDoor);
@@ -296,16 +297,16 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
     // Inference on the new instance
     private boolean inferUnderGround() throws Exception {
-        // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
+        // RSSI level, GPS accuracy, temperature, RSSI value, pressure, Wifi RSSI, humidity
         double[] entry = new double[]{mRssiLevel, mAccuracy, mTemperature, mRssiValue, mPressure, mWifiRssi, mHumidity};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesGround);
         return classifierGround.classifyInstance(inst) == 1;
     }
 
-    // Update the model by online learning
+    // Update the model as online learning
     private void updateInPocket() throws Exception {
-        // 10 Proximity, 12 temperature, 2 light density
+        // Proximity, temperature, light density
         double[] entry = new double[]{mProximity, mTemperature, mLight, inferInPocket() ? 0 : 1};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesPocket);
@@ -314,9 +315,9 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         }
     }
 
-    // Update the model by online learning
+    // Update the model as online learning
     private void updateInDoor() throws Exception {
-        // 7 GPS accuracy, 5 RSSI level, 6 RSSI value, 9 Wifi RSSI, 2 light density, 12 temperature
+        // GPS accuracy, RSSI level, RSSI value, Wifi RSSI, light density, temperature
         double[] entry = new double[]{mAccuracy, mRssiLevel, mRssiValue, mWifiRssi, mLight, mTemperature, inferInDoor() ? 0 : 1};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesDoor);
@@ -325,14 +326,44 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         }
     }
 
-    // Update the model by online learning
+    // Update the model as online learning
     private void updateUnderGround() throws Exception {
-        // 5 RSSI level, 7 GPS accuracy (m), 12 temperature, 6 RSSI value, 13 pressure, 9 Wifi RSSI, 14 humidity
+        // RSSI level, GPS accuracy (m), temperature, RSSI value, pressure, Wifi RSSI, humidity
         double[] entry = new double[]{mRssiLevel, mAccuracy, mTemperature, mRssiValue, mPressure, mWifiRssi, mHumidity, inferUnderGround() ? 0 : 1};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesGround);
         for (int k = 0; k < Poisson(); k++) {
             classifierGround.updateClassifier(inst);
+        }
+    }
+
+    // Update the classifiers hierarchically by one click
+    public void updateModels() {
+        try {
+            switch (mHierarResult) {
+                case 1:
+                    updateInPocket();
+                    break;
+                case 2:
+                    updateInDoor();
+                    break;
+                case 3:
+                    updateUnderGround();
+                    break;
+                case 4:
+                    Random ran = new Random();
+                    if (ran.nextInt(2) == 1) {
+                        updateInDoor();
+                    } else {
+                        updateUnderGround();
+                    }
+                    break;
+                default:
+                    Log.e(TAG, "Wrong inference result code");
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -349,7 +380,6 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
         // Check local model existence
         if (!filePocket.exists() || !fileDoor.exists() || !fileGround.exists()) {
-            //Log.d(TAG, "Local models do not exist.");
             try {
                 fileInputStream = context.getAssets().openFd(MODEL_POCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
@@ -374,7 +404,6 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
                 objectInputStream.close();
                 fileInputStream.close();
-                //Log.d(TAG, "Success in loading from assets.");
 
                 fileOutputStream = context.openFileOutput(MODEL_POCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
@@ -399,12 +428,11 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
                 objectOutputStream.close();
                 fileOutputStream.close();
-                //Log.d(TAG, "Success in saving into file.");
             } catch (Exception e) {
                 Log.d(TAG, "Error when loading from file: " + e);
             }
         } else {
-            //Log.d(TAG, "Local models already exist.");
+            // Local models already exist
             try {
                 fileInputStream = context.openFileInput(MODEL_POCKET);
                 objectInputStream = new ObjectInputStream(fileInputStream);
@@ -429,53 +457,15 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
                 objectInputStream.close();
                 fileInputStream.close();
-                //Log.d(TAG, "Success in loading from file.");
             } catch (Exception e) {
                 Log.d(TAG, "Error when loading model file: " + e);
             }
-        }
-
-    }
-
-    // Update the classifiers hierarchically
-    public void updateModels() {
-        try {
-            switch (mHierarResult) {
-                case 1:
-                    updateInPocket();
-                    break;
-                case 2:
-                    updateInDoor();
-                    break;
-                case 3:
-                    updateUnderGround();
-                    break;
-                case 4:
-                    Random ran = new Random();
-                    if (ran.nextInt(2) == 1) {
-                        //Log.d(TAG, "Door update");
-                        updateInDoor();
-                    } else {
-                        //Log.d(TAG, "Ground update");
-                        updateUnderGround();
-                    }
-                    break;
-                default:
-                    Log.e(TAG, "Wrong inference result code");
-                    break;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 
     // Wifi signal strength detected callback
     @Override
     public void onReceive(Context context, Intent intent) {
-        try {
-            mWifiRssi = mWifiManager.getConnectionInfo().getRssi();
-        } catch (Exception e) {
-            //Pass
-        }
+        mWifiRssi = mWifiManager.getConnectionInfo().getRssi();
     }
 }

@@ -3,18 +3,17 @@ package fr.inria.yifan.mysensor.Context;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Objects;
 
 /**
- * This class deals with a HashMap containing all three context information.
+ * This class provides a HashMap containing all three context information: UA, PE and DA.
  * Available key-value paris are: ("UserActivity", <"VEHICLE", "BICYCLE", "FOOT", "STILL", "UNKNOWN">),
  * (<"InPocket", "InDoor", "UnderGround">, <"True", "False", null>),
- * ("Location", <"GPS", "NETWORK", null>), ("LocationAcc", <Float>), ("LocationPower", <Float>
- * ("Internet", <"WIFI", "Cellular", null>), ("UpBandwidth", <Float>), ("InternetPower", <Float>
+ * ("Location", <"GPS", "NETWORK", null>), ("LocationAcc", <Float>), ("LocationPower", <Float>)
+ * ("Internet", <"WIFI", "Cellular", null>), ("UpBandwidth", <Float>), ("InternetPower", <Float>)
  * ("Battery", <Float>), ("CPU", <Float>); ("Memory", <Float>),
  * (<"TemperatureAcc", "LightAcc", "PressureAcc", "HumidityAcc", "NoiseAcc">, <Float>),
  * (<"TemperaturePow", "LightPow", "PressurePow", "HumidityPow", "NoisePow">, <Float>)
@@ -22,7 +21,7 @@ import java.util.Objects;
 
 public class FeatureHelper {
 
-    // Time interval between activity and GPS updates (milliseconds)
+    // Time interval between activity and GPS updates in milliseconds
     static final int MIN_UPDATE_TIME = 500;
 
     // The lambda parameter for learning model update
@@ -30,14 +29,15 @@ public class FeatureHelper {
 
     private static final String TAG = "Feature helper";
 
+    // Variables
     private UserActivity mUserActivity;
     private PhysicalEnvironment mPhysicalEnvironment;
     private DeviceAttribute mDeviceAttribute;
     private DurationPredict mDurationPredict;
-    private HashMap<String, String> mFeature;
+    private HashMap<String, String> mContext;
     private HashMap<String, String> mIntents;
 
-    // Variables for duration prediction update
+    // Variables used for duration prediction update
     private String previousUA;
     private Calendar startTimeUA;
     private float durationUA;
@@ -48,9 +48,9 @@ public class FeatureHelper {
     private Calendar startTimeGround;
     private float durationGround;
 
-    // Constructor initialization
+    // Constructor
     public FeatureHelper(Context context) {
-        mFeature = new HashMap<>();
+        mContext = new HashMap<>();
         mIntents = new HashMap<>();
         mUserActivity = new UserActivity(context);
         mPhysicalEnvironment = new PhysicalEnvironment(context);
@@ -71,78 +71,84 @@ public class FeatureHelper {
     }
 
     // Get the most recent context hash map
-
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     public HashMap getContext() {
-        mFeature.putAll(mUserActivity.getUserActivity());
-        mFeature.putAll(mPhysicalEnvironment.getPhysicalEnv());
-        mFeature.putAll(mDeviceAttribute.getDeviceAttr());
+        // Read all three contexts into the HashMap
+        mContext.putAll(mUserActivity.getUserActivity());
+        mContext.putAll(mPhysicalEnvironment.getPhysicalEnv());
+        mContext.putAll(mDeviceAttribute.getDeviceAttr());
 
-        // User activity duration update
+        // User Activity duration update automatically
         String currentUA = (String) mUserActivity.getUserActivity().get("UserActivity");
         if (previousUA == null) {
+            // First record
             startTimeUA = Calendar.getInstance();
             previousUA = currentUA;
         } else if (currentUA != null && !currentUA.equals(previousUA)) {
-            Log.e(TAG, "Activity is: " + currentUA + ", time is: " + startTimeUA.getTimeInMillis());
+            // User activity changed
+            //Log.d(TAG, "Activity is: " + currentUA + ", time is: " + startTimeUA.getTimeInMillis());
             mDurationPredict.updateActivityModel(startTimeUA, previousUA);
             startTimeUA = Calendar.getInstance();
             previousUA = currentUA;
         }
         durationUA = mDurationPredict.predictActivityDuration(currentUA);
-        mFeature.put("DurationUA", String.valueOf(durationUA));
+        mContext.put("DurationUA", String.valueOf(durationUA));
 
-        // In-door/Out-door duration update
+        // In-door/Out-door duration update automatically
         String currentDoor = (String) mPhysicalEnvironment.getPhysicalEnv().get("InDoor");
         if (previousIndoor == null) {
+            // First record
             startTimeDoor = Calendar.getInstance();
             previousIndoor = currentDoor;
         } else if (currentDoor != null && !currentDoor.equals(previousIndoor)) {
-            Log.e(TAG, "Indoor is: " + currentDoor + ", time is: " + startTimeDoor.getTimeInMillis());
+            // Indoor state changed
+            //Log.d(TAG, "Indoor is: " + currentDoor + ", time is: " + startTimeDoor.getTimeInMillis());
             mDurationPredict.updateDoorModel(startTimeDoor, previousIndoor);
             startTimeDoor = Calendar.getInstance();
             previousIndoor = currentDoor;
         }
         durationDoor = mDurationPredict.predictDoorDuration(currentDoor);
-        mFeature.put("DurationDoor", String.valueOf(durationDoor));
+        mContext.put("DurationDoor", String.valueOf(durationDoor));
 
-        // Under-ground/On-ground duration update
+        // Under-ground/On-ground duration update automatically
         String currentGround = (String) mPhysicalEnvironment.getPhysicalEnv().get("UnderGround");
         if (previousUnderground == null) {
+            // First record
             startTimeGround = Calendar.getInstance();
             previousUnderground = currentGround;
         } else if (currentGround != null && !currentGround.equals(previousUnderground)) {
-            Log.e(TAG, "Underground is: " + currentGround + ", time is: " + startTimeGround.getTimeInMillis());
+            // Underground state changed
+            //Log.d(TAG, "Underground is: " + currentGround + ", time is: " + startTimeGround.getTimeInMillis());
             mDurationPredict.updateGroundModel(startTimeGround, previousUnderground);
             startTimeGround = Calendar.getInstance();
             previousUnderground = currentGround;
         }
         durationGround = mDurationPredict.predictGroundDuration(currentGround);
-        mFeature.put("DurationGround", String.valueOf(durationGround));
-        return mFeature;
+        mContext.put("DurationGround", String.valueOf(durationGround));
+        // Return the contexts result
+        return mContext;
     }
 
-    // Clear the current context hahs map
+    // Clear the current context HashMap
     public void clearContext() {
-        mFeature.clear();
+        mContext.clear();
     }
 
-    // Check if the indicated rules is matched
+    // Check if the given context rules is matched
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean matchRules(HashMap<String, String> rules) {
         for (String key : rules.keySet()) {
             //Log.e(TAG, key);
-            if (!Objects.equals(mFeature.get(key), rules.get(key))) {
+            if (!Objects.equals(mContext.get(key), rules.get(key))) {
                 return false;
             }
         }
         return true;
     }
 
-    // Calculate the intent values for all roles
+    // Calculate and get the intent values for all roles:
     // Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-
     @RequiresApi(api = Build.VERSION_CODES.M)
     public HashMap getIntentValues(int[] historyNeighbors) {
         // Coordinator
@@ -152,6 +158,7 @@ public class FeatureHelper {
         for (int i : historyNeighbors) sum += i;
         float h = sigmoidFunction(sum, 1f, 3f);
         mIntents.put("Coordinator", String.valueOf(d + delta + h));
+        // Battery metric
         float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
         float b = sigmoidFunction(bat, 0.001f, 2500f);
         // Locator
@@ -160,12 +167,7 @@ public class FeatureHelper {
         float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 20f);
         mIntents.put("Locator", String.valueOf(l + b));
         // Proxy
-        float p;
-        if (mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi") {
-            p = 1f;
-        } else {
-            p = 0.6f;
-        }
+        float p = mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi" ? 1f : 0.6f;
         float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
         float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
         float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.1f, 20f);
@@ -194,6 +196,7 @@ public class FeatureHelper {
         float nacc = (float) mDeviceAttribute.getDeviceAttr().get("NoiseAcc");
         float npow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow");
         mIntents.put("Noise", String.valueOf(sigmoidFunction(nacc, 0.05f, 50f) - sigmoidFunction(npow, 0.5f, 0.1f)));
+        // Return the intents result
         return mIntents;
     }
 
@@ -206,5 +209,4 @@ public class FeatureHelper {
     public void updateModels() {
         mPhysicalEnvironment.updateModels();
     }
-
 }
