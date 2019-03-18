@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Deprecated;
+package fr.inria.yifan.mysensor.Deprecated.Inference;
 
 import java.io.Serializable;
 
@@ -18,7 +18,7 @@ public class DecisionStump implements Serializable {
     private double stepValue; // Steps os threshold
 
     // Constructor initialization
-    DecisionStump() {
+    public DecisionStump() {
         error = Double.MAX_VALUE;
         index = -1;
         operation = ' ';
@@ -27,7 +27,7 @@ public class DecisionStump implements Serializable {
     }
 
     // Find the best decision stump from a sample set
-    void BatchTrain(double[][] samples, double[] weight, int[] featureInd, int stepNum) {
+    public void BatchTrain(double[][] samples, double[] weight, int[] featureInd, int stepNum) {
         // Iteration for each candidate feature
         for (int i : featureInd) {
             // Find Max and Min for the feature
@@ -73,7 +73,7 @@ public class DecisionStump implements Serializable {
     }
 
     // Update the threshold if the prediction is wrong
-    void UpdateThreshold(double[] sample) {
+    public void UpdateThreshold(double[] sample) {
         if (Predict(sample) != sample[sample.length - 1]) {
             //System.out.println("Current FE: " + index + ", OP: " + operation + ", TH: " + threshold +
             // ", VA: " + sample[index] + ", HY: " + Predict(sample) + ", TR: " + sample[sample.length - 1]);
@@ -111,7 +111,7 @@ public class DecisionStump implements Serializable {
     }
 
     // Make inference on a new feature vector
-    int Predict(double[] features) {
+    public int Predict(double[] features) {
         switch (operation) {
             case '(':
                 return features[index] <= threshold ? 1 : 0;
@@ -123,12 +123,12 @@ public class DecisionStump implements Serializable {
     }
 
     // Get the error of this decision stump
-    double getError() {
+    public double getError() {
         return error;
     }
 
     // Update the error of this decision stump
-    void setError(double err) {
+    public void setError(double err) {
         error = err;
     }
 

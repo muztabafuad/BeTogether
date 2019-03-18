@@ -22,6 +22,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
 }
 
 dependencies {
@@ -35,6 +39,6 @@ dependencies {
     implementation files('libs/weka-stable-3.8.1-SNAPSHOT.jar')
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.google.android.gms:play-services-nearby:16.0.0'
-    implementation 'com.google.firebase:firebase-core:16.0.7'
+    implementation 'com.google.firebase:firebase-core:16.0.8'
     implementation group: 'org.pentaho.pentaho-commons', name: 'pentaho-package-manager', version: '1.0.11'
 }

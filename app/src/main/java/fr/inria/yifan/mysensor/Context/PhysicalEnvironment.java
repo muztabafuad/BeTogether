@@ -96,8 +96,8 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
     // Declare GSM RSSI state listener
     private PhoneStateListener mListenerPhone = new PhoneStateListener() {
-        @Override
         @RequiresApi(api = Build.VERSION_CODES.M)
+        @Override
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
             mRssiLevel = signalStrength.getLevel();
             mRssiValue = signalStrength.getGsmSignalStrength() * 2 - 113; // -> dBm

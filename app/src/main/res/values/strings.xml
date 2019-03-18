@@ -1,10 +1,9 @@
 
 <resources>
     <string name="app_name">SenseGroupTogether</string>
-    <string name="title_bluetooth">Bluetooth</string>
+    <string name="title_context">Context</string>
     <string name="title_sensing">Sensing</string>
-    <string name="title_wifi">Wifi-Direct</string>
-    <string name="button_sensors">Show all sensors</string>
+    <string name="title_service">Service</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="send">Send</string>
@@ -18,7 +17,6 @@
     <string name="hint_gps">Press start button to turn on the GPS positioning system.</string>
     <string name="open_network">Discovering Wifi Direct neighbors providing services …</string>
     <string name="count_sensing">Sensing count: </string>
-    <string name="feedback">Wrong!</string>
     <string name="in_pocket">In-Pocket</string>
     <string name="in_door">In-Door</string>
     <string name="under_ground">Under-Ground</string>
@@ -29,6 +27,6 @@
     <string name="switch_mail">&amp; Mail log</string>
     <string name="notify_title">Inference Result</string>
     <string name="notify_content">…</string>
-    <string name="feedback_button">WRONG INFERENCE!</string>
+    <string name="feedback_button">Wrong inference on Physical Environment context!</string>
     <string name="welcome_text">This is a test activity…</string>
 </resources>

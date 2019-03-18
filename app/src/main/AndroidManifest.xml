@@ -42,7 +42,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity
-            android:name=".TestActivity"
+            android:name=".InitializeActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -50,11 +50,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Deprecated.SensorsActivity"
-            android:screenOrientation="portrait"
-            tools:ignore="InnerclassSeparator" />
-        <activity
-            android:name=".Deprecated.BluetoothActivity"
+            android:name=".ContextActivity"
             android:screenOrientation="portrait"
             tools:ignore="InnerclassSeparator" />
         <activity
@@ -62,7 +58,7 @@
             android:screenOrientation="portrait"
             tools:ignore="InnerclassSeparator" />
         <activity
-            android:name=".Deprecated.WifiActivity"
+            android:name=".ServiceActivity"
             android:screenOrientation="portrait"
             tools:ignore="InnerclassSeparator" />
     </application>

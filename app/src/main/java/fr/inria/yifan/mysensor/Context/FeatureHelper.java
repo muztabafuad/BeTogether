@@ -5,7 +5,6 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Objects;
@@ -36,6 +35,9 @@ public class FeatureHelper {
     private DeviceAttribute mDeviceAttribute;
     private DurationPredict mDurationPredict;
     private HashMap<String, String> mFeature;
+    private HashMap<String, Float> mIntents;
+
+    // Variables for duration prediction update
     private String previousUA;
     private Calendar startTimeUA;
     private float durationUA;
@@ -49,6 +51,7 @@ public class FeatureHelper {
     // Constructor initialization
     public FeatureHelper(Context context) {
         mFeature = new HashMap<>();
+        mIntents = new HashMap<>();
         mUserActivity = new UserActivity(context);
         mPhysicalEnvironment = new PhysicalEnvironment(context);
         mDeviceAttribute = new DeviceAttribute(context);
@@ -68,6 +71,7 @@ public class FeatureHelper {
     }
 
     // Get the most recent context hash map
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     public HashMap getContext() {
@@ -136,64 +140,61 @@ public class FeatureHelper {
         return true;
     }
 
-    // Calculate the intent value to be a "Coordinator"
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public float getCoordinatorIntent(int[] historyNeighbors) {
+    // Calculate the intent values for all roles
+    // Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public HashMap getIntentValues(int[] historyNeighbors) {
+        // Coordinator
         float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
         float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 1), 1f, 4f);
-        float h = sigmoidFunction(Arrays.stream(historyNeighbors).sum(), 1f, 3f);
-        return d + delta + h;
-    }
-
-    // Calculate the intent value to be a role
-    // "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public float getRoleIntent(String role) {
+        int sum = 0;
+        for (int i : historyNeighbors) sum += i;
+        float h = sigmoidFunction(sum, 1f, 3f);
+        mIntents.put("Coordinator", d + delta + h);
         float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
         float b = sigmoidFunction(bat, 0.001f, 2500f);
-        switch (role) {
-            case "Locator":
-                float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
-                float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
-                float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 20f);
-                return l + b;
-            case "Proxy":
-                float p;
-                if (mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi") {
-                    p = 1f;
-                } else {
-                    p = 0.6f;
-                }
-                float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
-                float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
-                float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.1f, 20f);
-                return n + b;
-            case "Aggregator":
-                float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
-                float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
-                return sigmoidFunction(cpu, 0.001f, 1000f) + sigmoidFunction(ram, 0.001f, 2000f) + b;
-            case "Temperature":
-                float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
-                float tpow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow");
-                return sigmoidFunction(tacc, 0.05f, 50f) - sigmoidFunction(tpow, 0.5f, 0.1f);
-            case "Light":
-                float lacc = (float) mDeviceAttribute.getDeviceAttr().get("LightAcc");
-                float lpow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow");
-                return sigmoidFunction(lacc, 0.05f, 50f) - sigmoidFunction(lpow, 0.5f, 0.1f);
-            case "Pressure":
-                float pacc = (float) mDeviceAttribute.getDeviceAttr().get("PressureAcc");
-                float ppow = (float) mDeviceAttribute.getDeviceAttr().get("Pressurepow");
-                return sigmoidFunction(pacc, 0.05f, 50f) - sigmoidFunction(ppow, 0.5f, 0.1f);
-            case "Humidity":
-                float hacc = (float) mDeviceAttribute.getDeviceAttr().get("HumidityAcc");
-                float hpow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow");
-                return sigmoidFunction(hacc, 0.05f, 50f) - sigmoidFunction(hpow, 0.5f, 0.1f);
-            case "Noise":
-                float nacc = (float) mDeviceAttribute.getDeviceAttr().get("NoiseAcc");
-                float npow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow");
-                return sigmoidFunction(nacc, 0.05f, 50f) - sigmoidFunction(npow, 0.5f, 0.1f);
+        // Locator
+        float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
+        float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
+        float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 20f);
+        mIntents.put("Locator", l + b);
+        // Proxy
+        float p;
+        if (mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi") {
+            p = 1f;
+        } else {
+            p = 0.6f;
         }
-        return 0;
+        float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
+        float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
+        float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.1f, 20f);
+        mIntents.put("Proxy", n + b);
+        // Aggregator
+        float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
+        float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
+        mIntents.put("Aggregator", sigmoidFunction(cpu, 0.001f, 1000f) + sigmoidFunction(ram, 0.001f, 2000f) + b);
+        // Temperature
+        float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
+        float tpow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow");
+        mIntents.put("Temperature", sigmoidFunction(tacc, 0.05f, 50f) - sigmoidFunction(tpow, 0.5f, 0.1f));
+        // Light
+        float lacc = (float) mDeviceAttribute.getDeviceAttr().get("LightAcc");
+        float lpow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow");
+        mIntents.put("Light", sigmoidFunction(lacc, 0.05f, 50f) - sigmoidFunction(lpow, 0.5f, 0.1f));
+        // Pressure
+        float pacc = (float) mDeviceAttribute.getDeviceAttr().get("PressureAcc");
+        float ppow = (float) mDeviceAttribute.getDeviceAttr().get("PressurePow");
+        mIntents.put("Pressure", sigmoidFunction(pacc, 0.05f, 50f) - sigmoidFunction(ppow, 0.5f, 0.1f));
+        // Humidity
+        float hacc = (float) mDeviceAttribute.getDeviceAttr().get("HumidityAcc");
+        float hpow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow");
+        mIntents.put("Humidity", sigmoidFunction(hacc, 0.05f, 50f) - sigmoidFunction(hpow, 0.5f, 0.1f));
+        // Noise
+        float nacc = (float) mDeviceAttribute.getDeviceAttr().get("NoiseAcc");
+        float npow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow");
+        mIntents.put("Noise", sigmoidFunction(nacc, 0.05f, 50f) - sigmoidFunction(npow, 0.5f, 0.1f));
+        return mIntents;
     }
 
     // The logistic function ranging from -1 to 1

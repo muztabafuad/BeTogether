@@ -29,7 +29,7 @@ public class DeviceAttribute {
     private Context mContext;
 
     // Variables
-    private HashMap<String, String> mDeviceAttr;
+    private HashMap<String, Object> mDeviceAttr;
 
     DeviceAttribute(Context context) {
         mContext = context;
@@ -38,20 +38,20 @@ public class DeviceAttribute {
 
     public void startService() {
         try {
-            // Get the maximum CPU frequency GHz
+            // Get the maximum CPU frequency MHz
             RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
             // Constant
-            float mCpuFrequency = (Float.parseFloat(reader.readLine()) / 1e6f);
+            float mCpuFrequency = (Float.parseFloat(reader.readLine()) / 1e3f);
             reader.close();
 
-            // Get the total memory size GB
+            // Get the total memory size MB
             ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
             ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
             am.getMemoryInfo(memInfo);
-            float mMemorySize = memInfo.totalMem / 1e9f;
+            float mMemorySize = memInfo.totalMem / 1e6f;
 
-            mDeviceAttr.put("CPU", String.valueOf(mCpuFrequency));
-            mDeviceAttr.put("Memory", String.valueOf(mMemorySize));
+            mDeviceAttr.put("CPU", mCpuFrequency);
+            mDeviceAttr.put("Memory", mMemorySize);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,35 +59,35 @@ public class DeviceAttribute {
         SensorManager mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
         // Get the sensors attributes
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE) == null) {
-            mDeviceAttr.put("TemperatureAcc", String.valueOf(0));
-            mDeviceAttr.put("TemperaturePow", String.valueOf(999));
+            mDeviceAttr.put("TemperatureAcc", 0f);
+            mDeviceAttr.put("TemperaturePow", 999f);
         } else {
-            mDeviceAttr.put("TemperatureAcc", String.valueOf(50));
-            mDeviceAttr.put("TemperaturePow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE).getPower()));
+            mDeviceAttr.put("TemperatureAcc", 50f);
+            mDeviceAttr.put("TemperaturePow", mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT) == null) {
-            mDeviceAttr.put("LightAcc", String.valueOf(0));
-            mDeviceAttr.put("LightPow", String.valueOf(999));
+            mDeviceAttr.put("LightAcc", 0f);
+            mDeviceAttr.put("LightPow", 999f);
         } else {
-            mDeviceAttr.put("LightAcc", String.valueOf(50));
-            mDeviceAttr.put("LightPow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).getPower()));
+            mDeviceAttr.put("LightAcc", 50f);
+            mDeviceAttr.put("LightPow", mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE) == null) {
-            mDeviceAttr.put("PressureAcc", String.valueOf(0));
-            mDeviceAttr.put("PressurePow", String.valueOf(999));
+            mDeviceAttr.put("PressureAcc", 0f);
+            mDeviceAttr.put("PressurePow", 999f);
         } else {
-            mDeviceAttr.put("PressureAcc", String.valueOf(50));
-            mDeviceAttr.put("PressurePow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).getPower()));
+            mDeviceAttr.put("PressureAcc", 50f);
+            mDeviceAttr.put("PressurePow", mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY) == null) {
-            mDeviceAttr.put("HumidityAcc", String.valueOf(0));
-            mDeviceAttr.put("HumidityPow", String.valueOf(999));
+            mDeviceAttr.put("HumidityAcc", 0f);
+            mDeviceAttr.put("HumidityPow", 999f);
         } else {
-            mDeviceAttr.put("HumidityAcc", String.valueOf(50));
-            mDeviceAttr.put("HumidityPow", String.valueOf(mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY).getPower()));
+            mDeviceAttr.put("HumidityAcc", 0f);
+            mDeviceAttr.put("HumidityPow", mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY).getPower());
         }
-        mDeviceAttr.put("NoiseAcc", String.valueOf(50));
-        mDeviceAttr.put("NoisePow", String.valueOf(0.5));
+        mDeviceAttr.put("NoiseAcc", 50f);
+        mDeviceAttr.put("NoisePow", 0.5f);
     }
 
     public void stopService() {
@@ -95,8 +95,8 @@ public class DeviceAttribute {
     }
 
     // Get the most recent device attributes
-    @SuppressLint("MissingPermission")
     @RequiresApi(api = Build.VERSION_CODES.M)
+    @SuppressLint("MissingPermission")
     HashMap getDeviceAttr() {
         try {
             // Get the remaining battery %
@@ -115,35 +115,35 @@ public class DeviceAttribute {
             mDeviceAttr.put("Internet", mInternetType);
             switch (mInternetType) {
                 case "Wifi":
-                    mDeviceAttr.put("InternetPower", "20");
+                    mDeviceAttr.put("InternetPower", 20f);
                     break;
                 case "Cellular":
-                    mDeviceAttr.put("InternetPower", "40");
+                    mDeviceAttr.put("InternetPower", 40f);
                     break;
                 default:
-                    mDeviceAttr.put("InternetPower", "999");
+                    mDeviceAttr.put("InternetPower", 999f);
                     break;
             }
-            mDeviceAttr.put("UpBandwidth", String.valueOf(capability.getLinkUpstreamBandwidthKbps()));
+            mDeviceAttr.put("UpBandwidth", (float) capability.getLinkUpstreamBandwidthKbps());
 
             // Get the location service type
             LocationManager lm = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
             if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mDeviceAttr.put("Location", "GPS");
                 Location loc = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                mDeviceAttr.put("LocationAcc", loc != null ? String.valueOf(loc.getAccuracy()) : "0");
-                mDeviceAttr.put("LocationPower", "50");
+                mDeviceAttr.put("LocationAcc", loc != null ? loc.getAccuracy() : 0f);
+                mDeviceAttr.put("LocationPower", 50f);
             } else if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
                 mDeviceAttr.put("Location", "NETWORK");
                 Location loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                mDeviceAttr.put("LocationAcc", loc != null ? String.valueOf(loc.getAccuracy()) : "0");
-                mDeviceAttr.put("LocationPower", "20");
+                mDeviceAttr.put("LocationAcc", loc != null ? loc.getAccuracy() : 0f);
+                mDeviceAttr.put("LocationPower", 20f);
             } else {
                 mDeviceAttr.put("Location", null);
-                mDeviceAttr.put("LocationAcc", "0");
-                mDeviceAttr.put("LocationPower", "999");
+                mDeviceAttr.put("LocationAcc", 0f);
+                mDeviceAttr.put("LocationPower", 999f);
             }
-            mDeviceAttr.put("Battery", String.valueOf(mRemainBattery));
+            mDeviceAttr.put("Battery", mRemainBattery);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -153,7 +153,7 @@ public class DeviceAttribute {
 
     // Set the accuracy % of a specific sensor
     public void setSensorAcc(String sensor, float accuracy) {
-        mDeviceAttr.put(sensor, String.valueOf(accuracy));
+        mDeviceAttr.put(sensor, accuracy);
     }
 
     // Get the Internet type from network capability

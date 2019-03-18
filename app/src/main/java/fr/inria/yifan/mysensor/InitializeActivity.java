@@ -1,7 +1,6 @@
-package fr.inria.yifan.mysensor.Deprecated;
+package fr.inria.yifan.mysensor;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -14,11 +13,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import fr.inria.yifan.mysensor.R;
-
-import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.PERMS_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.PERMS_REQUEST_RECORD;
-import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.PERMS_REQUEST_STORAGE;
+import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 
 /**
  * This activity has to be started in the beginning of the application to ensure all user permissions are enabled
@@ -28,18 +23,21 @@ public class InitializeActivity extends AppCompatActivity {
 
     private static final String TAG = "Initialization";
 
+    private static final int PERMS_REQUEST_RECORD = 1000;
+    private static final int PERMS_REQUEST_STORAGE = 1001;
+    private static final int PERMS_REQUEST_LOCATION = 1002;
+
     // Declare microphone permissions
     private static final String[] RECORD_PERMS = {Manifest.permission.RECORD_AUDIO};
 
     // Declare file storage permissions
-    @SuppressLint("InlinedApi")
     private static final String[] STORAGE_PERMS = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
-    // Declare GPS permissions
-    private static final String[] LOCATION_PERMS = {Manifest.permission.ACCESS_FINE_LOCATION};
+    // Declare GPS and network permissions
+    private static final String[] LOCATION_PERMS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN,
+            Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.INTERNET};
 
     // Main activity initialization
-    @SuppressLint("SetTextI18n")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,18 +118,11 @@ public class InitializeActivity extends AppCompatActivity {
         }
     }
 
-    // Go to the sensor list activity
-    public void goSensors(View view) {
-        Intent goToSensors = new Intent();
-        goToSensors.setClass(this, SensorsActivity.class);
-        startActivity(goToSensors);
-    }
-
-    // Go to the network activity
-    public void goBluetooth(View view) {
-        Intent goToBluetooth = new Intent();
-        goToBluetooth.setClass(this, BluetoothActivity.class);
-        startActivity(goToBluetooth);
+    // Go to the context activity
+    public void goContext(View view) {
+        Intent goToContext = new Intent();
+        goToContext.setClass(this, ContextActivity.class);
+        startActivity(goToContext);
         finish();
     }
 
@@ -143,11 +134,11 @@ public class InitializeActivity extends AppCompatActivity {
         finish();
     }
 
-    // Go to the network activity
-    public void goWifi(View view) {
-        Intent goToWifi = new Intent();
-        goToWifi.setClass(this, WifiActivity.class);
-        startActivity(goToWifi);
+    // Go to the service activity
+    public void goService(View view) {
+        Intent goToService = new Intent();
+        goToService.setClass(this, ServiceActivity.class);
+        startActivity(goToService);
         finish();
     }
 

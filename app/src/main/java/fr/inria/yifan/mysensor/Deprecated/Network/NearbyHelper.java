@@ -1,7 +1,8 @@
-package fr.inria.yifan.mysensor.Discovery;
+package fr.inria.yifan.mysensor.Deprecated.Network;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
@@ -89,7 +90,8 @@ public class NearbyHelper {
                 @Override
                 public void onEndpointFound(@NonNull String endpointId, @NonNull DiscoveredEndpointInfo info) {
                     // An endpoint was found. We request a connection to it.
-                    Nearby.getConnectionsClient(mContext).requestConnection("Discoverer", endpointId, connectionLifecycleCallback);
+                    Log.e(TAG, "Found an end-point: " + endpointId);
+                    //Nearby.getConnectionsClient(mContext).requestConnection("Discoverer", endpointId, connectionLifecycleCallback);
                 }
 
                 @Override
@@ -114,11 +116,11 @@ public class NearbyHelper {
     }
 
     public void stopAdvertising() {
-
+        Nearby.getConnectionsClient(mContext).stopAdvertising();
     }
 
     public void stopDiscovery() {
-
+        Nearby.getConnectionsClient(mContext).stopDiscovery();
     }
 
     // Send the hash map via byte payload

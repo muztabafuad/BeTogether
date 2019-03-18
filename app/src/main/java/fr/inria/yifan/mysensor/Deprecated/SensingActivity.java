@@ -1,7 +1,6 @@
 package fr.inria.yifan.mysensor.Deprecated;
 
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,10 +20,12 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import fr.inria.yifan.mysensor.ContextActivity;
 import fr.inria.yifan.mysensor.Deprecated.Sensing.ContextHelper;
 import fr.inria.yifan.mysensor.Deprecated.Sensing.SensorsHelper;
 import fr.inria.yifan.mysensor.Deprecated.Support.FilesIOHelper;
 import fr.inria.yifan.mysensor.R;
+import fr.inria.yifan.mysensor.ServiceActivity;
 
 import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.DST_MAIL_ADDRESS;
 import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.ENABLE_REQUEST_LOCATION;
@@ -86,37 +87,28 @@ public class SensingActivity extends AppCompatActivity {
 
         // Radio group for scene selection
         final RadioGroup mPocketRadioGroup = findViewById(R.id.pocket_radio);
-        mPocketRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId != -1) {
-                    mPocketLabel = getSceneLabel(checkedId);
-                    //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
-                }
+        mPocketRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId != -1) {
+                mPocketLabel = getSceneLabel(checkedId);
+                //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
             }
         });
 
         // Radio group for scene selection
         final RadioGroup mDoorRadioGroup = findViewById(R.id.door_radio);
-        mDoorRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId != -1) {
-                    mDoorLabel = getSceneLabel(checkedId);
-                    //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
-                }
+        mDoorRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId != -1) {
+                mDoorLabel = getSceneLabel(checkedId);
+                //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
             }
         });
 
         // Radio group for scene selection
         final RadioGroup mGroundRadioGroup = findViewById(R.id.ground_radio);
-        mGroundRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId != -1) {
-                    mGroundLabel = getSceneLabel(checkedId);
-                    //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
-                }
+        mGroundRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId != -1) {
+                mGroundLabel = getSceneLabel(checkedId);
+                //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
             }
         });
 
@@ -124,35 +116,26 @@ public class SensingActivity extends AppCompatActivity {
         mDoorRadioGroup.check(R.id.indoor_radio);
         mGroundRadioGroup.check(R.id.onground_radio);
 
-        mStartButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mAdapterSensing.clear();
-                mAdapterSensing.add("0 timestamp, 1 daytime (b), 2 light density (lx), 3 magnetic strength (μT), " +
-                        "4 GSM active (b), 5 RSSI level, 6 RSSI value (dBm), 7 GPS accuracy (m), 8 Wifi active (b), " +
-                        "9 Wifi RSSI (dBm), 10 proximity (b), 11 sound level (dBA), 12 temperature (C), 13 pressure (hPa), " +
-                        "14 humidity (%), 15 in-pocket label, 16 in-door label, 17 under-ground label");
-                startRecord();
-                mStartButton.setVisibility(View.INVISIBLE);
-                mStopButton.setVisibility(View.VISIBLE);
-            }
+        mStartButton.setOnClickListener(view -> {
+            mAdapterSensing.clear();
+            mAdapterSensing.add("0 timestamp, 1 daytime (b), 2 light density (lx), 3 magnetic strength (μT), " +
+                    "4 GSM active (b), 5 RSSI level, 6 RSSI value (dBm), 7 GPS accuracy (m), 8 Wifi active (b), " +
+                    "9 Wifi RSSI (dBm), 10 proximity (b), 11 sound level (dBA), 12 temperature (C), 13 pressure (hPa), " +
+                    "14 humidity (%), 15 in-pocket label, 16 in-door label, 17 under-ground label");
+            startRecord();
+            mStartButton.setVisibility(View.INVISIBLE);
+            mStopButton.setVisibility(View.VISIBLE);
         });
-        mStopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                stopRecord();
-                mStartButton.setVisibility(View.VISIBLE);
-                mStopButton.setVisibility(View.INVISIBLE);
-            }
+        mStopButton.setOnClickListener(view -> {
+            stopRecord();
+            mStartButton.setVisibility(View.VISIBLE);
+            mStopButton.setVisibility(View.INVISIBLE);
         });
-        mSwitchLog.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mSwitchLog.isChecked()) {
-                    mSwitchMail.setVisibility(View.VISIBLE);
-                } else {
-                    mSwitchMail.setVisibility(View.INVISIBLE);
-                }
+        mSwitchLog.setOnClickListener(view -> {
+            if (mSwitchLog.isChecked()) {
+                mSwitchMail.setVisibility(View.VISIBLE);
+            } else {
+                mSwitchMail.setVisibility(View.INVISIBLE);
             }
         });
     }
@@ -199,42 +182,36 @@ public class SensingActivity extends AppCompatActivity {
         mContextHelper.startService();
         isGetSenseRun = true;
         mSenseRound = 0;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (isGetSenseRun) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mAdapterSensing.add(currentTimeMillis() + ", " +
-                                    mContextHelper.isDaytime() + ", " +
-                                    mSensorHelper.getLightDensity() + ", " +
-                                    mSensorHelper.getMagnet() + ", " +
-                                    mContextHelper.isGSMLink() + ", " +
-                                    mContextHelper.getRssiLevel() + ", " +
-                                    mContextHelper.getRssiValue() + ", " +
-                                    mContextHelper.getGPSAccuracy() + ", " +
-                                    mContextHelper.isWifiLink() + ", " +
-                                    mContextHelper.getWifiRSSI() + ", " +
-                                    mSensorHelper.getProximity() + ", " +
-                                    mSensorHelper.getSoundLevel() + ", " +
-                                    mSensorHelper.getTemperature() + ", " +
-                                    mSensorHelper.getPressure() + ", " +
-                                    mSensorHelper.getHumidity() + ", " +
-                                    mPocketLabel + ", " +
-                                    mDoorLabel + ", " +
-                                    mGroundLabel);
-                            mSenseRound += 1;
-                            //Log.d(TAG, String.valueOf(mSenseRound));
-                        }
-                    });
-                    // Sampling time delay
-                    synchronized (mLock) {
-                        try {
-                            mLock.wait(SAMPLE_WINDOW_MS);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+        new Thread(() -> {
+            while (isGetSenseRun) {
+                runOnUiThread(() -> {
+                    mAdapterSensing.add(currentTimeMillis() + ", " +
+                            mContextHelper.isDaytime() + ", " +
+                            mSensorHelper.getLightDensity() + ", " +
+                            mSensorHelper.getMagnet() + ", " +
+                            mContextHelper.isGSMLink() + ", " +
+                            mContextHelper.getRssiLevel() + ", " +
+                            mContextHelper.getRssiValue() + ", " +
+                            mContextHelper.getGPSAccuracy() + ", " +
+                            mContextHelper.isWifiLink() + ", " +
+                            mContextHelper.getWifiRSSI() + ", " +
+                            mSensorHelper.getProximity() + ", " +
+                            mSensorHelper.getSoundLevel() + ", " +
+                            mSensorHelper.getTemperature() + ", " +
+                            mSensorHelper.getPressure() + ", " +
+                            mSensorHelper.getHumidity() + ", " +
+                            mPocketLabel + ", " +
+                            mDoorLabel + ", " +
+                            mGroundLabel);
+                    mSenseRound += 1;
+                    //Log.d(TAG, String.valueOf(mSenseRound));
+                });
+                // Sampling time delay
+                synchronized (mLock) {
+                    try {
+                        mLock.wait(SAMPLE_WINDOW_MS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -253,45 +230,39 @@ public class SensingActivity extends AppCompatActivity {
             editName.setText(android.os.Build.MODEL + "_" + currentTimeMillis());
             dialog.setTitle("Enter file name: ");
             dialog.setView(editName);
-            dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    //Log.d(TAG, "Now is " + time);
-                    try {
-                        String filename = editName.getText() + ".csv";
-                        mFilesIOHelper.saveFile(filename, arrayToString(mSensingData));
-                        if (mSwitchMail.isChecked()) {
-                            Log.d(TAG, "File path is : " + mFilesIOHelper.getFileUri(filename));
-                            mFilesIOHelper.sendFile(DST_MAIL_ADDRESS, getString(R.string.email_title), mFilesIOHelper.getFileUri(filename));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            dialog.setPositiveButton("OK", (dialogInterface, i) -> {
+                //Log.d(TAG, "Now is " + time);
+                try {
+                    String filename = editName.getText() + ".csv";
+                    mFilesIOHelper.saveFile(filename, arrayToString(mSensingData));
+                    if (mSwitchMail.isChecked()) {
+                        Log.d(TAG, "File path is : " + mFilesIOHelper.getFileUri(filename));
+                        mFilesIOHelper.sendFile(DST_MAIL_ADDRESS, getString(R.string.email_title), mFilesIOHelper.getFileUri(filename));
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             });
-            dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    //Pass
-                }
+            dialog.setNegativeButton("Cancel", (dialogInterface, i) -> {
+                //Pass
             });
             dialog.show();
         }
     }
 
-    // Go to the network activity
-    public void goBluetooth(View view) {
-        Intent goToBluetooth = new Intent();
-        goToBluetooth.setClass(this, BluetoothActivity.class);
-        startActivity(goToBluetooth);
+    // Go to the context activity
+    public void goContext(View view) {
+        Intent goToContext = new Intent();
+        goToContext.setClass(this, ContextActivity.class);
+        startActivity(goToContext);
         finish();
     }
 
-    // Go to the network activity
-    public void goWifi(View view) {
-        Intent goToWifi = new Intent();
-        goToWifi.setClass(this, WifiActivity.class);
-        startActivity(goToWifi);
+    // Go to the service activity
+    public void goService(View view) {
+        Intent goToService = new Intent();
+        goToService.setClass(this, ServiceActivity.class);
+        startActivity(goToService);
         finish();
     }
 

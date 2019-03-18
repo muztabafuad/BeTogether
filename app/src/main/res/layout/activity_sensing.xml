@@ -154,8 +154,8 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/green_square"
-            android:onClick="goBluetooth"
-            android:text="@string/title_bluetooth" />
+            android:onClick="goContext"
+            android:text="@string/title_context" />
 
         <Button
             android:id="@+id/sensing_button"
@@ -176,8 +176,8 @@
             android:layout_weight="1"
             android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/blue_square"
-            android:onClick="goWifi"
-            android:text="@string/title_wifi" />
+            android:onClick="goService"
+            android:text="@string/title_service" />
     </LinearLayout>
 
 </RelativeLayout>

@@ -2,6 +2,8 @@ package fr.inria.yifan.mysensor.Deprecated;
 
 import java.io.Serializable;
 
+import fr.inria.yifan.mysensor.Deprecated.Inference.DecisionStump;
+
 /*
  This class implements the AdaBoost model for binary classification
  */
