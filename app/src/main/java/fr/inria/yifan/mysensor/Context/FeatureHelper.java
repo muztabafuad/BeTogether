@@ -151,53 +151,73 @@ public class FeatureHelper {
     // Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     @RequiresApi(api = Build.VERSION_CODES.M)
     public HashMap getIntentValues(int[] historyNeighbors) {
+
         // Coordinator
         float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
-        float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 1), 1f, 4f);
+        float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 1), 1f, 3f);
         int sum = 0;
         for (int i : historyNeighbors) sum += i;
         float h = sigmoidFunction(sum, 1f, 3f);
         mIntents.put("Coordinator", String.valueOf(d + delta + h));
+
         // Battery metric
         float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
-        float b = sigmoidFunction(bat, 0.001f, 2500f);
+        float b = sigmoidFunction(bat, 0.001f, 1000f);
+
         // Locator
         float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
         float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
-        float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 20f);
+        float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 30f);
         mIntents.put("Locator", String.valueOf(l + b));
+
         // Proxy
         float p = mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi" ? 1f : 0.6f;
         float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
         float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
-        float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.1f, 20f);
+        float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.05f, 100f);
         mIntents.put("Proxy", String.valueOf(n + b));
+
         // Aggregator
         float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
         float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
         mIntents.put("Aggregator", String.valueOf(sigmoidFunction(cpu, 0.001f, 1000f) + sigmoidFunction(ram, 0.001f, 2000f) + b));
+
         // Temperature
         float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
         float tpow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow");
-        mIntents.put("Temperature", String.valueOf(sigmoidFunction(tacc, 0.05f, 50f) - sigmoidFunction(tpow, 0.5f, 0.1f)));
+        mIntents.put("Temperature", String.valueOf(sigmoidFunction(tacc, 0.05f, 50f) - sigmoidFunction(tpow, 1f, 0.1f)));
+
         // Light
         float lacc = (float) mDeviceAttribute.getDeviceAttr().get("LightAcc");
         float lpow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow");
-        mIntents.put("Light", String.valueOf(sigmoidFunction(lacc, 0.05f, 50f) - sigmoidFunction(lpow, 0.5f, 0.1f)));
+        mIntents.put("Light", String.valueOf(sigmoidFunction(lacc, 0.05f, 50f) - sigmoidFunction(lpow, 1f, 0.1f)));
+
         // Pressure
         float pacc = (float) mDeviceAttribute.getDeviceAttr().get("PressureAcc");
         float ppow = (float) mDeviceAttribute.getDeviceAttr().get("PressurePow");
-        mIntents.put("Pressure", String.valueOf(sigmoidFunction(pacc, 0.05f, 50f) - sigmoidFunction(ppow, 0.5f, 0.1f)));
+        mIntents.put("Pressure", String.valueOf(sigmoidFunction(pacc, 0.05f, 50f) - sigmoidFunction(ppow, 1f, 0.1f)));
+
         // Humidity
         float hacc = (float) mDeviceAttribute.getDeviceAttr().get("HumidityAcc");
         float hpow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow");
-        mIntents.put("Humidity", String.valueOf(sigmoidFunction(hacc, 0.05f, 50f) - sigmoidFunction(hpow, 0.5f, 0.1f)));
+        mIntents.put("Humidity", String.valueOf(sigmoidFunction(hacc, 0.05f, 50f) - sigmoidFunction(hpow, 1f, 0.1f)));
+
         // Noise
         float nacc = (float) mDeviceAttribute.getDeviceAttr().get("NoiseAcc");
         float npow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow");
-        mIntents.put("Noise", String.valueOf(sigmoidFunction(nacc, 0.05f, 50f) - sigmoidFunction(npow, 0.5f, 0.1f)));
+        mIntents.put("Noise", String.valueOf(sigmoidFunction(nacc, 0.05f, 50f) - sigmoidFunction(npow, 1f, 0.1f)));
+
         // Return the intents result
         return mIntents;
+    }
+
+    // Calculate and get the power consumption for a given role in a time slot:
+    // Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    // Time slot: how long the sensing will continue in minutes
+    // Sample rate: how many time of sensing per second
+    public float getPowerConsumption(String service, int timeSlot, int sampleRate) {
+        // TODO
+        return 0f;
     }
 
     // The logistic function ranging from -1 to 1
