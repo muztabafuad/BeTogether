@@ -24,6 +24,18 @@ public class DeviceAttribute {
 
     private static final String TAG = "Device attributes";
 
+    /* Power consumption constants in mA, real-world values are attained from NOKIA X6
+     * https://android.googlesource.com/platform/frameworks/base/+/master/core/res/res/xml/power_profile.xml
+     */
+    public static final float BluetoothTxPow = 10f; // Bluetooth data transfer
+    public static final float BluetoothScanPow = 0.1f; // Bluetooth scanning
+    public static final float WifiTxPow = 64f; // WIFI data transfer
+    public static final float WifiScanPow = 24f; // WIFI network scanning
+    public static final float AudioPow = 10f; // Audio DSP encoding
+    public static final float GPSPow = 45f; // GPS is acquiring a signal
+    public static final float CellTxPow = 200f; // Cellular radio is transmitting
+    public static final float CellScanPow = 90f; // Cellular radio is scanning
+
     // Variables
     private Context mContext;
     private HashMap<String, Object> mDeviceAttr;
@@ -55,28 +67,28 @@ public class DeviceAttribute {
         // Get the sensors attributes
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE) == null) {
             mDeviceAttr.put("TemperatureAcc", 0f);
-            mDeviceAttr.put("TemperaturePow", 999f);
+            mDeviceAttr.put("TemperaturePow", 99f);
         } else {
             mDeviceAttr.put("TemperatureAcc", 50f);
             mDeviceAttr.put("TemperaturePow", mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT) == null) {
             mDeviceAttr.put("LightAcc", 0f);
-            mDeviceAttr.put("LightPow", 999f);
+            mDeviceAttr.put("LightPow", 99f);
         } else {
             mDeviceAttr.put("LightAcc", 50f);
             mDeviceAttr.put("LightPow", mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE) == null) {
             mDeviceAttr.put("PressureAcc", 0f);
-            mDeviceAttr.put("PressurePow", 999f);
+            mDeviceAttr.put("PressurePow", 99f);
         } else {
             mDeviceAttr.put("PressureAcc", 50f);
             mDeviceAttr.put("PressurePow", mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY) == null) {
             mDeviceAttr.put("HumidityAcc", 0f);
-            mDeviceAttr.put("HumidityPow", 999f);
+            mDeviceAttr.put("HumidityPow", 99f);
         } else {
             mDeviceAttr.put("HumidityAcc", 0f);
             mDeviceAttr.put("HumidityPow", mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY).getPower());
@@ -95,7 +107,7 @@ public class DeviceAttribute {
     HashMap getDeviceAttr() {
         // Get the remaining battery in mAh
         BatteryManager batteryManager = (BatteryManager) mContext.getSystemService(Context.BATTERY_SERVICE);
-        float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+        float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         mDeviceAttr.put("Battery", mRemainBattery);
 
         // Get the Internet connection type
