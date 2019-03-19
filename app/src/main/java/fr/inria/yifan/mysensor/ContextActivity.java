@@ -21,7 +21,7 @@ import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
  */
 
 public class ContextActivity extends AppCompatActivity {
-
+    // TODO
     private static final String TAG = "Context Activity";
 
     private final Object mLock; // Thread locker

@@ -20,6 +20,7 @@ import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
  */
 
 public class InitializeActivity extends AppCompatActivity {
+// TODO
 
     private static final String TAG = "Initialization";
 

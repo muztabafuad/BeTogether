@@ -27,7 +27,8 @@ import fr.inria.yifan.mysensor.Context.ServiceHelper;
 import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 
 public class ServiceActivity extends AppCompatActivity {
-
+// TODO
+    
     public static final int ENABLE_REQUEST_WIFI = 1004;
     private static final String TAG = "Service activity";
     // Declare adapter and device list
