@@ -148,7 +148,7 @@ public class FeatureHelper {
     }
 
     // Calculate and get the intent values for all roles:
-    // Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     @RequiresApi(api = Build.VERSION_CODES.M)
     public HashMap getIntentValues(int[] historyNeighbors) {
 
@@ -217,6 +217,27 @@ public class FeatureHelper {
     // Sample rate: how many time of sensing per second
     public float getPowerConsumption(String service, int timeSlot, int sampleRate) {
         // TODO
+        switch (service) {
+            case "Coordinator":
+                return 0f;
+            case "Locator":
+                return 0f;
+            case "Proxy":
+                return 0f;
+            case "Aggregator":
+                return 0f;
+            case "Temperature":
+                return 0f;
+            case "Light":
+                return 0f;
+            case "Pressure":
+                return 0f;
+            case "Humidity":
+                return 0f;
+            case "Noise":
+                return 0f;
+        }
+        //Log.e(TAG, "Wrong service is given!");
         return 0f;
     }
 
@@ -230,3 +251,4 @@ public class FeatureHelper {
         mPhysicalEnvironment.updateModels();
     }
 }
+
