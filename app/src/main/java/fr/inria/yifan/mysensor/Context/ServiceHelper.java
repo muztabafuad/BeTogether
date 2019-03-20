@@ -92,4 +92,14 @@ public class ServiceHelper {
         mManager.removeServiceRequest(mChannel, mServiceRequest, null);
     }
 
+    //
+    public boolean isCoordinator() {
+        return false;
+    }
+
+    //
+    public String findTheRole(String role) {
+        return mDeviceId;
+    }
+
 }
