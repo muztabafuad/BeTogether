@@ -8,13 +8,19 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Objects;
 
+import static fr.inria.yifan.mysensor.Context.DeviceAttribute.CPUPow;
+import static fr.inria.yifan.mysensor.Context.DeviceAttribute.CellTxPow;
+import static fr.inria.yifan.mysensor.Context.DeviceAttribute.GPSPow;
+import static fr.inria.yifan.mysensor.Context.DeviceAttribute.WifiScanPow;
+import static fr.inria.yifan.mysensor.Context.DeviceAttribute.WifiTxPow;
+
 /**
  * This class provides a HashMap containing all three context information: UA, PE and DA.
  * Available key-value paris are: ("UserActivity", <"VEHICLE", "BICYCLE", "FOOT", "STILL", "UNKNOWN">),
  * (<"InPocket", "InDoor", "UnderGround">, <"True", "False", null>),
  * ("Location", <"GPS", "NETWORK", null>), ("LocationAcc", <Float>), ("LocationPower", <Float>)
  * ("Internet", <"WIFI", "Cellular", null>), ("UpBandwidth", <Float>), ("InternetPower", <Float>)
- * ("Battery", <Float>), ("CPU", <Float>); ("Memory", <Float>),
+ * ("Battery", <Float>), ("CPU", <Float>), ("CPUPow", <Float>), ("Memory", <Float>),
  * (<"TemperatureAcc", "LightAcc", "PressureAcc", "HumidityAcc", "NoiseAcc">, <Float>),
  * (<"TemperaturePow", "LightPow", "PressurePow", "HumidityPow", "NoisePow">, <Float>)
  */
@@ -180,7 +186,9 @@ public class FeatureHelper {
         // Aggregator
         float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
         float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
-        mIntents.put("Aggregator", String.valueOf(sigmoidFunction(cpu, 0.001f, 1000f) + sigmoidFunction(ram, 0.001f, 2000f) + b));
+        float cpow = (float) mDeviceAttribute.getDeviceAttr().get("CPUPow");
+        float cp = sigmoidFunction(cpu, 0.001f, 1000f) - sigmoidFunction(cpow, 0.01f, 100f);
+        mIntents.put("Aggregator", String.valueOf(cp + sigmoidFunction(ram, 0.001f, 2000f) + b));
 
         // Temperature
         float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
@@ -211,34 +219,76 @@ public class FeatureHelper {
         return mIntents;
     }
 
-    // Calculate and get the power consumption for a given role in a time slot:
-    // Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    // Time slot: how long the sensing will continue in minutes
-    // Sample rate: how many time of sensing per second
-    public float getPowerConsumption(String service, int timeSlot, int sampleRate) {
-        // TODO
+    // Calculate and get the power consumption for a given role in one time slot:
+    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    // Number of samples: how many time of sensing measurements in one time slot
+    // Individual: work by itself or using a neighboring collaboration
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private float getPowerOneRole(String service, int numSamples, boolean individual) {
+        // Two power mode for each role
+        float individualPow;
+        float collaboratePow;
         switch (service) {
             case "Coordinator":
-                return 0f;
+                individualPow = 0; // Self as coordinator, no additional power
+                collaboratePow = WifiScanPow + WifiTxPow; // 1 discovery + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
+
             case "Locator":
-                return 0f;
+                individualPow = GPSPow * numSamples; // Self as locator, GPS power
+                collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
+
             case "Proxy":
-                return 0f;
+                individualPow = CellTxPow; // Self as proxy, Cell transmission
+                collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
+
             case "Aggregator":
-                return 0f;
+                individualPow = CPUPow; // Self as aggregator, CPU power
+                collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
+
             case "Temperature":
-                return 0f;
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow") * numSamples; // Self as sensor
+                collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
+
             case "Light":
-                return 0f;
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow") * numSamples; // Self as sensor
+                collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
+
             case "Pressure":
-                return 0f;
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("PressurePow") * numSamples; // Self as sensor
+                collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
+
             case "Humidity":
-                return 0f;
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow") * numSamples; // Self as sensor
+                collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
+
             case "Noise":
-                return 0f;
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow") * numSamples; // Self as sensor
+                collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
+                return individual ? individualPow : collaboratePow;
         }
         //Log.e(TAG, "Wrong service is given!");
         return 0f;
+    }
+
+    // Calculate and get the total power consumption for several roles in one time slot:
+    // Roles: set of roles applied
+    // Number of samples: how many time of sensing measurements in one time slot
+    // Individual: work by itself or using a neighboring collaboration
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public float getPowerTotal(String[] roles, int numSamples, boolean individual) {
+        float sum = 0;
+        for (String role : roles) {
+            sum += getPowerOneRole(role, numSamples, individual);
+        }
+        return sum;
     }
 
     // The logistic function ranging from -1 to 1

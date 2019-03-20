@@ -5,48 +5,58 @@
     android:layout_height="match_parent"
     tools:context="fr.inria.yifan.mysensor.ContextActivity">
 
-    <TextView
-        android:id="@+id/context_name"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:text="@string/hint_context"
-        android:textSize="@dimen/font_size_normal" />
-
-    <TextView
-        android:id="@+id/context_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/context_name"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:textSize="@dimen/font_size_normal" />
-
-    <Button
-        android:id="@+id/feedback_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/context_view"
-        android:layout_margin="@dimen/activity_horizontal_margin"
-        android:text="@string/feedback_button" />
-
-    <TextView
-        android:id="@+id/intent_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/feedback_button"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:text="@string/hint_intents"
-        android:textSize="@dimen/font_size_normal" />
-
-    <TextView
-        android:id="@+id/intents_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/intent_name"
+        android:layout_height="match_parent"
         android:layout_above="@id/three_buttons"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:textSize="@dimen/font_size_normal" />
+        android:layout_alignParentTop="true">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/context_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/activity_vertical_margin"
+                android:text="@string/hint_context"
+                android:textSize="@dimen/font_size_normal" />
+
+            <TextView
+                android:id="@+id/context_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/context_name"
+                android:layout_margin="@dimen/activity_vertical_margin"
+                android:textSize="@dimen/font_size_normal" />
+
+            <Button
+                android:id="@+id/feedback_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/context_view"
+                android:layout_margin="@dimen/activity_horizontal_margin"
+                android:text="@string/feedback_button" />
+
+            <TextView
+                android:id="@+id/intent_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/feedback_button"
+                android:layout_margin="@dimen/activity_vertical_margin"
+                android:text="@string/hint_intents"
+                android:textSize="@dimen/font_size_normal" />
+
+            <TextView
+                android:id="@+id/intents_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/intent_name"
+                android:layout_margin="@dimen/activity_vertical_margin"
+                android:textSize="@dimen/font_size_normal" />
+        </RelativeLayout>
+    </ScrollView>
 
     <LinearLayout
         android:id="@+id/three_buttons"
@@ -63,8 +73,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/green_square"
+            android:drawablePadding="@dimen/activity_vertical_padding"
             android:text="@string/title_context" />
 
         <Button
@@ -73,8 +83,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/red_round"
+            android:drawablePadding="@dimen/activity_vertical_padding"
             android:onClick="goSensing"
             android:text="@string/title_sensing" />
 
@@ -84,8 +94,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:drawablePadding="@dimen/activity_vertical_padding"
             android:drawableTop="@drawable/blue_square"
+            android:drawablePadding="@dimen/activity_vertical_padding"
             android:onClick="goService"
             android:text="@string/title_service" />
     </LinearLayout>

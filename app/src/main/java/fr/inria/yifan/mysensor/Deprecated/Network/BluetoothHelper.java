@@ -37,7 +37,7 @@ public class BluetoothHelper extends BroadcastReceiver {
         mActivity.registerReceiver(this, filter);
     }
 
-    // Set the service record information and startService thr service
+    // Set the service record information and advertiseService thr service
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void startService(Map<String, String> record) {
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();

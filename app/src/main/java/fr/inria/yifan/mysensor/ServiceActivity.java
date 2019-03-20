@@ -31,6 +31,7 @@ public class ServiceActivity extends AppCompatActivity {
 
     public static final int ENABLE_REQUEST_WIFI = 1004;
     private static final String TAG = "Service activity";
+
     // Declare adapter and device list
     private ArrayAdapter<String> mAdapterDevices;
 
@@ -46,24 +47,26 @@ public class ServiceActivity extends AppCompatActivity {
 
         Button startButton = findViewById(R.id.start_button);
         startButton.setOnClickListener(view -> {
-            mServiceHelper.startService(mService);
+            mServiceHelper.advertiseService(mService);
             mServiceHelper.discoverService();
             welcomeView.setText(R.string.open_network);
         });
 
         Button stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(view -> {
-            mServiceHelper.stopService();
+            mServiceHelper.stopDiscover();
+            mServiceHelper.stopAdvertise();
+            mAdapterDevices.clear();
             welcomeView.setText(R.string.hint_discovery);
         });
 
         // Build an adapter to feed the list with the content of an array of strings
-        ArrayList<String> mDeviceList = new ArrayList<>();
-        mAdapterDevices = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mDeviceList);
-
+        ArrayList<String> mNeighborList = new ArrayList<>();
+        mAdapterDevices = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, mNeighborList);
         // Attache the adapter to the list view
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(mAdapterDevices);
+
         // Attach a listener to the ListView to react to item click events
         //listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
         //@Override
@@ -80,11 +83,13 @@ public class ServiceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service);
         bindViews();
-        mServiceHelper = new ServiceHelper(this, mAdapterDevices);
-        mService = new HashMap<>();
-        mService.put("Service", "Crowdsensing");
         mFeatureHelper = new FeatureHelper(this);
         mFeatureHelper.startService();
+
+        mServiceHelper = new ServiceHelper(this, mAdapterDevices);
+        // Create a service record message
+        mService = new HashMap<>();
+        mService.put("Service", "Crowd-sensing");
         mService.putAll(mFeatureHelper.getIntentValues(new int[]{0, 0, 0, 0, 0}));
     }
 

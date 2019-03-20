@@ -27,14 +27,16 @@ public class DeviceAttribute {
     /* Power consumption constants in mA, real-world values are attained from
      * https://android.googlesource.com/platform/frameworks/base/+/master/core/res/res/xml/power_profile.xml
      */
-    public static final float BluetoothTxPow = 10f; // Bluetooth data transfer
-    public static final float BluetoothScanPow = 0.1f; // Bluetooth scanning
-    public static final float WifiTxPow = 200f; // WIFI data transfer
-    public static final float WifiScanPow = 100f; // WIFI network scanning
-    public static final float AudioPow = 10f; // Audio DSP encoding
-    public static final float GPSPow = 50f; // GPS is acquiring a signal
-    public static final float CellTxPow = 200f; // Cellular radio is transmitting
-    public static final float CellScanPow = 10f; // Cellular radio is scanning
+    //public static final float BluetoothTxPow = 10f; // Bluetooth data transfer
+    //public static final float BluetoothScanPow = 0.1f; // Bluetooth scanning
+    static final float WifiTxPow = 200f; // WIFI data transfer
+    static final float WifiScanPow = 100f; // WIFI network scanning
+    //public static final float WifiIdlePow = 3f; // WIFI network on
+    //public static final float AudioPow = 10f; // Audio DSP encoding
+    static final float CPUPow = 100f; // CPU computing power
+    static final float GPSPow = 50f; // GPS is acquiring a signal
+    static final float CellTxPow = 200f; // Cellular radio is transmitting
+    private static final float CellScanPow = 10f; // Cellular radio is scanning
 
     // Variables
     private Context mContext;
@@ -53,6 +55,7 @@ public class DeviceAttribute {
             float mCpuFrequency = Float.parseFloat(reader.readLine()) / 1e3f;
             reader.close();
             mDeviceAttr.put("CPU", mCpuFrequency);
+            mDeviceAttr.put("CPUPow", CPUPow);
         } catch (Exception e) {
             e.printStackTrace();
         }

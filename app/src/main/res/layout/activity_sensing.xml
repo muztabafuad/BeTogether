@@ -17,78 +17,9 @@
         android:id="@+id/list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@id/scene_radios"
+        android:layout_above="@id/two_buttons"
         android:layout_below="@id/welcome_view"
         android:transcriptMode="alwaysScroll" />
-
-    <LinearLayout
-        android:id="@+id/scene_radios"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@id/two_buttons"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <RadioGroup
-            android:id="@+id/pocket_radio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_horizontal_margin"
-            android:orientation="vertical">
-
-            <RadioButton
-                android:id="@+id/inpocket_radio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/in_pocket" />
-
-            <RadioButton
-                android:id="@+id/outpocket_radio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/out_pocket" />
-        </RadioGroup>
-
-        <RadioGroup
-            android:id="@+id/door_radio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_horizontal_margin"
-            android:orientation="vertical">
-
-            <RadioButton
-                android:id="@+id/indoor_radio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/in_door" />
-
-            <RadioButton
-                android:id="@+id/outdoor_radio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/out_door" />
-        </RadioGroup>
-
-        <RadioGroup
-            android:id="@+id/ground_radio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_horizontal_margin"
-            android:orientation="vertical">
-
-            <RadioButton
-                android:id="@+id/underground_radio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/under_ground" />
-
-            <RadioButton
-                android:id="@+id/onground_radio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/on_ground" />
-        </RadioGroup>
-    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/two_buttons"

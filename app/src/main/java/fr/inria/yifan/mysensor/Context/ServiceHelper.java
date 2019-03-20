@@ -26,10 +26,10 @@ public class ServiceHelper {
     private WifiP2pDnsSdServiceRequest mServiceRequest;
 
     private String mDeviceId;
-    //private HashMap<String, String> mDevices;
-    private ArrayAdapter<String> mAdapterDevices;
+    private HashMap<String, HashMap> mNeighborList;
+    private ArrayAdapter<String> mAdapterNeighborList;
 
-    // Listener 1
+    // Listener for record information
     private WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
         /* Callback includes: fullDomain: full domain name: e.g "printer._ipp._tcp.local."
          * record: TXT record dta as a map of key/value pairs.
@@ -38,53 +38,58 @@ public class ServiceHelper {
         @Override
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
             //Log.d(TAG, "DnsSdTxtRecord available -" + record.toString());
-            mAdapterDevices.add(device.deviceName + " " + record.toString());
-            mAdapterDevices.notifyDataSetChanged();
-            //mDevices.put(device.deviceAddress, (String) record.get("device_id"));
+            if (!mNeighborList.containsKey(device.deviceAddress)) {
+                mAdapterNeighborList.add(device.deviceAddress + " " + record);
+                mAdapterNeighborList.notifyDataSetChanged();
+            }
+            mNeighborList.put(device.deviceAddress, (HashMap) record);
         }
     };
 
-    // Listener 2
+    // Listener for service information
     private WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, resourceType) -> {
         // Update the device name with the human-friendly version from the DnsTxtRecord, assuming one arrived.
         //resourceType.deviceName = mDevices.containsKey(resourceType.deviceAddress) ? mDevices.get(resourceType.deviceAddress) : resourceType.deviceName;
         // Add to the custom adapter defined specifically for showing wifi devices.
-        //mAdapterDevices.add(instanceName);
-        //mAdapterDevices.notifyDataSetChanged();
+        //mAdapterNeighbors.add(instanceName);
+        //mAdapterNeighbors.notifyDataSetChanged();
         //Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
     };
 
-    // Constructor
     @SuppressWarnings("unchecked")
+    // Constructor
     public ServiceHelper(Context context, ArrayAdapter adapter) {
         mManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(context, context.getMainLooper(), null);
-        //mDevices = new HashMap<>();
         mDeviceId = UUID.randomUUID().toString();
-        mAdapterDevices = adapter;
+        mNeighborList = new HashMap<>();
+        mAdapterNeighborList = adapter;
     }
 
-    // Start the service with a HashMap message
     @SuppressWarnings("unchecked")
-    public void startService(HashMap service) {
+    // Advertise the service with a HashMap message
+    public void advertiseService(HashMap service) {
         // Service information. Pass it an instance name, service type _protocol._transport layer, and the map containing information other devices will want once they connect to this one.
-        mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance(mDeviceId, "_presence._tcp", service);
-        // Add the local service, sending the service info, network channel, and listener that will be used to indicate success or failure of the request.
+        mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance(mDeviceId, "_presence._udp", service);
         mManager.addLocalService(mChannel, mServiceInfo, null);
     }
 
-    // Stop the service
-    public void stopService() {
-        mManager.removeLocalService(mChannel, mServiceInfo, null);
-        mManager.removeServiceRequest(mChannel, mServiceRequest, null);
-    }
-
-    // Discovery services
+    // Discovery neighboring services
     public void discoverService() {
         mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
         mServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
         mManager.addServiceRequest(mChannel, mServiceRequest, null);
         mManager.discoverServices(mChannel, null);
+    }
+
+    // Stop advertising the service
+    public void stopAdvertise() {
+        mManager.removeLocalService(mChannel, mServiceInfo, null);
+    }
+
+    // Stop discovering the service
+    public void stopDiscover() {
+        mManager.removeServiceRequest(mChannel, mServiceRequest, null);
     }
 
 }

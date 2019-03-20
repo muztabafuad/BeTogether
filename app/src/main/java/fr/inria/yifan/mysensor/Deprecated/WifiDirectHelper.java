@@ -76,7 +76,7 @@ public class WifiDirectHelper extends BroadcastReceiver {
         mAdapterWifi = adapter;
     }
 
-    // Set the service record information and startService thr service
+    // Set the service record information and advertiseService thr service
     public void startService(Map<String, String> record) {
         // Initialize Wifi direct components
         mManager = (WifiP2pManager) mContext.getSystemService(Context.WIFI_P2P_SERVICE);
