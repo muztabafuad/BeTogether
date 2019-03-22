@@ -46,7 +46,6 @@ public class ServiceActivity extends AppCompatActivity {
 
     public ServiceActivity() {
         mLock = new Object();
-        isRunning = true;
     }
 
     // Initially bind all views
@@ -58,6 +57,7 @@ public class ServiceActivity extends AppCompatActivity {
 
         Button startButton = findViewById(R.id.start_button);
         startButton.setOnClickListener(view -> {
+            isRunning = true;
             mServiceHelper.advertiseService(mService);
             mServiceHelper.discoverService();
             welcomeView.setText(R.string.open_network);
@@ -95,9 +95,11 @@ public class ServiceActivity extends AppCompatActivity {
 
         Button stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(view -> {
+            isRunning = false;
             mServiceHelper.stopDiscover();
             mServiceHelper.stopAdvertise();
             mAdapterDevices.clear();
+            mServiceView.setText(null);
             welcomeView.setText(R.string.hint_discovery);
         });
 
