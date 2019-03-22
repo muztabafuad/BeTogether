@@ -14,6 +14,7 @@
     <string name="hint_discovery">Press start to discover Wifi Direct neighbors providing crowdsensing services.</string>
     <string name="open_network">Discovering Wifi Direct neighbors providing crowdsensing services …</string>
     <string name="hint_neighbors">Current neighbors: </string>
+    <string name="hint_service">Group service: </string>
     <string name="count_sensing">Sensing count: </string>
     <string name="in_pocket">In-Pocket</string>
     <string name="in_door">In-Door</string>

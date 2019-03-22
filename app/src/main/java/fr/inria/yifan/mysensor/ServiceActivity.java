@@ -32,24 +32,65 @@ public class ServiceActivity extends AppCompatActivity {
     public static final int ENABLE_REQUEST_WIFI = 1004;
     private static final String TAG = "Service activity";
 
+    private final Object mLock; // Thread locker
+    private boolean isRunning;
+
     // Declare adapter and device list
     private ArrayAdapter<String> mAdapterDevices;
+    private TextView mServiceView;
 
     // Service helper
     private ServiceHelper mServiceHelper;
     private HashMap<String, String> mService;
     private FeatureHelper mFeatureHelper;
 
+    public ServiceActivity() {
+        mLock = new Object();
+        isRunning = true;
+    }
+
     // Initially bind all views
     private void bindViews() {
         final TextView welcomeView = findViewById(R.id.welcome_view);
         welcomeView.setText(R.string.hint_discovery);
+
+        mServiceView = findViewById(R.id.service_view);
 
         Button startButton = findViewById(R.id.start_button);
         startButton.setOnClickListener(view -> {
             mServiceHelper.advertiseService(mService);
             mServiceHelper.discoverService();
             welcomeView.setText(R.string.open_network);
+
+            new Thread(() -> {
+                while (isRunning) {
+                    // Delay
+                    synchronized (mLock) {
+                        try {
+                            mLock.wait(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    runOnUiThread(() -> {
+                        // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+                        if (mServiceHelper.beCoordinator()) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("Is coordinator:\n" + "Locator: ").append(mServiceHelper.findTheRole("Locator"))
+                                    .append("\nProxy: ").append(mServiceHelper.findTheRole("Proxy"))
+                                    .append("\nAggregator: ").append(mServiceHelper.findTheRole("Aggregator"))
+                                    .append("\nTemperature: ").append(mServiceHelper.findTheRole("Temperature"))
+                                    .append("\nLight: ").append(mServiceHelper.findTheRole("Light"))
+                                    .append("\nPressure: ").append(mServiceHelper.findTheRole("Pressure"))
+                                    .append("\nHumidity: ").append(mServiceHelper.findTheRole("Humidity"))
+                                    .append("\nNoise: ").append(mServiceHelper.findTheRole("Noise"));
+                            mServiceView.setText(sb);
+                        }
+                    });
+
+                }
+            }).start();
+
         });
 
         Button stopButton = findViewById(R.id.stop_button);
@@ -97,6 +138,7 @@ public class ServiceActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        isRunning = false;
         mFeatureHelper.stopService();
     }
 

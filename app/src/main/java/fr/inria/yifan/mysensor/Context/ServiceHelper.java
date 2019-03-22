@@ -46,7 +46,18 @@ public class ServiceHelper {
                 mAdapterNeighborList.notifyDataSetChanged();
             }
             mNeighborList.put(device.deviceAddress, (HashMap) record);
-            Log.e(TAG, "Is coordinator? " + beCoordinator());
+            // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+            if (beCoordinator()) {
+                Log.e(TAG, "Is coordinator.");
+                Log.e(TAG, "Locator: " + findTheRole("Locator"));
+                Log.e(TAG, "Proxy: " + findTheRole("Proxy"));
+                Log.e(TAG, "Aggregator: " + findTheRole("Aggregator"));
+                Log.e(TAG, "Temperature: " + findTheRole("Temperature"));
+                Log.e(TAG, "Light: " + findTheRole("Light"));
+                Log.e(TAG, "Pressure: " + findTheRole("Pressure"));
+                Log.e(TAG, "Humidity: " + findTheRole("Humidity"));
+                Log.e(TAG, "Noise: " + findTheRole("Noise"));
+            }
         }
     };
 
@@ -99,7 +110,7 @@ public class ServiceHelper {
 
     @SuppressWarnings("ConstantConditions")
     // Look at self whether should be the coordinator or not
-    private boolean beCoordinator() {
+    public boolean beCoordinator() {
         // Ranking top k
         int k = Math.max(1, (int) (mNeighborList.size() / nMax));
         // Better than other _k
@@ -118,9 +129,18 @@ public class ServiceHelper {
         return false;
     }
 
+    @SuppressWarnings("ConstantConditions")
     // Given a role, look up the best crowdsensor address
+    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     public String findTheRole(String role) {
-        return null;
+        String selfIntent = mSelfIntent.get(role);
+        for (String neighborAddr : mNeighborList.keySet()) {
+            String neighborIntents = mNeighborList.get(neighborAddr).get(role);
+            if (Float.parseFloat(neighborIntents) > Float.parseFloat(selfIntent)) {
+                return neighborAddr;
+            }
+        }
+        return "Self";
     }
 
 }
