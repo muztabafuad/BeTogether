@@ -71,7 +71,7 @@ public class ContextActivity extends AppCompatActivity {
                     rules.put("Internet", "WIFI");
                     Log.e(TAG, "Rule applied: " + rules.toString());
                     Log.e(TAG, "Matched rules: " + mFeatureHelper.matchRules(rules));
-                    attributeView.setText(mFeatureHelper.getIntentValues(new int[]{0, 0, 0, 0, 0}).toString());
+                    attributeView.setText(mFeatureHelper.getIntentValues(new int[]{1, 0, 1, 0, 1}).toString());
                 });
 
             }

@@ -37,7 +37,7 @@ public class ServiceActivity extends AppCompatActivity {
 
     // Service helper
     private ServiceHelper mServiceHelper;
-    private HashMap<String, Object> mService;
+    private HashMap<String, String> mService;
     private FeatureHelper mFeatureHelper;
 
     // Initially bind all views
@@ -85,12 +85,12 @@ public class ServiceActivity extends AppCompatActivity {
         bindViews();
         mFeatureHelper = new FeatureHelper(this);
         mFeatureHelper.startService();
+        mFeatureHelper.getContext();
 
         mServiceHelper = new ServiceHelper(this, mAdapterDevices);
         // Create a service record message
         mService = new HashMap<>();
-        mService.put("Service", "Crowd-sensing");
-        mService.putAll(mFeatureHelper.getIntentValues(new int[]{0, 0, 0, 0, 0}));
+        mService.putAll(mFeatureHelper.getIntentValues(new int[]{1, 0, 1, 0, 1}));
     }
 
     // Stop thread when exit!

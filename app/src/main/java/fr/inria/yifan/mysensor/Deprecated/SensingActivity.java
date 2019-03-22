@@ -14,7 +14,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -84,37 +83,6 @@ public class SensingActivity extends AppCompatActivity {
         // Then attache the adapter to the list view
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(mAdapterSensing);
-
-        // Radio group for scene selection
-        final RadioGroup mPocketRadioGroup = findViewById(R.id.pocket_radio);
-        mPocketRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId != -1) {
-                mPocketLabel = getSceneLabel(checkedId);
-                //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
-            }
-        });
-
-        // Radio group for scene selection
-        final RadioGroup mDoorRadioGroup = findViewById(R.id.door_radio);
-        mDoorRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId != -1) {
-                mDoorLabel = getSceneLabel(checkedId);
-                //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
-            }
-        });
-
-        // Radio group for scene selection
-        final RadioGroup mGroundRadioGroup = findViewById(R.id.ground_radio);
-        mGroundRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId != -1) {
-                mGroundLabel = getSceneLabel(checkedId);
-                //Log.d(TAG, "Scene: " + mSenseScene + ", label: " + mSceneLabel);
-            }
-        });
-
-        mPocketRadioGroup.check(R.id.outpocket_radio);
-        mDoorRadioGroup.check(R.id.indoor_radio);
-        mGroundRadioGroup.check(R.id.onground_radio);
 
         mStartButton.setOnClickListener(view -> {
             mAdapterSensing.clear();
@@ -291,26 +259,6 @@ public class SensingActivity extends AppCompatActivity {
         if (mWakeLock != null && mWakeLock.isHeld()) {
             mWakeLock.release();
             mWakeLock = null;
-        }
-    }
-
-    // Get the binary label for this scene
-    private int getSceneLabel(int radioId) {
-        switch (radioId) {
-            case R.id.inpocket_radio:
-                return 1;
-            case R.id.outpocket_radio:
-                return 0;
-            case R.id.indoor_radio:
-                return 1;
-            case R.id.outdoor_radio:
-                return 0;
-            case R.id.underground_radio:
-                return 1;
-            case R.id.onground_radio:
-                return 0;
-            default:
-                return -1;
         }
     }
 
