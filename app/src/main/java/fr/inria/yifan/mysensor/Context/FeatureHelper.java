@@ -158,17 +158,17 @@ public class FeatureHelper {
     @RequiresApi(api = Build.VERSION_CODES.M)
     public HashMap getIntentValues(int[] historyNeighbors) {
 
+        // Battery metric
+        float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
+        float b = sigmoidFunction(bat, 0.001f, 1000f);
+
         // Coordinator
         float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
         float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 1), 1f, 3f);
         int sum = 0;
         for (int i : historyNeighbors) sum += i;
         float h = sigmoidFunction(sum, 1f, 3f);
-        mIntents.put("Coordinator", String.valueOf(d + delta + h));
-
-        // Battery metric
-        float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
-        float b = sigmoidFunction(bat, 0.001f, 1000f);
+        mIntents.put("Coordinator", String.valueOf(d + delta + h + b));
 
         // Locator
         float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
@@ -188,7 +188,7 @@ public class FeatureHelper {
         float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
         float cpow = (float) mDeviceAttribute.getDeviceAttr().get("CPUPow");
         float cp = sigmoidFunction(cpu, 0.001f, 1000f) - sigmoidFunction(cpow, 0.01f, 100f);
-        mIntents.put("Aggregator", String.valueOf(cp + sigmoidFunction(ram, 0.001f, 2000f) + b));
+        mIntents.put("Aggregator", String.valueOf(cp + sigmoidFunction(ram, 0.001f, 2000f)));
 
         // Temperature
         float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
