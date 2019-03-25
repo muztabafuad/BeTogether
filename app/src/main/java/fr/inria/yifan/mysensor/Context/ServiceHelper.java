@@ -143,4 +143,10 @@ public class ServiceHelper {
         return "Self";
     }
 
+    // Connect to a role as the coordinator (the coordinator is the group owner)
+    // "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    public void connectToRole(String role) {
+
+    }
+
 }

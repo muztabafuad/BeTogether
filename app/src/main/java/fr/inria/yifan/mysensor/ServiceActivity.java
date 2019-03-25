@@ -38,6 +38,7 @@ public class ServiceActivity extends AppCompatActivity {
     // Declare adapter and device list
     private ArrayAdapter<String> mAdapterDevices;
     private TextView mServiceView;
+    private TextView mWelcomeView;
 
     // Service helper
     private ServiceHelper mServiceHelper;
@@ -50,58 +51,15 @@ public class ServiceActivity extends AppCompatActivity {
 
     // Initially bind all views
     private void bindViews() {
-        final TextView welcomeView = findViewById(R.id.welcome_view);
-        welcomeView.setText(R.string.hint_discovery);
-
+        mWelcomeView = findViewById(R.id.welcome_view);
+        mWelcomeView.setText(R.string.hint_discovery);
         mServiceView = findViewById(R.id.service_view);
 
         Button startButton = findViewById(R.id.start_button);
-        startButton.setOnClickListener(view -> {
-            isRunning = true;
-            mServiceHelper.advertiseService(mService);
-            mServiceHelper.discoverService();
-            welcomeView.setText(R.string.open_network);
-
-            new Thread(() -> {
-                while (isRunning) {
-                    // Delay
-                    synchronized (mLock) {
-                        try {
-                            mLock.wait(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    runOnUiThread(() -> {
-                        // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-                        if (mServiceHelper.beCoordinator()) {
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("Is coordinator:\n" + "Locator: ").append(mServiceHelper.findTheRole("Locator"))
-                                    .append("\nProxy: ").append(mServiceHelper.findTheRole("Proxy"))
-                                    .append("\nAggregator: ").append(mServiceHelper.findTheRole("Aggregator"))
-                                    .append("\nTemperature: ").append(mServiceHelper.findTheRole("Temperature"))
-                                    .append("\nLight: ").append(mServiceHelper.findTheRole("Light"))
-                                    .append("\nPressure: ").append(mServiceHelper.findTheRole("Pressure"))
-                                    .append("\nHumidity: ").append(mServiceHelper.findTheRole("Humidity"))
-                                    .append("\nNoise: ").append(mServiceHelper.findTheRole("Noise"));
-                            mServiceView.setText(sb);
-                        }
-                    });
-
-                }
-            }).start();
-
-        });
+        startButton.setOnClickListener(view -> startSearching());
 
         Button stopButton = findViewById(R.id.stop_button);
-        stopButton.setOnClickListener(view -> {
-            isRunning = false;
-            mServiceHelper.stopDiscover();
-            mServiceHelper.stopAdvertise();
-            mAdapterDevices.clear();
-            mServiceView.setText(null);
-            welcomeView.setText(R.string.hint_discovery);
-        });
+        stopButton.setOnClickListener(view -> stopSearching());
 
         // Build an adapter to feed the list with the content of an array of strings
         ArrayList<String> mNeighborList = new ArrayList<>();
@@ -126,6 +84,7 @@ public class ServiceActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_service);
         bindViews();
+
         mFeatureHelper = new FeatureHelper(this);
         mFeatureHelper.startService();
         mFeatureHelper.getContext();
@@ -144,6 +103,55 @@ public class ServiceActivity extends AppCompatActivity {
         mFeatureHelper.stopService();
     }
 
+    // Start the group engine
+    private void startSearching() {
+        isRunning = true;
+        mServiceHelper.advertiseService(mService);
+        mServiceHelper.discoverService();
+        mWelcomeView.setText(R.string.open_network);
+
+        new Thread(() -> {
+            while (isRunning) {
+                // Delay
+                synchronized (mLock) {
+                    try {
+                        mLock.wait(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                runOnUiThread(() -> {
+                    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+                    if (mServiceHelper.beCoordinator()) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("Is coordinator:\n" + "Locator: ").append(mServiceHelper.findTheRole("Locator"))
+                                .append("\nProxy: ").append(mServiceHelper.findTheRole("Proxy"))
+                                .append("\nAggregator: ").append(mServiceHelper.findTheRole("Aggregator"))
+                                .append("\nTemperature: ").append(mServiceHelper.findTheRole("Temperature"))
+                                .append("\nLight: ").append(mServiceHelper.findTheRole("Light"))
+                                .append("\nPressure: ").append(mServiceHelper.findTheRole("Pressure"))
+                                .append("\nHumidity: ").append(mServiceHelper.findTheRole("Humidity"))
+                                .append("\nNoise: ").append(mServiceHelper.findTheRole("Noise"));
+                        mServiceView.setText(sb);
+                    }
+                });
+
+            }
+        }).start();
+
+    }
+
+    // Stop the group engine
+    private void stopSearching() {
+        isRunning = false;
+        mServiceHelper.stopDiscover();
+        mServiceHelper.stopAdvertise();
+        mAdapterDevices.clear();
+        mWelcomeView.setText(R.string.hint_discovery);
+        mServiceView.setText(null);
+    }
+
+    // Check whether the Wifi is turned on
     private void checkWifiActive() {
         WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         // Check if Wifi service on system is enabled
