@@ -20,7 +20,6 @@ import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
  */
 
 public class InitializeActivity extends AppCompatActivity {
-// TODO
 
     private static final String TAG = "Initialization";
 
@@ -35,8 +34,8 @@ public class InitializeActivity extends AppCompatActivity {
     private static final String[] STORAGE_PERMS = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     // Declare GPS and network permissions
-    private static final String[] LOCATION_PERMS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN,
-            Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.INTERNET};
+    private static final String[] LOCATION_PERMS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.INTERNET};
 
     // Main activity initialization
     @Override
@@ -54,7 +53,6 @@ public class InitializeActivity extends AppCompatActivity {
     private void checkPermission() {
         // Check user permission for microphone
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            //Toast.makeText(this, "Requesting microphone permission", Toast.LENGTH_SHORT).show();
             // Request permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(RECORD_PERMS, PERMS_REQUEST_RECORD);
@@ -66,7 +64,6 @@ public class InitializeActivity extends AppCompatActivity {
         // Check user permission for file storage
         else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            //Toast.makeText(this, "Requesting storage permission", Toast.LENGTH_SHORT).show();
             // Request permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(STORAGE_PERMS, PERMS_REQUEST_STORAGE);
@@ -77,8 +74,10 @@ public class InitializeActivity extends AppCompatActivity {
         }
         // Check user permission for GPS location
         else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            //Toast.makeText(this, "Requesting location permission", Toast.LENGTH_SHORT).show();
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.CHANGE_WIFI_STATE) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
             // Request permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(LOCATION_PERMS, PERMS_REQUEST_LOCATION);
