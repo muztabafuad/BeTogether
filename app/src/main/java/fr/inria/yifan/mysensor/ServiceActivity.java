@@ -6,7 +6,9 @@ package fr.inria.yifan.mysensor;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -42,7 +44,7 @@ public class ServiceActivity extends AppCompatActivity {
 
     // Service helper
     private ServiceHelper mServiceHelper;
-    private HashMap<String, String> mService;
+    private HashMap<String, String> mServiceMsg;
     private FeatureHelper mFeatureHelper;
 
     public ServiceActivity() {
@@ -91,14 +93,35 @@ public class ServiceActivity extends AppCompatActivity {
 
         mServiceHelper = new ServiceHelper(this, mAdapterDevices);
         // Create a service record message
-        mService = new HashMap<>();
-        mService.putAll(mFeatureHelper.getIntentValues(new int[]{1, 0, 1, 0, 1}));
+        mServiceMsg = new HashMap<>();
+        mServiceMsg.putAll(mFeatureHelper.getIntentValues(new int[]{1, 0, 1}));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter intentFilter = new IntentFilter();
+        // Indicates a change in the Wi-Fi P2P status.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        // Indicates a change in the list of available peers.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        // Indicates the state of Wi-Fi P2P connectivity has changed.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        // Indicates this device's details have changed.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        registerReceiver(mServiceHelper, intentFilter);
     }
 
     // Stop thread when exit!
     @Override
     protected void onPause() {
         super.onPause();
+        unregisterReceiver(mServiceHelper);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         isRunning = false;
         mFeatureHelper.stopService();
     }
@@ -106,7 +129,7 @@ public class ServiceActivity extends AppCompatActivity {
     // Start the group engine
     private void startSearching() {
         isRunning = true;
-        mServiceHelper.advertiseService(mService);
+        mServiceHelper.advertiseService(mServiceMsg);
         mServiceHelper.discoverService();
         mWelcomeView.setText(R.string.open_network);
 

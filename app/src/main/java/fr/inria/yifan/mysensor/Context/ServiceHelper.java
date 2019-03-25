@@ -1,6 +1,10 @@
 package fr.inria.yifan.mysensor.Context;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
@@ -15,7 +19,7 @@ import java.util.Map;
  * This class provides functions related to the Wifi Direct service discovery.
  */
 
-public class ServiceHelper {
+public class ServiceHelper extends BroadcastReceiver {
 
     private static final String TAG = "Service helper";
 
@@ -28,8 +32,8 @@ public class ServiceHelper {
     private WifiP2pDnsSdServiceRequest mServiceRequest;
 
     private HashMap<String, String> mSelfIntent;
-    private HashMap<String, HashMap<String, String>> mNeighborList; // Neighbor address and neighbor intents
-    private ArrayAdapter<String> mAdapterNeighborList; // For the UI
+    private HashMap<String, HashMap<String, String>> mNeighborList; // Neighbor address and neighbor intents msg
+    private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
 
     @SuppressWarnings("unchecked")
     // Listener for record information
@@ -41,11 +45,15 @@ public class ServiceHelper {
         @Override
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
             //Log.e(TAG, "DnsSdTxtRecord available -" + record.toString());
+
+            // Check if the neighbor is already in list
             if (!mNeighborList.containsKey(device.deviceAddress)) {
                 mAdapterNeighborList.add(device.deviceAddress + " " + record);
                 mAdapterNeighborList.notifyDataSetChanged();
             }
             mNeighborList.put(device.deviceAddress, (HashMap) record);
+
+            // If current device should be the coordinator, find other roles addresses
             // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
             if (beCoordinator()) {
                 Log.e(TAG, "Is coordinator.");
@@ -67,7 +75,6 @@ public class ServiceHelper {
      * WifiP2pDevice source device
      */
     private WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, resourceType) -> {
-        // Update the device name with the human-friendly version from the DnsTxtRecord, assuming one arrived.
         //Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
     };
 
@@ -147,6 +154,59 @@ public class ServiceHelper {
     // "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     public void connectToRole(String role) {
 
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = findTheRole(role);
+        config.wps.setup = WpsInfo.PBC;
+        config.groupOwnerIntent = 15;
+
+        mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                // WiFiDirectBroadcastReceiver notifies us. Ignore for now.
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                Log.e(TAG, "Connect failed to " + config.deviceAddress);
+            }
+        });
     }
 
+    // Create a group as the coordinator (the coordinator is the group owner)
+    public void connectAsCoordinator(String role) {
+        mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                // Device is ready to accept incoming connections from peers.
+            }
+
+            @Override
+            public void onFailure(int i) {
+                Log.e(TAG, "Create group failed.");
+            }
+        });
+
+    }
+
+    // Callback when receive Wifi P2P broadcast
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        assert action != null;
+        switch (action) {
+            case WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION:
+                // A change in the Wi-Fi P2P status.
+                break;
+            case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
+                // A change in the list of available peers.
+                mManager.requestGroupInfo(mChannel, wifiP2pGroup -> Log.e(TAG, wifiP2pGroup.toString()));
+                break;
+            case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
+                // The state of Wi-Fi P2P connectivity has changed.
+                break;
+            case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:
+                // This device's details have changed.
+                break;
+        }
+    }
 }
