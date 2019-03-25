@@ -69,13 +69,6 @@ public class ServiceActivity extends AppCompatActivity {
         // Attache the adapter to the list view
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(mAdapterDevices);
-
-        // Attach a listener to the ListView to react to item click events
-        //listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-        //@Override
-        //public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //WifiP2pDevice device = mAdapterWifi.getItem(position);
-        //mWifiDirectHelper.connectTo(device);
     }
 
     // Main activity initialization
@@ -143,9 +136,10 @@ public class ServiceActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+
                 runOnUiThread(() -> {
                     // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-                    if (mServiceHelper.beCoordinator()) {
+                    if (mServiceHelper.isCoordinator()) {
                         StringBuilder sb = new StringBuilder();
                         sb.append("Is coordinator:\n" + "Locator: ").append(mServiceHelper.findTheRole("Locator"))
                                 .append("\nProxy: ").append(mServiceHelper.findTheRole("Proxy"))
@@ -157,6 +151,7 @@ public class ServiceActivity extends AppCompatActivity {
                                 .append("\nNoise: ").append(mServiceHelper.findTheRole("Noise"));
                         mServiceView.setText(sb);
                     }
+
                 });
 
             }

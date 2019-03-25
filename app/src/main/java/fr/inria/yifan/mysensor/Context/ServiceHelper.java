@@ -3,6 +3,7 @@ package fr.inria.yifan.mysensor.Context;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -31,8 +32,9 @@ public class ServiceHelper extends BroadcastReceiver {
     private WifiP2pDnsSdServiceInfo mServiceInfo;
     private WifiP2pDnsSdServiceRequest mServiceRequest;
 
-    private HashMap<String, String> mSelfIntent;
+    private HashMap<String, String> mSelfIntent; // Intents of current device
     private HashMap<String, HashMap<String, String>> mNeighborList; // Neighbor address and neighbor intents msg
+    private HashMap<String, String> mNeighborRoles; // Neighbor address and neighbor roles msg
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
 
     @SuppressWarnings("unchecked")
@@ -55,16 +57,9 @@ public class ServiceHelper extends BroadcastReceiver {
 
             // If current device should be the coordinator, find other roles addresses
             // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-            if (beCoordinator()) {
+            if (isCoordinator()) {
                 Log.e(TAG, "Is coordinator.");
-                Log.e(TAG, "Locator: " + findTheRole("Locator"));
-                Log.e(TAG, "Proxy: " + findTheRole("Proxy"));
-                Log.e(TAG, "Aggregator: " + findTheRole("Aggregator"));
-                Log.e(TAG, "Temperature: " + findTheRole("Temperature"));
-                Log.e(TAG, "Light: " + findTheRole("Light"));
-                Log.e(TAG, "Pressure: " + findTheRole("Pressure"));
-                Log.e(TAG, "Humidity: " + findTheRole("Humidity"));
-                Log.e(TAG, "Noise: " + findTheRole("Noise"));
+                //Log.e(TAG, getAllocationMsg().toString());
             }
         }
     };
@@ -91,7 +86,17 @@ public class ServiceHelper extends BroadcastReceiver {
     public void advertiseService(HashMap service) {
         // Service information. Pass it an instance name, service type _protocol._transport layer, and the map containing information other devices will want once they connect to this one.
         mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance("crowdsensor", "_crowdsensing._tcp", service);
-        mManager.addLocalService(mChannel, mServiceInfo, null);
+        mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.e(TAG, "Success in advertisement.");
+            }
+
+            @Override
+            public void onFailure(int i) {
+                Log.e(TAG, "Failed in advertisement.");
+            }
+        });
         mSelfIntent = new HashMap<>();
         mSelfIntent.putAll(service);
     }
@@ -101,23 +106,36 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
         mServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
         mManager.addServiceRequest(mChannel, mServiceRequest, null);
-        mManager.discoverServices(mChannel, null);
+
+        mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.e(TAG, "Success in discovery.");
+            }
+
+            @Override
+            public void onFailure(int i) {
+                Log.e(TAG, "Failed in discovery.");
+            }
+        });
+
         mNeighborList = new HashMap<>();
+        mNeighborRoles = new HashMap<>();
     }
 
     // Stop advertising the service
     public void stopAdvertise() {
-        mManager.removeLocalService(mChannel, mServiceInfo, null);
+        mManager.clearLocalServices(mChannel, null);
     }
 
     // Stop discovering the service
     public void stopDiscover() {
-        mManager.removeServiceRequest(mChannel, mServiceRequest, null);
+        mManager.clearServiceRequests(mChannel, null);
     }
 
     @SuppressWarnings("ConstantConditions")
     // Look at self whether should be the coordinator or not
-    public boolean beCoordinator() {
+    public boolean isCoordinator() {
         // Ranking top k
         int k = Math.max(1, (int) (mNeighborList.size() / nMax));
         // Better than other _k
@@ -150,6 +168,17 @@ public class ServiceHelper extends BroadcastReceiver {
         return "Self";
     }
 
+    // Return the message containing neighbor address and its role
+    public HashMap getAllocationMsg() {
+        for (String role : new String[]{"Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
+            String neighbor = findTheRole(role);
+            if (!neighbor.equals("Self")) {
+                mNeighborRoles.put(neighbor, role);
+            }
+        }
+        return mNeighborRoles;
+    }
+
     // Connect to a role as the coordinator (the coordinator is the group owner)
     // "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     public void connectToRole(String role) {
@@ -173,7 +202,7 @@ public class ServiceHelper extends BroadcastReceiver {
     }
 
     // Create a group as the coordinator (the coordinator is the group owner)
-    public void connectAsCoordinator(String role) {
+    public void createGroup() {
         mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -199,7 +228,11 @@ public class ServiceHelper extends BroadcastReceiver {
                 break;
             case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
                 // A change in the list of available peers.
-                mManager.requestGroupInfo(mChannel, wifiP2pGroup -> Log.e(TAG, wifiP2pGroup.toString()));
+                NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+                if (networkInfo != null && networkInfo.isConnected()) {
+                    // We are connected with the other device.
+                    mManager.requestGroupInfo(mChannel, wifiP2pGroup -> Log.e(TAG, wifiP2pGroup.toString()));
+                }
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
                 // The state of Wi-Fi P2P connectivity has changed.

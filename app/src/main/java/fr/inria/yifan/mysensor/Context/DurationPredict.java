@@ -160,7 +160,7 @@ class DurationPredict {
                 break;
             default:
                 activity_idx = 0;
-                Log.e(TAG, "Wrong user activity! It's " + activity);
+                //Log.e(TAG, "Wrong user activity! It's " + activity);
                 break;
         }
         // Create a new instance
@@ -191,7 +191,7 @@ class DurationPredict {
                 break;
             default:
                 indoor_idx = -1;
-                Log.e(TAG, "Wrong indoor detection! It's " + flag);
+                //Log.e(TAG, "Wrong indoor detection! It's " + flag);
                 break;
         }
         // Create a new instance
@@ -222,7 +222,7 @@ class DurationPredict {
                 break;
             default:
                 underground_idx = -1;
-                Log.e(TAG, "Wrong underground detection! It's " + flag);
+                //Log.e(TAG, "Wrong underground detection! It's " + flag);
                 break;
         }
         // Create a new instance
@@ -259,7 +259,7 @@ class DurationPredict {
                 break;
             default:
                 activity_idx = 0;
-                Log.e(TAG, "Wrong user activity! It's " + activity);
+                //Log.e(TAG, "Wrong user activity! It's " + activity);
                 break;
         }
         // Prediction on new instance
@@ -291,7 +291,7 @@ class DurationPredict {
                 break;
             default:
                 indoor_idx = -1;
-                Log.e(TAG, "Wrong indoor detection! It's " + flag);
+                //Log.e(TAG, "Wrong indoor detection! It's " + flag);
                 break;
         }
         // Prediction on new instance
@@ -314,6 +314,7 @@ class DurationPredict {
     float predictGroundDuration(String flag) {
         // Map binary to a numeric value in training set
         int underground_idx;
+        assert flag != null;
         switch (flag) {
             case "True":
                 underground_idx = 1;
@@ -323,7 +324,7 @@ class DurationPredict {
                 break;
             default:
                 underground_idx = -1;
-                Log.e(TAG, "Wrong underground detection! It's " + flag);
+                //Log.e(TAG, "Wrong underground detection! It's " + flag);
                 break;
         }
         // Prediction on new instance
