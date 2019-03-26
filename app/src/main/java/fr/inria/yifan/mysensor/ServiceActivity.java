@@ -59,9 +59,12 @@ public class ServiceActivity extends AppCompatActivity {
         mWelcomeView.setText(R.string.hint_discovery);
         mServiceView = findViewById(R.id.service_view);
 
-        Button startButton = findViewById(R.id.start_button);
-        startButton.setOnClickListener(view -> startSearching());
+        Button intentButton = findViewById(R.id.intent_button);
+        intentButton.setOnClickListener(view -> intentSearching());
 
+        Button serviceButton = findViewById(R.id.service_button);
+        serviceButton.setOnClickListener(view -> serviceSearching());
+        
         Button stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(view -> stopSearching());
 
@@ -119,7 +122,7 @@ public class ServiceActivity extends AppCompatActivity {
     // Start the group engine
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
-    private void startSearching() {
+    private void intentSearching() {
         isRunning = true;
         mWelcomeView.setText(R.string.open_network);
 
@@ -164,20 +167,35 @@ public class ServiceActivity extends AppCompatActivity {
                 mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
                 mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
 
-            } else {
-
-                mServiceHelper.discoverService();
-
-                // Wait 10s for the service discovery
-                synchronized (mLock) {
-                    try {
-                        mLock.wait(100000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                runOnUiThread(() -> mServiceView.setText(mServiceHelper.getMyService().toString()));
             }
+        }).start();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @SuppressWarnings("unchecked")
+    private void serviceSearching() {
+        isRunning = true;
+        mWelcomeView.setText(R.string.open_network);
+
+        mFeatureHelper.startService(); // Start the context detection service
+        mFeatureHelper.getContext(); // Get the current context information
+
+        new Thread(() -> {
+            // Fill the service allocation message
+            mServiceMsg.put("MessageType", "ServiceAllocation");
+            mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
+            mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
+            mServiceHelper.discoverService(); // Discovery the service
+
+            // Wait 10s for the service discovery
+            synchronized (mLock) {
+                try {
+                    mLock.wait(100000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            runOnUiThread(() -> mServiceView.setText(mServiceHelper.getMyService().toString()));
         }).start();
     }
 

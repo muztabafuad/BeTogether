@@ -39,7 +39,15 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/start_button"
+            android:id="@+id/intent_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:text="@string/start"
+            tools:ignore="ButtonStyle" />
+
+        <Button
+            android:id="@+id/service_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/activity_vertical_margin"
