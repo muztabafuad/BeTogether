@@ -65,15 +65,23 @@ public class FeatureHelper {
     }
 
     public void startService() {
-        mUserActivity.startService();
-        mPhysicalEnvironment.startService();
-        mDeviceAttribute.startService();
+        try {
+            mUserActivity.startService();
+            mPhysicalEnvironment.startService();
+            mDeviceAttribute.startService();
+        } catch (Exception e) {
+            // Pass
+        }
     }
 
     public void stopService() {
-        mUserActivity.stopService();
-        mPhysicalEnvironment.stopService();
-        mDeviceAttribute.stopService();
+        try {
+            mUserActivity.stopService();
+            mPhysicalEnvironment.stopService();
+            mDeviceAttribute.stopService();
+        } catch (Exception e) {
+            // Pass
+        }
     }
 
     // Get the most recent context hash map
@@ -141,7 +149,7 @@ public class FeatureHelper {
         mContext.clear();
     }
 
-    // Check if the given context rules is matched
+    // Check if the given context rules are matched
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public boolean matchRules(HashMap<String, String> rules) {
         for (String key : rules.keySet()) {
@@ -301,4 +309,3 @@ public class FeatureHelper {
         mPhysicalEnvironment.updateModels();
     }
 }
-

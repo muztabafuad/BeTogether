@@ -44,6 +44,7 @@ public class ServiceActivity extends AppCompatActivity {
 
     // Service helper
     private ServiceHelper mServiceHelper;
+    private HashMap<String, String> mIntentsMsg;
     private HashMap<String, String> mServiceMsg;
     private FeatureHelper mFeatureHelper;
 
@@ -52,6 +53,7 @@ public class ServiceActivity extends AppCompatActivity {
     }
 
     // Initially bind all views
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void bindViews() {
         mWelcomeView = findViewById(R.id.welcome_view);
         mWelcomeView.setText(R.string.hint_discovery);
@@ -73,7 +75,6 @@ public class ServiceActivity extends AppCompatActivity {
 
     // Main activity initialization
     @RequiresApi(api = Build.VERSION_CODES.M)
-    @SuppressWarnings("unchecked")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,13 +82,10 @@ public class ServiceActivity extends AppCompatActivity {
         bindViews();
 
         mFeatureHelper = new FeatureHelper(this);
-        mFeatureHelper.startService();
-        mFeatureHelper.getContext();
-
         mServiceHelper = new ServiceHelper(this, mAdapterDevices);
-        // Create a service record message
+        // Create record messages for intents exchange and service allocation
+        mIntentsMsg = new HashMap<>();
         mServiceMsg = new HashMap<>();
-        mServiceMsg.putAll(mFeatureHelper.getIntentValues(new int[]{1, 0, 1}));
     }
 
     @Override
@@ -116,47 +114,71 @@ public class ServiceActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         isRunning = false;
-        mFeatureHelper.stopService();
     }
 
     // Start the group engine
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @SuppressWarnings("unchecked")
     private void startSearching() {
         isRunning = true;
-        mServiceHelper.advertiseService(mServiceMsg);
-        mServiceHelper.discoverService();
         mWelcomeView.setText(R.string.open_network);
 
+        mFeatureHelper.startService(); // Start the context detection service
+        mFeatureHelper.getContext(); // Get the current context information
+
         new Thread(() -> {
-            while (isRunning) {
-                // Delay
+            // Fill the service intents message
+            mIntentsMsg.put("MessageType", "IntentValues");
+            mIntentsMsg.putAll(mFeatureHelper.getIntentValues(new int[]{1, 0, 1}));
+
+            mServiceHelper.advertiseService(mIntentsMsg); // Advertise the service
+            mServiceHelper.discoverService(); // Discovery the service
+
+            // Wait 10s for the service discovery
+            synchronized (mLock) {
+                try {
+                    mLock.wait(100000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            mServiceHelper.stopDiscover();
+            mServiceHelper.stopAdvertise();
+
+            // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+            if (mServiceHelper.isCoordinator()) { // Check if I am the coordinator
+                StringBuilder sb = new StringBuilder();
+                sb.append("I am coordinator:\n" + "Locator: ").append(mServiceHelper.findBestRole("Locator"))
+                        .append(", Proxy: ").append(mServiceHelper.findBestRole("Proxy"))
+                        .append(", Aggregator: ").append(mServiceHelper.findBestRole("Aggregator"))
+                        .append(", Temperature: ").append(mServiceHelper.findBestRole("Temperature"))
+                        .append(", Light: ").append(mServiceHelper.findBestRole("Light"))
+                        .append(", Pressure: ").append(mServiceHelper.findBestRole("Pressure"))
+                        .append(", Humidity: ").append(mServiceHelper.findBestRole("Humidity"))
+                        .append(", Noise: ").append(mServiceHelper.findBestRole("Noise"));
+                runOnUiThread(() -> mServiceView.setText(sb));
+
+                // Fill the service allocation message
+                mServiceMsg.put("MessageType", "ServiceAllocation");
+                mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
+                mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
+
+            } else {
+
+                mServiceHelper.discoverService();
+
+                // Wait 10s for the service discovery
                 synchronized (mLock) {
                     try {
-                        mLock.wait(1000);
+                        mLock.wait(100000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
-
-                runOnUiThread(() -> {
-                    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-                    if (mServiceHelper.isCoordinator()) {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("Is coordinator:\n" + "Locator: ").append(mServiceHelper.findTheRole("Locator"))
-                                .append("\nProxy: ").append(mServiceHelper.findTheRole("Proxy"))
-                                .append("\nAggregator: ").append(mServiceHelper.findTheRole("Aggregator"))
-                                .append("\nTemperature: ").append(mServiceHelper.findTheRole("Temperature"))
-                                .append("\nLight: ").append(mServiceHelper.findTheRole("Light"))
-                                .append("\nPressure: ").append(mServiceHelper.findTheRole("Pressure"))
-                                .append("\nHumidity: ").append(mServiceHelper.findTheRole("Humidity"))
-                                .append("\nNoise: ").append(mServiceHelper.findTheRole("Noise"));
-                        mServiceView.setText(sb);
-                    }
-
-                });
-
+                runOnUiThread(() -> mServiceView.setText(mServiceHelper.getMyService().toString()));
             }
         }).start();
-
     }
 
     // Stop the group engine
@@ -164,6 +186,7 @@ public class ServiceActivity extends AppCompatActivity {
         isRunning = false;
         mServiceHelper.stopDiscover();
         mServiceHelper.stopAdvertise();
+        mFeatureHelper.stopService();
         mAdapterDevices.clear();
         mWelcomeView.setText(R.string.hint_discovery);
         mServiceView.setText(null);

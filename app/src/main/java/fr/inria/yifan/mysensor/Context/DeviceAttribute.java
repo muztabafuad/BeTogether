@@ -24,13 +24,13 @@ public class DeviceAttribute {
 
     private static final String TAG = "Device attributes";
 
-    /* Power consumption constants in mA, real-world values are attained from
+    /* Power consumption constants in mA, real-world example values are attained from
      * https://android.googlesource.com/platform/frameworks/base/+/master/core/res/res/xml/power_profile.xml
      */
     //public static final float BluetoothTxPow = 10f; // Bluetooth data transfer
     //public static final float BluetoothScanPow = 0.1f; // Bluetooth scanning
     static final float WifiTxPow = 200f; // WIFI data transfer
-    static final float WifiScanPow = 100f; // WIFI network scanning
+    static final float WifiScanPow = 100f; // WIFI scanning
     //public static final float WifiIdlePow = 3f; // WIFI network on
     //public static final float AudioPow = 10f; // Audio DSP encoding
     static final float CPUPow = 100f; // CPU computing power
@@ -53,9 +53,9 @@ public class DeviceAttribute {
             // Get the maximum CPU frequency in MHz
             RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
             float mCpuFrequency = Float.parseFloat(reader.readLine()) / 1e3f;
-            reader.close();
             mDeviceAttr.put("CPU", mCpuFrequency);
             mDeviceAttr.put("CPUPow", CPUPow);
+            reader.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -102,7 +102,7 @@ public class DeviceAttribute {
     }
 
     public void stopService() {
-        //mDeviceAttr.clear();
+        mDeviceAttr.clear();
     }
 
     // Get the most recent device attributes
