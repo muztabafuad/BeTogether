@@ -64,7 +64,7 @@ public class ServiceActivity extends AppCompatActivity {
 
         Button serviceButton = findViewById(R.id.service_button);
         serviceButton.setOnClickListener(view -> serviceSearching());
-        
+
         Button stopButton = findViewById(R.id.stop_button);
         stopButton.setOnClickListener(view -> stopSearching());
 
