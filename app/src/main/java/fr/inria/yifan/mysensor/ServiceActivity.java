@@ -4,11 +4,13 @@ package fr.inria.yifan.mysensor;
  * This activity provides functions related to the service discovery.
  */
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -49,6 +51,11 @@ public class ServiceActivity extends AppCompatActivity {
     private HashMap<String, String> mIntentsMsg;
     private HashMap<String, String> mServiceMsg;
     private FeatureHelper mFeatureHelper;
+
+    // Variables
+    private BatteryManager mBatteryManager;
+    private float mStartBattery;
+    private float mCurrentBattery;
 
     public ServiceActivity() {
         mLock = new Object();
@@ -96,6 +103,9 @@ public class ServiceActivity extends AppCompatActivity {
         mIntentsMsg = new HashMap<>();
         mServiceMsg = new HashMap<>();
         mFeatureHelper.startService(); // Start the context detection service
+
+        // Get the remaining battery in mAh
+        mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
     }
 
     @Override
@@ -132,6 +142,8 @@ public class ServiceActivity extends AppCompatActivity {
     @SuppressWarnings("unchecked")
     private void contextExchanging() {
         mWelcomeView.setText(R.string.open_network);
+
+        mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
 
         HashMap contexts = mFeatureHelper.getContext(); // Get the current context information
         // Fill the context information message
@@ -203,12 +215,15 @@ public class ServiceActivity extends AppCompatActivity {
     }
 
     // Stop the group engine
+    @SuppressLint("SetTextI18n")
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void stopExchanging() {
         isRunning = false;
         mServiceHelper.stopDiscover();
         mServiceHelper.stopAdvertise();
         mAdapterDevices.clear();
-        mWelcomeView.setText(R.string.hint_discovery);
+        mCurrentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - mCurrentBattery));
         mServiceView.setText(null);
     }
 
