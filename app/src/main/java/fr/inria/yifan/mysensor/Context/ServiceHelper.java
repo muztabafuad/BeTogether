@@ -31,6 +31,7 @@ public class ServiceHelper extends BroadcastReceiver {
     // Variables
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
+    private String mMacAddress;
     private boolean mIsCoordinator;
 
     private HashMap<String, HashMap<String, String>> mNeighborContexts; // Neighbor address and its context message
@@ -52,9 +53,11 @@ public class ServiceHelper extends BroadcastReceiver {
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
             Log.e(TAG, "DnsSdTxtRecord available -" + record.toString());
 
+            // Show the discovered device in the list
             mAdapterNeighborList.add(device.deviceAddress + " " + record);
             mAdapterNeighborList.notifyDataSetChanged();
 
+            // Check the message type
             String msgType = (String) record.get("MessageType");
             if (msgType != null) {
                 switch (msgType) {
@@ -69,6 +72,7 @@ public class ServiceHelper extends BroadcastReceiver {
                         break;
                     case "ServiceAllocation":
                         Log.e(TAG, "Received allocation message" + record);
+                        Log.e(TAG, "My MAC address is: " + mMacAddress);
                         break;
                 }
             }
@@ -178,7 +182,7 @@ public class ServiceHelper extends BroadcastReceiver {
         return false;
     }
 
-    // Look at self whether should be the coordinator or not
+    // Return the flag
     public boolean isCoordinator() {
         return mIsCoordinator;
     }
@@ -283,6 +287,9 @@ public class ServiceHelper extends BroadcastReceiver {
                 break;
             case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:
                 // This device's details have changed.
+                WifiP2pDevice device = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
+                mMacAddress = device.deviceAddress;
+                Log.d(TAG, "Device WiFi P2p MAC Address: " + mMacAddress);
                 break;
         }
     }
