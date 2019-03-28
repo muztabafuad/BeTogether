@@ -27,5 +27,7 @@
     <string name="send">Send</string>
     <string name="clear">Clear</string>
     <string name="switch_log">Save log</string>
-
+    <string name="context_message">Context</string>
+    <string name="intent_message">Intents</string>
+    <string name="service_message">Services</string>
 </resources>

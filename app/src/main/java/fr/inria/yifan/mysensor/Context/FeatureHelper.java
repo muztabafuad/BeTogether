@@ -16,8 +16,9 @@ import static fr.inria.yifan.mysensor.Context.DeviceAttribute.WifiTxPow;
 
 /**
  * This class provides a HashMap containing all three context information: UA, PE and DA.
- * Available key-value paris are: ("UserActivity", <"VEHICLE", "BICYCLE", "FOOT", "STILL", "UNKNOWN">),
- * (<"InPocket", "InDoor", "UnderGround">, <"True", "False", null>),
+ * Available key-value paris are:
+ * ("UserActivity", <"VEHICLE", "BICYCLE", "FOOT", "STILL", "UNKNOWN">), ("DurationUA", <Float>)
+ * (<"InPocket", "InDoor", "UnderGround">, <"True", "False", null>), ("DurationDoor", <Float>), ("DurationGround", <Float>)
  * ("Location", <"GPS", "NETWORK", null>), ("LocationAcc", <Float>), ("LocationPower", <Float>)
  * ("Internet", <"WIFI", "Cellular", null>), ("UpBandwidth", <Float>), ("InternetPower", <Float>)
  * ("Battery", <Float>), ("CPU", <Float>), ("CPUPow", <Float>), ("Memory", <Float>),

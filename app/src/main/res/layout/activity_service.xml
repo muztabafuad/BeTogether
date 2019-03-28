@@ -39,11 +39,19 @@
         android:orientation="horizontal">
 
         <Button
+            android:id="@+id/context_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:text="@string/context_message"
+            tools:ignore="ButtonStyle" />
+
+        <Button
             android:id="@+id/intent_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/activity_vertical_margin"
-            android:text="@string/start"
+            android:text="@string/intent_message"
             tools:ignore="ButtonStyle" />
 
         <Button
@@ -51,7 +59,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/activity_vertical_margin"
-            android:text="@string/start"
+            android:text="@string/service_message"
             tools:ignore="ButtonStyle" />
 
         <Button

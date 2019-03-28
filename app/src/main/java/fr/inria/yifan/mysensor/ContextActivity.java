@@ -79,8 +79,8 @@ public class ContextActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
         isRunning = false;
         mFeatureHelper.stopService();
     }
