@@ -42,7 +42,6 @@
             android:id="@+id/context_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_vertical_margin"
             android:text="@string/context_message"
             tools:ignore="ButtonStyle" />
 
@@ -50,7 +49,6 @@
             android:id="@+id/intent_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_vertical_margin"
             android:text="@string/intent_message"
             tools:ignore="ButtonStyle" />
 
@@ -58,7 +56,6 @@
             android:id="@+id/service_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_vertical_margin"
             android:text="@string/service_message"
             tools:ignore="ButtonStyle" />
 
@@ -66,7 +63,6 @@
             android:id="@+id/stop_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/activity_vertical_margin"
             android:text="@string/stop"
             tools:ignore="ButtonStyle" />
     </LinearLayout>

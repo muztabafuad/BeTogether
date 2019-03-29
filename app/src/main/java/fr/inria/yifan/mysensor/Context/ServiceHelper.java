@@ -13,7 +13,6 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,17 +56,19 @@ public class ServiceHelper extends BroadcastReceiver {
             mAdapterNeighborList.add(device.deviceAddress + " " + record);
             mAdapterNeighborList.notifyDataSetChanged();
 
-            // Check the message type
+            // Check the discovered message type
             String msgType = (String) record.get("MessageType");
             if (msgType != null) {
                 switch (msgType) {
                     case "ContextInfo":
                         Log.e(TAG, "Received context message" + record);
+                        // TODO context matching here
                         mNeighborContexts.put(device.deviceAddress, (HashMap) record);
                         break;
                     case "IntentValues":
                         Log.e(TAG, "Received intent message" + record);
                         mNeighborIntents.put(device.deviceAddress, (HashMap) record);
+                        // Should I be the coordinator?
                         mIsCoordinator = beCoordinator();
                         break;
                     case "ServiceAllocation":
@@ -95,11 +96,22 @@ public class ServiceHelper extends BroadcastReceiver {
         mChannel = mManager.initialize(context, context.getMainLooper(), null);
         mAdapterNeighborList = adapter;
         mIsCoordinator = false;
+
+        mNeighborContexts = new HashMap<>();
+        mNeighborIntents = new HashMap<>();
+        mNeighborRoles = new HashMap<>();
+        mSelfIntent = new HashMap<>();
     }
 
     @SuppressWarnings("unchecked")
 // Advertise the service with a HashMap message
     public void advertiseService(HashMap service) {
+        String msgType = (String) service.get("MessageType");
+        assert msgType != null;
+        if (msgType.equals("IntentValues")) {
+            mSelfIntent.putAll(service);
+            //Log.e(TAG, mSelfIntent.toString());
+        }
         // Service information. Pass it an instance name, service type _protocol._transport layer, and the map containing information other devices will want once they connect to this one.
         WifiP2pDnsSdServiceInfo mServiceInfo = WifiP2pDnsSdServiceInfo.newInstance("crowdsensor", "_crowdsensing._tcp", service);
         mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
@@ -113,11 +125,6 @@ public class ServiceHelper extends BroadcastReceiver {
                 Log.e(TAG, "Failed in advertisement.");
             }
         });
-        String msgType = (String) service.get("MessageType");
-        assert msgType != null;
-        if (msgType.equals("IntentValues")) {
-            mSelfIntent.putAll(service);
-        }
     }
 
     // Discovery neighboring services
@@ -137,12 +144,6 @@ public class ServiceHelper extends BroadcastReceiver {
                 Log.e(TAG, "Failed in discovery.");
             }
         });
-
-        mNeighborContexts = new HashMap<>();
-        mNeighborIntents = new HashMap<>();
-        mNeighborRoles = new HashMap<>();
-        mSelfIntent = new HashMap<>();
-        mMyServices = new ArrayList<>();
     }
 
     // Stop advertising the service
@@ -157,23 +158,26 @@ public class ServiceHelper extends BroadcastReceiver {
 
     // Get the history connection times of neighbors as a list
     public int[] getHistoryConnect() {
-        // TODO
-        return new int[]{1, 1, 1};
+        int[] history = new int[mNeighborContexts.size()];
+        for (int i = 0; i < mNeighborContexts.size(); i++) {
+            history[i] = 1;
+        }
+        return history;
     }
 
     @SuppressWarnings("ConstantConditions")
     // Look at self whether should be the coordinator or not
     private boolean beCoordinator() {
-        // Ranking top k
+        // Ranking top k number
         int k = Math.max(1, (int) (mNeighborIntents.size() / nMax));
-        // Better than other _k
+        // Better than other _k neighbors
         int _k = mNeighborIntents.size() + 1 - k;
         int counter = 0;
         String selfIntent = mSelfIntent.get("Coordinator");
         for (String neighborAddr : mNeighborIntents.keySet()) {
             String neighborIntent = mNeighborIntents.get(neighborAddr).get("Coordinator");
-            if (Float.parseFloat(selfIntent) >= Float.parseFloat(neighborIntent)) {
-                counter += 1;
+            if (Float.parseFloat(selfIntent) > Float.parseFloat(neighborIntent)) {
+                counter++;
                 if (counter == _k) {
                     return true;
                 }
@@ -214,6 +218,7 @@ public class ServiceHelper extends BroadcastReceiver {
 
     // Return the message containing neighbor address and its role
     public HashMap getAllocationMsg() {
+        // One neighbor for one role
         for (String role : new String[]{"Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
             String neighbor = findBestRole(role);
             if (!neighbor.equals("Self")) {
@@ -289,7 +294,7 @@ public class ServiceHelper extends BroadcastReceiver {
                 // This device's details have changed.
                 WifiP2pDevice device = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
                 mMacAddress = device.deviceAddress;
-                Log.d(TAG, "Device WiFi P2p MAC Address: " + mMacAddress);
+                //Log.d(TAG, "Device WiFi P2p MAC Address: " + mMacAddress);
                 break;
         }
     }

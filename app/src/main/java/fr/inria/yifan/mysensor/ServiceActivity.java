@@ -55,7 +55,7 @@ public class ServiceActivity extends AppCompatActivity {
     // Variables
     private BatteryManager mBatteryManager;
     private float mStartBattery;
-    private float mCurrentBattery;
+    private long mStartTime;
 
     public ServiceActivity() {
         mLock = new Object();
@@ -68,17 +68,17 @@ public class ServiceActivity extends AppCompatActivity {
         mWelcomeView.setText(R.string.hint_discovery);
         mServiceView = findViewById(R.id.service_view);
 
-        Button contextButton = findViewById(R.id.context_button);
-        contextButton.setOnClickListener(view -> contextExchanging());
+        Button mContextButton = findViewById(R.id.context_button);
+        mContextButton.setOnClickListener(view -> contextExchanging());
 
-        Button intentButton = findViewById(R.id.intent_button);
-        intentButton.setOnClickListener(view -> intentExchanging());
+        Button mIntentButton = findViewById(R.id.intent_button);
+        mIntentButton.setOnClickListener(view -> intentExchanging());
 
-        Button serviceButton = findViewById(R.id.service_button);
-        serviceButton.setOnClickListener(view -> serviceExchanging());
+        Button mServiceButton = findViewById(R.id.service_button);
+        mServiceButton.setOnClickListener(view -> serviceExchanging());
 
-        Button stopButton = findViewById(R.id.stop_button);
-        stopButton.setOnClickListener(view -> stopExchanging());
+        Button mStopButton = findViewById(R.id.stop_button);
+        mStopButton.setOnClickListener(view -> stopExchanging());
 
         // Build an adapter to feed the list with the content of an array of strings
         ArrayList<String> mNeighborList = new ArrayList<>();
@@ -143,9 +143,13 @@ public class ServiceActivity extends AppCompatActivity {
     private void contextExchanging() {
         mWelcomeView.setText(R.string.open_network);
 
+        // Record the battery and time when start
         mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        mStartTime = System.currentTimeMillis();
+        Log.e(TAG, String.valueOf(mStartTime));
 
-        HashMap contexts = mFeatureHelper.getContext(); // Get the current context information
+        // Get the current context information
+        HashMap contexts = mFeatureHelper.getContext();
         // Fill the context information message
         mContextMsg.put("MessageType", "ContextInfo");
         mContextMsg.put("UserActivity", (String) contexts.get("UserActivity"));
@@ -154,7 +158,7 @@ public class ServiceActivity extends AppCompatActivity {
         mContextMsg.put("DurationDoor", (String) contexts.get("DurationDoor"));
         mContextMsg.put("UnderGround", (String) contexts.get("UnderGround"));
         mContextMsg.put("DurationGround", (String) contexts.get("DurationGround"));
-        Log.e(TAG, mContextMsg.toString());
+        //Log.e(TAG, mContextMsg.toString());
         mServiceHelper.advertiseService(mContextMsg); // Advertise the service
         mServiceHelper.discoverService(); // Discovery the service
     }
@@ -163,7 +167,6 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void intentExchanging() {
-        isRunning = true;
         mWelcomeView.setText(R.string.open_network);
 
         // Fill the service intents message
@@ -173,6 +176,8 @@ public class ServiceActivity extends AppCompatActivity {
         mServiceHelper.advertiseService(mIntentsMsg); // Advertise the service
         mServiceHelper.discoverService(); // Discovery the service
 
+        // Loop for showing the coordinator info
+        isRunning = true;
         new Thread(() -> {
             while (isRunning) {
                 // Delay
@@ -206,11 +211,13 @@ public class ServiceActivity extends AppCompatActivity {
     private void serviceExchanging() {
         mWelcomeView.setText(R.string.open_network);
 
-        // Fill the service allocation message
-        mServiceMsg.put("MessageType", "ServiceAllocation");
-        mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
-        Log.e(TAG, mServiceMsg.toString());
-        mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
+        if (mServiceHelper.isCoordinator()) {
+            // Fill the service allocation message
+            mServiceMsg.put("MessageType", "ServiceAllocation");
+            mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
+            Log.e(TAG, mServiceMsg.toString());
+            mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
+        }
         mServiceHelper.discoverService(); // Discovery the service
     }
 
@@ -221,10 +228,13 @@ public class ServiceActivity extends AppCompatActivity {
         isRunning = false;
         mServiceHelper.stopDiscover();
         mServiceHelper.stopAdvertise();
-        mAdapterDevices.clear();
-        mCurrentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-        mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - mCurrentBattery));
-        mServiceView.setText(null);
+
+        float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        long currentTime = System.currentTimeMillis();
+        Log.e(TAG, String.valueOf(currentTime));
+
+        mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - currentBattery) +
+                "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
     }
 
     // Check whether the Wifi is turned on

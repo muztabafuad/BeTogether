@@ -102,7 +102,7 @@ public class DeviceAttribute {
     }
 
     public void stopService() {
-        mDeviceAttr.clear();
+        //Pass
     }
 
     // Get the most recent device attributes
