@@ -58,6 +58,8 @@ public class DeviceAttribute {
             reader.close();
         } catch (Exception e) {
             e.printStackTrace();
+            mDeviceAttr.put("CPU", 1000f);
+            mDeviceAttr.put("CPUPow", CPUPow);
         }
 
         // Get the total memory size in MB
@@ -150,7 +152,8 @@ public class DeviceAttribute {
                 mDeviceAttr.put("InternetPower", 999f);
                 break;
         }
-        mDeviceAttr.put("UpBandwidth", (float) capability.getLinkUpstreamBandwidthKbps());
+
+        mDeviceAttr.put("UpBandwidth", capability != null ? (float) capability.getLinkUpstreamBandwidthKbps() : 0);
 
         return mDeviceAttr;
     }
@@ -162,9 +165,12 @@ public class DeviceAttribute {
 
     // Get the Internet type from network capability
     private String readNetworkType(NetworkCapabilities capability) {
-        String cap = capability.toString();
-        String[] pairs = cap.split(" ");
-        return pairs[2];
+        if (capability != null) {
+            String cap = capability.toString();
+            String[] pairs = cap.split(" ");
+            return pairs[2];
+        }
+        return "Null";
     }
 
     // Get the Internet RSSI from network capability ONLY works for WiFi

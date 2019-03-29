@@ -12,7 +12,9 @@
     <string name="hint_intents">Current intents: </string>
     <string name="hint_sensing">Press start button to enable the environmental sensing, then press stop button to save and mail the log (if checked). You can give 3 labels on data about the sensing context.</string>
     <string name="hint_discovery">Press start to discover Wifi Direct neighbors providing crowdsensing services.</string>
-    <string name="open_network">Discovering Wifi Direct neighbors providing crowdsensing services …</string>
+    <string name="open_context">Discovering neighbors providing context message …</string>
+    <string name="open_intents">Discovering neighbors providing intents message …</string>
+    <string name="open_service">Discovering neighbors providing service message …</string>
     <string name="hint_neighbors">Current neighbors: </string>
     <string name="hint_service">Group service: </string>
     <string name="count_sensing">Sensing count: </string>

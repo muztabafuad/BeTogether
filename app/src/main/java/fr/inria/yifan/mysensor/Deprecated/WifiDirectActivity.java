@@ -44,7 +44,7 @@ public class WifiDirectActivity extends AppCompatActivity {
         Button startButton = findViewById(R.id.start_button);
         startButton.setOnClickListener(view -> {
             mWifiDirectHelper.startService(null);
-            welcomeView.setText(R.string.open_network);
+            welcomeView.setText(R.string.hint_discovery);
         });
 
         // Build an adapter to feed the list with the content of an array of strings

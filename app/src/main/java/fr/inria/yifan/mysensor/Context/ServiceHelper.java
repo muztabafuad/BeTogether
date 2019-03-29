@@ -13,6 +13,7 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class ServiceHelper extends BroadcastReceiver {
          */
         @Override
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
-            Log.e(TAG, "DnsSdTxtRecord available -" + record.toString());
+            //Log.e(TAG, "DnsSdTxtRecord available -" + record.toString());
 
             // Show the discovered device in the list
             mAdapterNeighborList.add(device.deviceAddress + " " + record);
@@ -73,7 +74,8 @@ public class ServiceHelper extends BroadcastReceiver {
                         break;
                     case "ServiceAllocation":
                         Log.e(TAG, "Received allocation message" + record);
-                        Log.e(TAG, "My MAC address is: " + mMacAddress);
+                        // Check is this message for me
+                        findMyServices((HashMap) record);
                         break;
                 }
             }
@@ -192,8 +194,8 @@ public class ServiceHelper extends BroadcastReceiver {
     }
 
     @SuppressWarnings("ConstantConditions")
-// Given a role, look up the best crowdsensor address
-// "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    // Given a role, look up the best crowdsensor address
+    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     public String findBestRole(String role) {
         float maxIntent = Float.parseFloat(mSelfIntent.get(role));
         String maxNeighbor = "Self";
@@ -210,7 +212,7 @@ public class ServiceHelper extends BroadcastReceiver {
     }
 
     // Each sensing service may use multiple crowdsensors
-// "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    // "Temperature", "Light", "Pressure", "Humidity", "Noise"
     public List<String> findMoreRole(String role) {
         // TODO
         return null;
@@ -218,22 +220,37 @@ public class ServiceHelper extends BroadcastReceiver {
 
     // Return the message containing neighbor address and its role
     public HashMap getAllocationMsg() {
+        mMyServices = new ArrayList<>();
         // One neighbor for one role
         for (String role : new String[]{"Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
             String neighbor = findBestRole(role);
             if (!neighbor.equals("Self")) {
                 mNeighborRoles.put(role, neighbor);
+            } else {
+                mMyServices.add(role);
             }
         }
         return mNeighborRoles;
     }
 
-    public List<String> getMyService() {
+    // Look up my services allocated in message
+    private void findMyServices(HashMap<String, String> record) {
+        mMyServices = new ArrayList<>();
+        for (String role : record.keySet()) {
+            String address = record.get(role);
+            if (mMacAddress.equals(address)) {
+                mMyServices.add(role);
+            }
+        }
+    }
+
+    // Get my service list
+    public List<String> getMyServices() {
         return mMyServices;
     }
 
     // Connect to a role as the coordinator (the coordinator is the group owner)
-// "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    // "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     public void connectToRole(String role) {
 
         WifiP2pConfig config = new WifiP2pConfig();
@@ -245,11 +262,12 @@ public class ServiceHelper extends BroadcastReceiver {
             @Override
             public void onSuccess() {
                 // WiFiDirectBroadcastReceiver notifies us. Ignore for now.
+                Log.e(TAG, "Connect succeed.");
             }
 
             @Override
             public void onFailure(int reason) {
-                Log.e(TAG, "Connect failed to " + config.deviceAddress);
+                Log.e(TAG, "Connect failed to " + config.deviceAddress + ", because: " + reason);
             }
         });
     }
@@ -260,11 +278,13 @@ public class ServiceHelper extends BroadcastReceiver {
             @Override
             public void onSuccess() {
                 // Device is ready to accept incoming connections from peers.
+                Log.e(TAG, "Create group succeed.");
+                mManager.requestGroupInfo(mChannel, wifiP2pGroup -> Log.e(TAG, wifiP2pGroup.toString()));
             }
 
             @Override
-            public void onFailure(int i) {
-                Log.e(TAG, "Create group failed.");
+            public void onFailure(int reason) {
+                Log.e(TAG, "Create group failed: " + reason);
             }
         });
 

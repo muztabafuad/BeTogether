@@ -6,12 +6,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
-import java.util.HashMap;
 
 import fr.inria.yifan.mysensor.Context.FeatureHelper;
 import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
@@ -65,12 +62,12 @@ public class ContextActivity extends AppCompatActivity {
 
                 runOnUiThread(() -> {
                     contextView.setText(mFeatureHelper.getContext().toString());
-                    HashMap<String, String> rules = new HashMap<>();
-                    rules.put("InPocket", "False");
-                    rules.put("UserActivity", "STILL");
-                    rules.put("Internet", "WIFI");
-                    Log.e(TAG, "Rule applied: " + rules.toString());
-                    Log.e(TAG, "Matched rules: " + mFeatureHelper.matchRules(rules));
+                    //HashMap<String, String> rules = new HashMap<>();
+                    //rules.put("InPocket", "False");
+                    //rules.put("UserActivity", "STILL");
+                    //rules.put("Internet", "WIFI");
+                    //Log.e(TAG, "Rule applied: " + rules.toString());
+                    //Log.e(TAG, "Matched rules: " + mFeatureHelper.matchRules(rules));
                     attributeView.setText(mFeatureHelper.getIntentValues(new int[]{1, 0, 1}).toString());
                 });
 

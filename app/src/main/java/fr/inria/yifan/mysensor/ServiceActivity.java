@@ -57,6 +57,7 @@ public class ServiceActivity extends AppCompatActivity {
     private float mStartBattery;
     private long mStartTime;
 
+    // Constructor
     public ServiceActivity() {
         mLock = new Object();
     }
@@ -108,11 +109,13 @@ public class ServiceActivity extends AppCompatActivity {
         mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onDestroy() {
         super.onDestroy();
         isRunning = false;
         mFeatureHelper.stopService();
+        stopExchanging();
     }
 
     @Override
@@ -141,12 +144,11 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void contextExchanging() {
-        mWelcomeView.setText(R.string.open_network);
+        mWelcomeView.setText(R.string.open_context);
 
         // Record the battery and time when start
         mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         mStartTime = System.currentTimeMillis();
-        Log.e(TAG, String.valueOf(mStartTime));
 
         // Get the current context information
         HashMap contexts = mFeatureHelper.getContext();
@@ -158,16 +160,17 @@ public class ServiceActivity extends AppCompatActivity {
         mContextMsg.put("DurationDoor", (String) contexts.get("DurationDoor"));
         mContextMsg.put("UnderGround", (String) contexts.get("UnderGround"));
         mContextMsg.put("DurationGround", (String) contexts.get("DurationGround"));
-        //Log.e(TAG, mContextMsg.toString());
+        Log.e(TAG, mContextMsg.toString());
         mServiceHelper.advertiseService(mContextMsg); // Advertise the service
         mServiceHelper.discoverService(); // Discovery the service
     }
 
     // Start the exchanging of intent message
+    @SuppressLint("SetTextI18n")
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void intentExchanging() {
-        mWelcomeView.setText(R.string.open_network);
+        mWelcomeView.setText(R.string.open_intents);
 
         // Fill the service intents message
         mIntentsMsg.put("MessageType", "IntentValues");
@@ -175,50 +178,57 @@ public class ServiceActivity extends AppCompatActivity {
         Log.e(TAG, mIntentsMsg.toString());
         mServiceHelper.advertiseService(mIntentsMsg); // Advertise the service
         mServiceHelper.discoverService(); // Discovery the service
-
-        // Loop for showing the coordinator info
-        isRunning = true;
-        new Thread(() -> {
-            while (isRunning) {
-                // Delay
-                synchronized (mLock) {
-                    try {
-                        mLock.wait(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (mServiceHelper.isCoordinator()) { // Check if I am the coordinator
-                    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("I am coordinator:\n" + "Locator: ").append(mServiceHelper.findBestRole("Locator"))
-                            .append(", Proxy: ").append(mServiceHelper.findBestRole("Proxy"))
-                            .append(", Aggregator: ").append(mServiceHelper.findBestRole("Aggregator"))
-                            .append(", Temperature: ").append(mServiceHelper.findBestRole("Temperature"))
-                            .append(", Light: ").append(mServiceHelper.findBestRole("Light"))
-                            .append(", Pressure: ").append(mServiceHelper.findBestRole("Pressure"))
-                            .append(", Humidity: ").append(mServiceHelper.findBestRole("Humidity"))
-                            .append(", Noise: ").append(mServiceHelper.findBestRole("Noise"));
-                    runOnUiThread(() -> mServiceView.setText(sb));
-                }
-            }
-        }).start();
     }
 
     // Start the exchanging of service message
+    @SuppressLint("SetTextI18n")
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void serviceExchanging() {
-        mWelcomeView.setText(R.string.open_network);
+        mWelcomeView.setText(R.string.open_service);
 
         if (mServiceHelper.isCoordinator()) {
+            //mServiceHelper.createGroup();
             // Fill the service allocation message
             mServiceMsg.put("MessageType", "ServiceAllocation");
             mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
             Log.e(TAG, mServiceMsg.toString());
             mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
+            // Loop for showing the coordinator info
+            isRunning = true;
+            new Thread(() -> {
+                while (isRunning) {
+                    // Delay
+                    synchronized (mLock) {
+                        try {
+                            mLock.wait(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (mServiceHelper.isCoordinator()) { // Check if I am the coordinator
+                        runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()));
+                    }
+                }
+            }).start();
+        } else {
+            mServiceHelper.discoverService(); // Discovery the service
+            // Loop for showing the coordinator info
+            isRunning = true;
+            new Thread(() -> {
+                while (isRunning) {
+                    // Delay
+                    synchronized (mLock) {
+                        try {
+                            mLock.wait(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()));
+                }
+            }).start();
         }
-        mServiceHelper.discoverService(); // Discovery the service
     }
 
     // Stop the group engine
@@ -231,7 +241,6 @@ public class ServiceActivity extends AppCompatActivity {
 
         float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         long currentTime = System.currentTimeMillis();
-        Log.e(TAG, String.valueOf(currentTime));
 
         mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - currentBattery) +
                 "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
