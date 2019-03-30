@@ -6,6 +6,7 @@ import android.support.annotation.RequiresApi;
 
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 import static fr.inria.yifan.mysensor.Context.DeviceAttribute.CPUPow;
@@ -292,7 +293,7 @@ public class FeatureHelper {
     // Number of samples: how many time of sensing measurements in one time slot
     // Individual: work by itself or using a neighboring collaboration
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public float getPowerTotal(String[] roles, int numSamples, boolean individual) {
+    public float getPowerTotal(List<String> roles, int numSamples, boolean individual) {
         float sum = 0;
         for (String role : roles) {
             sum += getPowerOneRole(role, numSamples, individual);

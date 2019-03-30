@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import fr.inria.yifan.mysensor.Context.FeatureHelper;
@@ -170,6 +171,8 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void intentExchanging() {
+        stopExchanging();
+
         mWelcomeView.setText(R.string.open_intents);
 
         // Fill the service intents message
@@ -185,6 +188,8 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void serviceExchanging() {
+        stopExchanging();
+
         mWelcomeView.setText(R.string.open_service);
 
         if (mServiceHelper.isCoordinator()) {
@@ -225,7 +230,11 @@ public class ServiceActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     }
-                    runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()));
+                    runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()
+                            + "\nMy individual power consumption is: "
+                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 100, false)
+                            + "\nMy collaborative power consumption is: "
+                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 100, true)));
                 }
             }).start();
         }
