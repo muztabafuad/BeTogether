@@ -36,7 +36,7 @@ public class ServiceHelper extends BroadcastReceiver {
 
     private HashMap<String, HashMap<String, String>> mNeighborContexts; // Neighbor address and its context message
     private HashMap<String, HashMap<String, String>> mNeighborIntents; // Neighbor address and its intents message
-    private HashMap<String, String> mNeighborRoles; // Neighbor service and its address allocation message
+    private HashMap<String, String> mNeighborService; // Neighbor service and its address allocation message
     private HashMap<String, String> mSelfIntent; // Intents message of current device
     private List<String> mMyServices; // Services allocated for current device
 
@@ -101,7 +101,7 @@ public class ServiceHelper extends BroadcastReceiver {
 
         mNeighborContexts = new HashMap<>();
         mNeighborIntents = new HashMap<>();
-        mNeighborRoles = new HashMap<>();
+        mNeighborService = new HashMap<>();
         mSelfIntent = new HashMap<>();
     }
 
@@ -225,12 +225,12 @@ public class ServiceHelper extends BroadcastReceiver {
         for (String role : new String[]{"Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
             String neighbor = findBestRole(role);
             if (!neighbor.equals("Self")) {
-                mNeighborRoles.put(role, neighbor);
+                mNeighborService.put(role, neighbor);
             } else {
                 mMyServices.add(role);
             }
         }
-        return mNeighborRoles;
+        return mNeighborService;
     }
 
     // Look up my services allocated in message
@@ -270,6 +270,29 @@ public class ServiceHelper extends BroadcastReceiver {
                 Log.e(TAG, "Connect failed to " + config.deviceAddress + ", because: " + reason);
             }
         });
+    }
+
+    // Connect to all group members
+    public void connectAllMembers() {
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.wps.setup = WpsInfo.PBC;
+        config.groupOwnerIntent = 15;
+
+        for (String member : mNeighborService.values()) {
+            config.deviceAddress = member;
+            mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    // WiFiDirectBroadcastReceiver notifies us. Ignore for now.
+                    Log.e(TAG, "Connect succeed.");
+                }
+
+                @Override
+                public void onFailure(int reason) {
+                    Log.e(TAG, "Connect failed to " + config.deviceAddress + ", because: " + reason);
+                }
+            });
+        }
     }
 
     // Create a group as the coordinator (the coordinator is the group owner)
