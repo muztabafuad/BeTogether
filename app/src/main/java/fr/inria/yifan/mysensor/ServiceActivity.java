@@ -145,6 +145,8 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void contextExchanging() {
+        stopExchanging();
+
         mWelcomeView.setText(R.string.open_context);
 
         // Record the battery and time when start
@@ -162,6 +164,7 @@ public class ServiceActivity extends AppCompatActivity {
         mContextMsg.put("UnderGround", (String) contexts.get("UnderGround"));
         mContextMsg.put("DurationGround", (String) contexts.get("DurationGround"));
         Log.e(TAG, mContextMsg.toString());
+
         mServiceHelper.advertiseService(mContextMsg); // Advertise the service
         mServiceHelper.discoverService(); // Discovery the service
     }
@@ -179,6 +182,7 @@ public class ServiceActivity extends AppCompatActivity {
         mIntentsMsg.put("MessageType", "IntentValues");
         mIntentsMsg.putAll(mFeatureHelper.getIntentValues(mServiceHelper.getHistoryConnect()));
         Log.e(TAG, mIntentsMsg.toString());
+
         mServiceHelper.advertiseService(mIntentsMsg); // Advertise the service
         mServiceHelper.discoverService(); // Discovery the service
     }
@@ -193,16 +197,20 @@ public class ServiceActivity extends AppCompatActivity {
         mWelcomeView.setText(R.string.open_service);
 
         if (mServiceHelper.isCoordinator()) {
-            //mServiceHelper.createGroup();
             // Fill the service allocation message
             mServiceMsg.put("MessageType", "ServiceAllocation");
             mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
             Log.e(TAG, mServiceMsg.toString());
             mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
-            // Loop for showing the coordinator info
+
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
+                    runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
+                            + "\nMy collaborative power consumption is: "
+                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 100, false)
+                            + "\nMy individual power consumption is: "
+                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 100, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -210,18 +218,20 @@ public class ServiceActivity extends AppCompatActivity {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                    }
-                    if (mServiceHelper.isCoordinator()) { // Check if I am the coordinator
-                        runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()));
                     }
                 }
             }).start();
         } else {
             mServiceHelper.discoverService(); // Discovery the service
-            // Loop for showing the coordinator info
+
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
+                    runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()
+                            + "\nMy collaborative power consumption is: "
+                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 100, false)
+                            + "\nMy individual power consumption is: "
+                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 100, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -230,11 +240,6 @@ public class ServiceActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     }
-                    runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()
-                            + "\nMy individual power consumption is: "
-                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 100, false)
-                            + "\nMy collaborative power consumption is: "
-                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 100, true)));
                 }
             }).start();
         }
@@ -247,6 +252,7 @@ public class ServiceActivity extends AppCompatActivity {
         isRunning = false;
         mServiceHelper.stopDiscover();
         mServiceHelper.stopAdvertise();
+        mAdapterDevices.clear();
 
         float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         long currentTime = System.currentTimeMillis();

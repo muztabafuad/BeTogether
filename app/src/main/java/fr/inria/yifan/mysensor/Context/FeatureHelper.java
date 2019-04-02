@@ -97,11 +97,12 @@ public class FeatureHelper {
 
         // User Activity duration update automatically
         String currentUA = (String) mUserActivity.getUserActivity().get("UserActivity");
+        assert currentUA != null;
         if (previousUA == null) {
             // First record
             startTimeUA = Calendar.getInstance();
             previousUA = currentUA;
-        } else if (currentUA != null && !currentUA.equals(previousUA)) {
+        } else if (!currentUA.equals("Null") && !currentUA.equals(previousUA)) {
             // User activity changed
             //Log.d(TAG, "Activity is: " + currentUA + ", time is: " + startTimeUA.getTimeInMillis());
             mDurationPredict.updateActivityModel(startTimeUA, previousUA);
@@ -113,11 +114,12 @@ public class FeatureHelper {
 
         // In-door/Out-door duration update automatically
         String currentDoor = (String) mPhysicalEnvironment.getPhysicalEnv().get("InDoor");
+        assert currentDoor != null;
         if (previousIndoor == null) {
             // First record
             startTimeDoor = Calendar.getInstance();
             previousIndoor = currentDoor;
-        } else if (currentDoor != null && !currentDoor.equals(previousIndoor)) {
+        } else if (!currentDoor.equals("Null") && !currentDoor.equals(previousIndoor)) {
             // Indoor state changed
             //Log.d(TAG, "Indoor is: " + currentDoor + ", time is: " + startTimeDoor.getTimeInMillis());
             mDurationPredict.updateDoorModel(startTimeDoor, previousIndoor);
@@ -129,11 +131,12 @@ public class FeatureHelper {
 
         // Under-ground/On-ground duration update automatically
         String currentGround = (String) mPhysicalEnvironment.getPhysicalEnv().get("UnderGround");
+        assert currentGround != null;
         if (previousUnderground == null) {
             // First record
             startTimeGround = Calendar.getInstance();
             previousUnderground = currentGround;
-        } else if (currentGround != null && !currentGround.equals(previousUnderground)) {
+        } else if (!currentGround.equals("Null") && !currentGround.equals(previousUnderground)) {
             // Underground state changed
             //Log.d(TAG, "Underground is: " + currentGround + ", time is: " + startTimeGround.getTimeInMillis());
             mDurationPredict.updateGroundModel(startTimeGround, previousUnderground);
@@ -295,8 +298,10 @@ public class FeatureHelper {
     @RequiresApi(api = Build.VERSION_CODES.M)
     public float getPowerTotal(List<String> roles, int numSamples, boolean individual) {
         float sum = 0;
-        for (String role : roles) {
-            sum += getPowerOneRole(role, numSamples, individual);
+        if (roles != null) {
+            for (String role : roles) {
+                sum += getPowerOneRole(role, numSamples, individual);
+            }
         }
         return sum;
     }

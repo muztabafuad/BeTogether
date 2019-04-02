@@ -253,13 +253,13 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             if (inferInPocket()) {
                 mHierarResult = 1;
                 mPhysicalEnv.put("InPocket", "True");
-                mPhysicalEnv.put("InDoor", null);
-                mPhysicalEnv.put("UnderGround", null);
+                mPhysicalEnv.put("InDoor", "Null");
+                mPhysicalEnv.put("UnderGround", "Null");
             } else if (!inferInDoor()) {
                 mHierarResult = 2;
                 mPhysicalEnv.put("InPocket", "False");
                 mPhysicalEnv.put("InDoor", "False");
-                mPhysicalEnv.put("UnderGround", null);
+                mPhysicalEnv.put("UnderGround", "Null");
             } else if (inferUnderGround()) {
                 mHierarResult = 3;
                 mPhysicalEnv.put("InPocket", "False");
