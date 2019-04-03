@@ -208,9 +208,9 @@ public class ServiceActivity extends AppCompatActivity {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
                             + "\nMy collaborative power consumption is: "
-                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 100, false)
+                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
                             + "\nMy individual power consumption is: "
-                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 100, true)));
+                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -229,9 +229,9 @@ public class ServiceActivity extends AppCompatActivity {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()
                             + "\nMy collaborative power consumption is: "
-                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 100, false)
+                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
                             + "\nMy individual power consumption is: "
-                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 100, true)));
+                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {

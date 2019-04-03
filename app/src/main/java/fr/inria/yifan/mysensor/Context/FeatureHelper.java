@@ -234,10 +234,10 @@ public class FeatureHelper {
 
     // Calculate and get the power consumption for a given role in one time slot:
     // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    // Number of samples: how many time of sensing measurements in one time slot
+    // Active time: how much time the components are active, in seconds
     // Individual: work by itself or using a neighboring collaboration
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private float getPowerOneRole(String service, int numSamples, boolean individual) {
+    private float getPowerOneRole(String service, int activeTime, boolean individual) {
         // Two power mode for each role
         float individualPow;
         float collaboratePow;
@@ -248,7 +248,7 @@ public class FeatureHelper {
                 return individual ? individualPow : collaboratePow;
 
             case "Locator":
-                individualPow = GPSPow * numSamples; // Self as locator, GPS power
+                individualPow = GPSPow * activeTime; // Self as locator, GPS power
                 collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
                 return individual ? individualPow : collaboratePow;
 
@@ -263,27 +263,27 @@ public class FeatureHelper {
                 return individual ? individualPow : collaboratePow;
 
             case "Temperature":
-                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow") * numSamples; // Self as sensor
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow") * activeTime; // Self as sensor
                 collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
                 return individual ? individualPow : collaboratePow;
 
             case "Light":
-                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow") * numSamples; // Self as sensor
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow") * activeTime; // Self as sensor
                 collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
                 return individual ? individualPow : collaboratePow;
 
             case "Pressure":
-                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("PressurePow") * numSamples; // Self as sensor
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("PressurePow") * activeTime; // Self as sensor
                 collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
                 return individual ? individualPow : collaboratePow;
 
             case "Humidity":
-                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow") * numSamples; // Self as sensor
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow") * activeTime; // Self as sensor
                 collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
                 return individual ? individualPow : collaboratePow;
 
             case "Noise":
-                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow") * numSamples; // Self as sensor
+                individualPow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow") * activeTime; // Self as sensor
                 collaboratePow = individualPow + WifiTxPow; // + 1 Wifi transmission
                 return individual ? individualPow : collaboratePow;
         }
@@ -293,14 +293,14 @@ public class FeatureHelper {
 
     // Calculate and get the total power consumption for several roles in one time slot:
     // Roles: set of roles applied
-    // Number of samples: how many time of sensing measurements in one time slot
+    // Active time: how much time the components are active, in seconds
     // Individual: work by itself or using a neighboring collaboration
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public float getPowerTotal(List<String> roles, int numSamples, boolean individual) {
+    public float getPowerTotal(List<String> roles, int activeTime, boolean individual) {
         float sum = 0;
         if (roles != null) {
             for (String role : roles) {
-                sum += getPowerOneRole(role, numSamples, individual);
+                sum += getPowerOneRole(role, activeTime, individual);
             }
         }
         return sum;
