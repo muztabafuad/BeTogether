@@ -179,3 +179,4 @@ public class DeviceAttribute {
         return Integer.parseInt(cap.substring(cap.lastIndexOf(" ") + 1, cap.length() - 1));
     }
 }
+

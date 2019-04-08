@@ -145,7 +145,6 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void contextExchanging() {
-        stopExchanging();
 
         mWelcomeView.setText(R.string.open_context);
 
@@ -174,11 +173,10 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void intentExchanging() {
-        stopExchanging();
 
         mWelcomeView.setText(R.string.open_intents);
 
-        // Fill the service intents message
+        // Fill the intent information message
         mIntentsMsg.put("MessageType", "IntentValues");
         mIntentsMsg.putAll(mFeatureHelper.getIntentValues(mServiceHelper.getHistoryConnect()));
         Log.e(TAG, mIntentsMsg.toString());
@@ -192,7 +190,6 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void serviceExchanging() {
-        stopExchanging();
 
         mWelcomeView.setText(R.string.open_service);
 

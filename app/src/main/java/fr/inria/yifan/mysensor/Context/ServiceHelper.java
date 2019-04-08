@@ -68,13 +68,14 @@ public class ServiceHelper extends BroadcastReceiver {
                         break;
                     case "IntentValues":
                         Log.e(TAG, "Received intent message" + record);
+                        // Put the neighbor intent into list
                         mNeighborIntents.put(device.deviceAddress, (HashMap) record);
-                        // Should I be the coordinator?
+                        // Check to be the coordinator or not
                         mIsCoordinator = beCoordinator();
                         break;
                     case "ServiceAllocation":
                         Log.e(TAG, "Received allocation message" + record);
-                        // Check is this message for me
+                        // Retrieve the allocation message for me
                         findMyServices((HashMap) record);
                         break;
                 }
@@ -162,7 +163,7 @@ public class ServiceHelper extends BroadcastReceiver {
     public int[] getHistoryConnect() {
         int[] history = new int[mNeighborContexts.size()];
         for (int i = 0; i < mNeighborContexts.size(); i++) {
-            history[i] = 1;
+            history[i] = 1; // Assumed to be 1 for experiment
         }
         return history;
     }
@@ -310,7 +311,6 @@ public class ServiceHelper extends BroadcastReceiver {
                 Log.e(TAG, "Create group failed: " + reason);
             }
         });
-
     }
 
     // Callback when receive Wifi P2P broadcast
