@@ -12,11 +12,10 @@ import com.google.android.gms.location.ActivityRecognitionResult;
 
 import java.util.HashMap;
 
-import static fr.inria.yifan.mysensor.Context.FeatureHelper.MIN_UPDATE_TIME;
+import static fr.inria.yifan.mysensor.Context.ContextHelper.MIN_UPDATE_TIME;
 
 /**
  * This class provides context information about the user activity.
- * The key to retrieve the value is "UserActivity".
  */
 
 public class UserActivity extends BroadcastReceiver {
@@ -36,6 +35,7 @@ public class UserActivity extends BroadcastReceiver {
         mUserActiv.put("UserActivity", null);
     }
 
+    // Start the service
     public void startService() {
         // Google activity recognition API
         PendingIntent pendingIntent = PendingIntent.getBroadcast(mContext, 1001, new Intent("ActivityRecognitionResult"), PendingIntent.FLAG_CANCEL_CURRENT);
@@ -45,6 +45,7 @@ public class UserActivity extends BroadcastReceiver {
         mContext.registerReceiver(this, new IntentFilter("ActivityRecognitionResult"));
     }
 
+    // Stop the service
     public void stopService() {
         // Unregister the update receiver
         mContext.unregisterReceiver(this);

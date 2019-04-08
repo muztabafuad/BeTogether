@@ -34,19 +34,18 @@ import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 
-import static fr.inria.yifan.mysensor.Context.FeatureHelper.LAMBDA;
-import static fr.inria.yifan.mysensor.Context.FeatureHelper.MIN_UPDATE_TIME;
+import static fr.inria.yifan.mysensor.Context.ContextHelper.LAMBDA;
+import static fr.inria.yifan.mysensor.Context.ContextHelper.MIN_UPDATE_TIME;
 
 /**
  * This class provides context information about the physical environments.
- * The keys to retrieve the values are "InPocket", "InDoor" and "UnderGround".
  */
 
 public class PhysicalEnvironment extends BroadcastReceiver {
 
     private static final String TAG = "Physical environment";
 
-    // Define the learning model files to load
+    // Naming the learning model files to load
     private static final String MODEL_POCKET = "Classifier_pocket.model";
     private static final String MODEL_DOOR = "Classifier_door.model";
     private static final String MODEL_GROUND = "Classifier_ground.model";
@@ -58,6 +57,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     private Instances instancesPocket;
     private Instances instancesDoor;
     private Instances instancesGround;
+
     // Hoeffding Tree classifiers declaration
     private HoeffdingTree classifierPocket;
     private HoeffdingTree classifierDoor;
@@ -195,9 +195,9 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         mWifiManager = (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         mPhysicalEnv = new HashMap<>();
-        mPhysicalEnv.put("InPocket", null);
-        mPhysicalEnv.put("InDoor", null);
-        mPhysicalEnv.put("UnderGround", null);
+        mPhysicalEnv.put("InPocket", "Null");
+        mPhysicalEnv.put("InDoor", "Null");
+        mPhysicalEnv.put("UnderGround", "Null");
     }
 
     // Method to generate a Poisson number
@@ -212,6 +212,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         return k - 1;
     }
 
+    // Start the service
     @SuppressLint("MissingPermission")
     public void startService() {
         // Register listeners for all sensors and components
@@ -225,22 +226,6 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             mSensorManager.registerListener(mListenerTemp, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(mListenerPress, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
             mSensorManager.registerListener(mListenerHumid, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void stopService() {
-        try {
-            mSensorManager.unregisterListener(mListenerLight);
-            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
-            mLocationManager.removeUpdates(mListenerLoc);
-            mContext.unregisterReceiver(this);
-
-            mSensorManager.unregisterListener(mListenerProxy);
-            mSensorManager.unregisterListener(mListenerTemp);
-            mSensorManager.unregisterListener(mListenerPress);
-            mSensorManager.unregisterListener(mListenerHumid);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -337,8 +322,25 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         }
     }
 
+    // Stop the service
+    public void stopService() {
+        try {
+            mSensorManager.unregisterListener(mListenerLight);
+            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
+            mLocationManager.removeUpdates(mListenerLoc);
+            mContext.unregisterReceiver(this);
+
+            mSensorManager.unregisterListener(mListenerProxy);
+            mSensorManager.unregisterListener(mListenerTemp);
+            mSensorManager.unregisterListener(mListenerPress);
+            mSensorManager.unregisterListener(mListenerHumid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // Update the classifiers hierarchically by one click
-    public void updateModels() {
+    public void updateAllModels() {
         try {
             switch (mHierarResult) {
                 case 1:
@@ -381,6 +383,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         // Check local model existence
         if (!filePocket.exists() || !fileDoor.exists() || !fileGround.exists()) {
             try {
+                // Load from assets
                 fileInputStream = context.getAssets().openFd(MODEL_POCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierPocket = (HoeffdingTree) objectInputStream.readObject();
@@ -405,6 +408,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
                 objectInputStream.close();
                 fileInputStream.close();
 
+                // Save into app data
                 fileOutputStream = context.openFileOutput(MODEL_POCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierPocket);
@@ -434,6 +438,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         } else {
             // Local models already exist
             try {
+                // Load from app data
                 fileInputStream = context.openFileInput(MODEL_POCKET);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierPocket = (HoeffdingTree) objectInputStream.readObject();
@@ -469,3 +474,4 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         mWifiRssi = mWifiManager.getConnectionInfo().getRssi();
     }
 }
+

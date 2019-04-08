@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import fr.inria.yifan.mysensor.Context.FeatureHelper;
+import fr.inria.yifan.mysensor.Context.ContextHelper;
 import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 
 /**
@@ -26,7 +26,7 @@ public class ContextActivity extends AppCompatActivity {
 
     private TextView contextView;
     private TextView attributeView;
-    private FeatureHelper mFeatureHelper;
+    private ContextHelper mContextHelper;
 
     public ContextActivity() {
         mLock = new Object();
@@ -43,11 +43,11 @@ public class ContextActivity extends AppCompatActivity {
         contextView = findViewById(R.id.context_view);
         attributeView = findViewById(R.id.intents_view);
 
-        mFeatureHelper = new FeatureHelper(this);
-        mFeatureHelper.startService();
+        mContextHelper = new ContextHelper(this);
+        mContextHelper.startService();
 
         Button feedbackButton = findViewById(R.id.feedback_button);
-        feedbackButton.setOnClickListener(v -> mFeatureHelper.updateModels());
+        feedbackButton.setOnClickListener(v -> mContextHelper.updatePEModels());
 
         new Thread(() -> {
             while (isRunning) {
@@ -61,14 +61,14 @@ public class ContextActivity extends AppCompatActivity {
                 }
 
                 runOnUiThread(() -> {
-                    contextView.setText(mFeatureHelper.getContext().toString());
+                    contextView.setText(mContextHelper.getContext().toString());
                     //HashMap<String, String> rules = new HashMap<>();
                     //rules.put("InPocket", "False");
                     //rules.put("UserActivity", "STILL");
                     //rules.put("Internet", "WIFI");
                     //Log.e(TAG, "Rule applied: " + rules.toString());
-                    //Log.e(TAG, "Matched rules: " + mFeatureHelper.matchRules(rules));
-                    attributeView.setText(mFeatureHelper.getIntentValues(new int[]{1, 0, 1}).toString());
+                    //Log.e(TAG, "Matched rules: " + mContextHelper.matchRules(rules));
+                    attributeView.setText(mContextHelper.getIntentValues(new int[]{1, 0, 1}).toString());
                 });
 
             }
@@ -79,7 +79,7 @@ public class ContextActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         isRunning = false;
-        mFeatureHelper.stopService();
+        mContextHelper.stopService();
     }
 
     // Go to the sensing activity

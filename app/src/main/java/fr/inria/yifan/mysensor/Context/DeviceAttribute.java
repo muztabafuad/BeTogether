@@ -48,15 +48,18 @@ public class DeviceAttribute {
         mDeviceAttr = new HashMap<>();
     }
 
+    // Read device profile and put attributes into the hashmap
     public void startService() {
+        // Get the maximum CPU frequency in MHz
         try {
-            // Get the maximum CPU frequency in MHz
+            // Read from the system
             RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
             float mCpuFrequency = Float.parseFloat(reader.readLine()) / 1e3f;
             mDeviceAttr.put("CPU", mCpuFrequency);
             mDeviceAttr.put("CPUPow", CPUPow);
             reader.close();
         } catch (Exception e) {
+            // In case it's not accessible
             e.printStackTrace();
             mDeviceAttr.put("CPU", 1000f);
             mDeviceAttr.put("CPUPow", CPUPow);
@@ -75,34 +78,35 @@ public class DeviceAttribute {
             mDeviceAttr.put("TemperatureAcc", 0f);
             mDeviceAttr.put("TemperaturePow", 99f);
         } else {
-            mDeviceAttr.put("TemperatureAcc", 50f);
+            mDeviceAttr.put("TemperatureAcc", 10f);
             mDeviceAttr.put("TemperaturePow", mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT) == null) {
             mDeviceAttr.put("LightAcc", 0f);
             mDeviceAttr.put("LightPow", 99f);
         } else {
-            mDeviceAttr.put("LightAcc", 50f);
+            mDeviceAttr.put("LightAcc", 10f);
             mDeviceAttr.put("LightPow", mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE) == null) {
             mDeviceAttr.put("PressureAcc", 0f);
             mDeviceAttr.put("PressurePow", 99f);
         } else {
-            mDeviceAttr.put("PressureAcc", 50f);
+            mDeviceAttr.put("PressureAcc", 10f);
             mDeviceAttr.put("PressurePow", mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE).getPower());
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY) == null) {
             mDeviceAttr.put("HumidityAcc", 0f);
             mDeviceAttr.put("HumidityPow", 99f);
         } else {
-            mDeviceAttr.put("HumidityAcc", 0f);
+            mDeviceAttr.put("HumidityAcc", 10f);
             mDeviceAttr.put("HumidityPow", mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY).getPower());
         }
-        mDeviceAttr.put("NoiseAcc", 50f);
+        mDeviceAttr.put("NoiseAcc", 10f);
         mDeviceAttr.put("NoisePow", 0.1f);
     }
 
+    // Nothing to do when stop the service
     public void stopService() {
         //Pass
     }
@@ -116,11 +120,27 @@ public class DeviceAttribute {
         float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         mDeviceAttr.put("Battery", mRemainBattery);
 
-        // Get the Internet connection type
+        // Get the internet connection type
         ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkCapabilities capability = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
         String mInternetType = readNetworkType(capability);
         mDeviceAttr.put("Internet", mInternetType);
+
+        // Get yhe internet connection attributes
+        switch (mInternetType) {
+            case "Wifi":
+                mDeviceAttr.put("InternetPower", WifiTxPow);
+                break;
+            case "Cellular":
+                mDeviceAttr.put("InternetPower", CellTxPow);
+                break;
+            default:
+                mDeviceAttr.put("Internet", "Null");
+                mDeviceAttr.put("InternetPower", 999f);
+                break;
+        }
+
+        mDeviceAttr.put("UpBandwidth", capability != null ? (float) capability.getLinkUpstreamBandwidthKbps() : 0f);
 
         // Get the location service type
         LocationManager lm = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
@@ -135,25 +155,10 @@ public class DeviceAttribute {
             mDeviceAttr.put("LocationAcc", loc != null ? loc.getAccuracy() : 1000f);
             mDeviceAttr.put("LocationPower", CellScanPow);
         } else {
-            mDeviceAttr.put("Location", null);
+            mDeviceAttr.put("Location", "Null");
             mDeviceAttr.put("LocationAcc", 1000f);
-            mDeviceAttr.put("LocationPower", 999f);
+            mDeviceAttr.put("LocationPower", 99f);
         }
-
-        // Get yhe Internet connection attributes
-        switch (mInternetType) {
-            case "Wifi":
-                mDeviceAttr.put("InternetPower", WifiTxPow);
-                break;
-            case "Cellular":
-                mDeviceAttr.put("InternetPower", CellTxPow);
-                break;
-            default:
-                mDeviceAttr.put("InternetPower", 999f);
-                break;
-        }
-
-        mDeviceAttr.put("UpBandwidth", capability != null ? (float) capability.getLinkUpstreamBandwidthKbps() : 0);
 
         return mDeviceAttr;
     }
@@ -163,7 +168,7 @@ public class DeviceAttribute {
         mDeviceAttr.put(sensor, accuracy);
     }
 
-    // Get the Internet type from network capability
+    // Read the Internet type from network capability
     private String readNetworkType(NetworkCapabilities capability) {
         if (capability != null) {
             String cap = capability.toString();
@@ -173,10 +178,9 @@ public class DeviceAttribute {
         return "Null";
     }
 
-    // Get the Internet RSSI from network capability ONLY works for WiFi
-    private int getNetworkRSSI(NetworkCapabilities capability) {
+    // Read the Internet RSSI from network capability (ONLY works for WiFi)
+    private int readNetworkRSSI(NetworkCapabilities capability) {
         String cap = capability.toString();
         return Integer.parseInt(cap.substring(cap.lastIndexOf(" ") + 1, cap.length() - 1));
     }
 }
-

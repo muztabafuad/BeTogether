@@ -18,14 +18,14 @@ import weka.core.Instance;
 import weka.core.Instances;
 
 /**
- * This class learn and predict the duration of an user activity / a physical environment.
+ * This class learns and predicts the duration of an user activity / a physical environment.
  */
 
 class DurationPredict {
 
     private static final String TAG = "Duration prediction";
 
-    // Define the learning model files to load
+    // Naming the learning model files to load
     private static final String MODEL_ACTIVITY = "UA_prediction.model";
     private static final String MODEL_DOOR = "Door_prediction.model";
     private static final String MODEL_GROUND = "Ground_prediction.model";
@@ -55,6 +55,7 @@ class DurationPredict {
         // Check local model existence
         if (!fileActivity.exists() || !fileDoor.exists() || !fileGround.exists()) {
             try {
+                // Load from assets
                 fileInputStream = context.getAssets().openFd(MODEL_ACTIVITY).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierActivity = (LWL) objectInputStream.readObject();
@@ -70,6 +71,7 @@ class DurationPredict {
                 objectInputStream.close();
                 fileInputStream.close();
 
+                // Save into app data
                 fileOutputStream = context.openFileOutput(MODEL_ACTIVITY, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierActivity);
@@ -88,8 +90,9 @@ class DurationPredict {
                 Log.d(TAG, "Error when loading from file: " + e);
             }
         } else {
-            // Local models already exist.
+            // Local models already exist
             try {
+                // Load from app data
                 fileInputStream = context.openFileInput(MODEL_ACTIVITY);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierActivity = (LWL) objectInputStream.readObject();
@@ -143,32 +146,15 @@ class DurationPredict {
 
     // Day 1-7; Hour 0-23; Minute 0-59; UA 1 "VEHICLE", 2 "BICYCLE", 3 "FOOT", 4 "STILL"; Duration in minutes
     void updateActivityModel(Calendar starTime, String activity) {
-        // Map activity to a numeric value in training set
-        int activity_idx;
-        switch (activity) {
-            case "VEHICLE":
-                activity_idx = 1;
-                break;
-            case "BICYCLE":
-                activity_idx = 2;
-                break;
-            case "FOOT":
-                activity_idx = 3;
-                break;
-            case "STILL":
-                activity_idx = 4;
-                break;
-            default:
-                activity_idx = 0;
-                //Log.e(TAG, "Wrong user activity! It's " + activity);
-                break;
-        }
+        // Map the activity string to a numeric value in training set
+        int activity_idx = convertActivity(activity);
+
         // Create a new instance
         int day = starTime.get(Calendar.DAY_OF_WEEK);
         int hour = starTime.get(Calendar.HOUR_OF_DAY);
         int minute = starTime.get(Calendar.MINUTE);
-        float minutes = (Calendar.getInstance().getTimeInMillis() - starTime.getTimeInMillis()) / (60f * 1000f);
-        double[] entry = new double[]{day, hour, minute, activity_idx, minutes};
+        float duration = (Calendar.getInstance().getTimeInMillis() - starTime.getTimeInMillis()) / (60f * 1000f);
+        double[] entry = new double[]{day, hour, minute, activity_idx, duration};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesUA);
         try {
@@ -180,26 +166,15 @@ class DurationPredict {
 
     // Day 1-7; Hour 0-23; Minute 0-59; Indoor 0 or 1; Duration in minute
     void updateDoorModel(Calendar starTime, String flag) {
-        // Map binary to a numeric value in training set
-        int indoor_idx;
-        switch (flag) {
-            case "True":
-                indoor_idx = 1;
-                break;
-            case "False":
-                indoor_idx = 0;
-                break;
-            default:
-                indoor_idx = -1;
-                //Log.e(TAG, "Wrong indoor detection! It's " + flag);
-                break;
-        }
+        // Map indoor binary to a numeric value in training set
+        int indoor_idx = convertBinary(flag);
+
         // Create a new instance
         int day = starTime.get(Calendar.DAY_OF_WEEK);
         int hour = starTime.get(Calendar.HOUR_OF_DAY);
         int minute = starTime.get(Calendar.MINUTE);
-        float minutes = (Calendar.getInstance().getTimeInMillis() - starTime.getTimeInMillis()) / (60f * 1000f);
-        double[] entry = new double[]{day, hour, minute, indoor_idx, minutes};
+        float duration = (Calendar.getInstance().getTimeInMillis() - starTime.getTimeInMillis()) / (60f * 1000f);
+        double[] entry = new double[]{day, hour, minute, indoor_idx, duration};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesDoor);
         try {
@@ -211,26 +186,15 @@ class DurationPredict {
 
     // Day 1-7; Hour 0-23; Minute 0-59; Underground 0 or 1; Duration in minute
     void updateGroundModel(Calendar starTime, String flag) {
-        // Map binary to a numeric value in training set
-        int underground_idx;
-        switch (flag) {
-            case "True":
-                underground_idx = 1;
-                break;
-            case "False":
-                underground_idx = 0;
-                break;
-            default:
-                underground_idx = -1;
-                //Log.e(TAG, "Wrong underground detection! It's " + flag);
-                break;
-        }
+        // Map underground binary to a numeric value in training set
+        int underground_idx = convertBinary(flag);
+
         // Create a new instance
         int day = starTime.get(Calendar.DAY_OF_WEEK);
         int hour = starTime.get(Calendar.HOUR_OF_DAY);
         int minute = starTime.get(Calendar.MINUTE);
-        float minutes = (Calendar.getInstance().getTimeInMillis() - starTime.getTimeInMillis()) / (60f * 1000f);
-        double[] entry = new double[]{day, hour, minute, underground_idx, minutes};
+        float duration = (Calendar.getInstance().getTimeInMillis() - starTime.getTimeInMillis()) / (60f * 1000f);
+        double[] entry = new double[]{day, hour, minute, underground_idx, duration};
         Instance inst = new DenseInstance(1, entry);
         inst.setDataset(instancesGround);
         try {
@@ -242,26 +206,9 @@ class DurationPredict {
 
     // Day 1-7; Hour 0-23; Minute 0-59; UA 1 "VEHICLE", 2 "BICYCLE", 3 "FOOT", 4 "STILL"; label 0
     float predictActivityDuration(String activity) {
-        // Map activity to a numeric value in training set
-        int activity_idx;
-        switch (activity) {
-            case "VEHICLE":
-                activity_idx = 1;
-                break;
-            case "BICYCLE":
-                activity_idx = 2;
-                break;
-            case "FOOT":
-                activity_idx = 3;
-                break;
-            case "STILL":
-                activity_idx = 4;
-                break;
-            default:
-                activity_idx = 0;
-                //Log.e(TAG, "Wrong user activity! It's " + activity);
-                break;
-        }
+        // Map activity string to a numeric value in training set
+        int activity_idx = convertActivity(activity);
+
         // Prediction on new instance
         Calendar now = Calendar.getInstance();
         int day = now.get(Calendar.DAY_OF_WEEK);
@@ -280,20 +227,9 @@ class DurationPredict {
 
     // Day 1-7; Hour 0-23; Minute 0-59; Indoor 0 or 1; label 0
     float predictDoorDuration(String flag) {
-        // Map binary to a numeric value in training set
-        int indoor_idx;
-        switch (flag) {
-            case "True":
-                indoor_idx = 1;
-                break;
-            case "False":
-                indoor_idx = 0;
-                break;
-            default:
-                indoor_idx = -1;
-                //Log.e(TAG, "Wrong indoor detection! It's " + flag);
-                break;
-        }
+        // Map indoor binary to a numeric value in training set
+        int indoor_idx = convertBinary(flag);
+
         // Prediction on new instance
         Calendar now = Calendar.getInstance();
         int day = now.get(Calendar.DAY_OF_WEEK);
@@ -312,21 +248,9 @@ class DurationPredict {
 
     // Day 1-7; Hour 0-23; Minute 0-59; Underground 0 or 1; label 0
     float predictGroundDuration(String flag) {
-        // Map binary to a numeric value in training set
-        int underground_idx;
-        assert flag != null;
-        switch (flag) {
-            case "True":
-                underground_idx = 1;
-                break;
-            case "False":
-                underground_idx = 0;
-                break;
-            default:
-                underground_idx = -1;
-                //Log.e(TAG, "Wrong underground detection! It's " + flag);
-                break;
-        }
+        // Map underground binary to a numeric value in training set
+        int underground_idx = convertBinary(flag);
+
         // Prediction on new instance
         Calendar now = Calendar.getInstance();
         int day = now.get(Calendar.DAY_OF_WEEK);
@@ -341,5 +265,35 @@ class DurationPredict {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    // Convert to numeric value for the model
+    private int convertActivity(String activity) {
+        switch (activity) {
+            case "VEHICLE":
+                return 1;
+            case "BICYCLE":
+                return 2;
+            case "FOOT":
+                return 3;
+            case "STILL":
+                return 4;
+            default:
+                return 0;
+            //Log.e(TAG, "Wrong user activity! It's " + activity);
+        }
+    }
+
+    // Convert to numeric value for the model
+    private int convertBinary(String flag) {
+        switch (flag) {
+            case "True":
+                return 1;
+            case "False":
+                return 0;
+            default:
+                return -1;
+            //Log.e(TAG, "Wrong indoor detection! It's " + flag);
+        }
     }
 }

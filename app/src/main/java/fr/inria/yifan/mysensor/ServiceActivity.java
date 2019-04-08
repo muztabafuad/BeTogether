@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import fr.inria.yifan.mysensor.Context.FeatureHelper;
+import fr.inria.yifan.mysensor.Context.ContextHelper;
 import fr.inria.yifan.mysensor.Context.ServiceHelper;
 import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 
@@ -51,7 +51,7 @@ public class ServiceActivity extends AppCompatActivity {
     private HashMap<String, String> mContextMsg;
     private HashMap<String, String> mIntentsMsg;
     private HashMap<String, String> mServiceMsg;
-    private FeatureHelper mFeatureHelper;
+    private ContextHelper mContextHelper;
 
     // Variables
     private BatteryManager mBatteryManager;
@@ -98,13 +98,13 @@ public class ServiceActivity extends AppCompatActivity {
         setContentView(R.layout.activity_service);
         bindViews();
 
-        mFeatureHelper = new FeatureHelper(this);
+        mContextHelper = new ContextHelper(this);
         mServiceHelper = new ServiceHelper(this, mAdapterDevices);
         // Create record messages for intents exchange and service allocation
         mContextMsg = new HashMap<>();
         mIntentsMsg = new HashMap<>();
         mServiceMsg = new HashMap<>();
-        mFeatureHelper.startService(); // Start the context detection service
+        mContextHelper.startService(); // Start the context detection service
 
         // Get the remaining battery in mAh
         mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
@@ -115,7 +115,7 @@ public class ServiceActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         isRunning = false;
-        mFeatureHelper.stopService();
+        mContextHelper.stopService();
         stopExchanging();
     }
 
@@ -153,7 +153,7 @@ public class ServiceActivity extends AppCompatActivity {
         mStartTime = System.currentTimeMillis();
 
         // Get the current context information
-        HashMap contexts = mFeatureHelper.getContext();
+        HashMap contexts = mContextHelper.getContext();
         // Fill the context information message
         mContextMsg.put("MessageType", "ContextInfo");
         mContextMsg.put("UserActivity", (String) contexts.get("UserActivity"));
@@ -178,7 +178,7 @@ public class ServiceActivity extends AppCompatActivity {
 
         // Fill the intent information message
         mIntentsMsg.put("MessageType", "IntentValues");
-        mIntentsMsg.putAll(mFeatureHelper.getIntentValues(mServiceHelper.getHistoryConnect()));
+        mIntentsMsg.putAll(mContextHelper.getIntentValues(mServiceHelper.getHistoryConnect()));
         Log.e(TAG, mIntentsMsg.toString());
 
         mServiceHelper.advertiseService(mIntentsMsg); // Advertise the service
@@ -205,9 +205,9 @@ public class ServiceActivity extends AppCompatActivity {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
                             + "\nMy collaborative power consumption is: "
-                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
+                            + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
                             + "\nMy individual power consumption is: "
-                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
+                            + mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -226,9 +226,9 @@ public class ServiceActivity extends AppCompatActivity {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()
                             + "\nMy collaborative power consumption is: "
-                            + mFeatureHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
+                            + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
                             + "\nMy individual power consumption is: "
-                            + mFeatureHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
+                            + mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
