@@ -7,6 +7,8 @@ import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
@@ -42,12 +44,13 @@ public class ServiceHelper extends BroadcastReceiver {
     private boolean mIsCoordinator; // Coordinator flag of current device
     private List<String> mMyServices; // Services allocated for current device
     private List<String> mMyConnect; // Connected devices for current device
+    private WifiP2pInfo mMyP2PInfo; // Wifi-Direct connection information
 
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
 
     @SuppressWarnings("unchecked")
     // Listener for record information
-    private WifiP2pManager.DnsSdTxtRecordListener txtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
+    private WifiP2pManager.DnsSdTxtRecordListener mTxtListener = new WifiP2pManager.DnsSdTxtRecordListener() {
         /* Callback includes: fullDomain: full domain name: e.g "printer._ipp._tcp.local."
          * record: TXT record dta as a map of key/value pairs.
          * device: The device running the advertised service.
@@ -95,8 +98,31 @@ public class ServiceHelper extends BroadcastReceiver {
      * String registrationType
      * WifiP2pDevice source device
      */
-    private WifiP2pManager.DnsSdServiceResponseListener servListener = (instanceName, registrationType, resourceType) -> {
+    private WifiP2pManager.DnsSdServiceResponseListener mServiceListener = (instanceName, registrationType, resourceType) -> {
         //Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
+    };
+
+    // Listener for Wifi-Direct group
+    private WifiP2pManager.GroupInfoListener mGroupListener = new WifiP2pManager.GroupInfoListener() {
+        @Override
+        public void onGroupInfoAvailable(WifiP2pGroup group) {
+            Log.e(TAG, group.toString());
+            mMyConnect = new ArrayList<>();
+            for (WifiP2pDevice member : group.getClientList()) {
+                mMyConnect.add(member.deviceName + " " + member.deviceAddress);
+            }
+            WifiP2pDevice owner = group.getOwner();
+            mMyConnect.add(owner.deviceName + " " + owner.deviceAddress);
+        }
+    };
+
+    private WifiP2pManager.ConnectionInfoListener mConnectListener = new WifiP2pManager.ConnectionInfoListener() {
+        @Override
+        public void onConnectionInfoAvailable(WifiP2pInfo info) {
+            Log.e(TAG, info.toString());
+            mMyP2PInfo = info;
+            Log.e(TAG, info.groupOwnerAddress.getHostAddress());
+        }
     };
 
     @SuppressWarnings("unchecked")
@@ -149,7 +175,7 @@ public class ServiceHelper extends BroadcastReceiver {
 
     // Discovery neighboring services
     public void discoverService() {
-        mManager.setDnsSdResponseListeners(mChannel, servListener, txtListener);
+        mManager.setDnsSdResponseListeners(mChannel, mServiceListener, mTxtListener);
         WifiP2pDnsSdServiceRequest mServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
         mManager.addServiceRequest(mChannel, mServiceRequest, null);
 
@@ -366,21 +392,16 @@ public class ServiceHelper extends BroadcastReceiver {
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
                 // The state of Wi-Fi P2P connectivity has changed.
                 NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+                // We are connected with the other device.
                 if (networkInfo != null && networkInfo.isConnected()) {
-                    // We are connected with the other device.
-                    mManager.requestGroupInfo(mChannel, group -> {
-                        Log.e(TAG, group.toString());
-                        mMyConnect = new ArrayList<>();
-                        for (WifiP2pDevice member : group.getClientList()) {
-                            mMyConnect.add(member.deviceName + " " + member.deviceAddress);
-                        }
-                        WifiP2pDevice owner = group.getOwner();
-                        mMyConnect.add(owner.deviceName + " " + owner.deviceAddress);
-                    });
+                    // Retrieve the group information
+                    mManager.requestGroupInfo(mChannel, mGroupListener);
+                    // Retrieve the connection information
+                    mManager.requestConnectionInfo(mChannel, mConnectListener);
                 }
                 break;
             case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:
-                // This device's details have changed.
+                // This device's details have changed, read self MAC address
                 WifiP2pDevice device = intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
                 mMacAddress = device.deviceAddress;
                 //Log.d(TAG, "Device WiFi P2p MAC Address: " + mMacAddress);
