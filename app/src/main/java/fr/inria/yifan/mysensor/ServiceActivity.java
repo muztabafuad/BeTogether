@@ -199,11 +199,14 @@ public class ServiceActivity extends AppCompatActivity {
             mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
             Log.e(TAG, mServiceMsg.toString());
             mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
+            mServiceHelper.connectAllMembers();
 
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
+                            + "\nMy connected devices are: "
+                            + mServiceHelper.getMyConnects()
                             + "\nMy collaborative power consumption is: "
                             + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
                             + "\nMy individual power consumption is: "
@@ -225,6 +228,8 @@ public class ServiceActivity extends AppCompatActivity {
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()
+                            + "\nMy connected devices are: "
+                            + mServiceHelper.getMyConnects()
                             + "\nMy collaborative power consumption is: "
                             + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
                             + "\nMy individual power consumption is: "
@@ -249,6 +254,7 @@ public class ServiceActivity extends AppCompatActivity {
         isRunning = false;
         mServiceHelper.stopDiscover();
         mServiceHelper.stopAdvertise();
+        mServiceHelper.stopConnection();
         mAdapterDevices.clear();
 
         float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
@@ -256,6 +262,7 @@ public class ServiceActivity extends AppCompatActivity {
 
         mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - currentBattery) +
                 "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
+        mServiceView.setText(null);
     }
 
     // Check whether the Wifi is turned on

@@ -41,6 +41,7 @@ public class ServiceHelper extends BroadcastReceiver {
     private HashMap<String, String> mSelfIntent; // Intents message of current device
     private boolean mIsCoordinator; // Coordinator flag of current device
     private List<String> mMyServices; // Services allocated for current device
+    private List<String> mMyConnect; // Connected devices for current device
 
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
 
@@ -53,7 +54,7 @@ public class ServiceHelper extends BroadcastReceiver {
          */
         @Override
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
-            //Log.e(TAG, "DnsSdTxtRecord available -" + record.toString());
+            Log.e(TAG, "DnsSdTxtRecord available -" + record.toString());
 
             // Show the discovered device info in the list
             mAdapterNeighborList.add(device.deviceAddress + " " + record);
@@ -175,6 +176,11 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager.clearServiceRequests(mChannel, null);
     }
 
+    // Stop connected groups
+    public void stopConnection() {
+        mManager.removeGroup(mChannel, null);
+    }
+
     @SuppressWarnings("ConstantConditions")
     // Check if the context matches for the neighbor
     private boolean matchContext(HashMap<String, String> context) {
@@ -261,7 +267,7 @@ public class ServiceHelper extends BroadcastReceiver {
         return mNeighborService;
     }
 
-    // Look up my services allocated in service message
+    // Look up my services allocated in service message (for non-coordinator)
     private void readMyServices(HashMap<String, String> record) {
         mMyServices = new ArrayList<>();
         for (String role : record.keySet()) {
@@ -340,6 +346,11 @@ public class ServiceHelper extends BroadcastReceiver {
         });
     }
 
+    // Get my current connection list
+    public List<String> getMyConnects() {
+        return mMyConnect;
+    }
+
     // Callback when receive Wifi P2P broadcast
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -351,14 +362,22 @@ public class ServiceHelper extends BroadcastReceiver {
                 break;
             case WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION:
                 // A change in the list of available peers.
-                NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
-                if (networkInfo != null && networkInfo.isConnected()) {
-                    // We are connected with the other device.
-                    mManager.requestGroupInfo(mChannel, wifiP2pGroup -> Log.e(TAG, wifiP2pGroup.toString()));
-                }
                 break;
             case WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION:
                 // The state of Wi-Fi P2P connectivity has changed.
+                NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
+                if (networkInfo != null && networkInfo.isConnected()) {
+                    // We are connected with the other device.
+                    mManager.requestGroupInfo(mChannel, group -> {
+                        Log.e(TAG, group.toString());
+                        mMyConnect = new ArrayList<>();
+                        for (WifiP2pDevice member : group.getClientList()) {
+                            mMyConnect.add(member.deviceName + " " + member.deviceAddress);
+                        }
+                        WifiP2pDevice owner = group.getOwner();
+                        mMyConnect.add(owner.deviceName + " " + owner.deviceAddress);
+                    });
+                }
                 break;
             case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:
                 // This device's details have changed.
