@@ -3,8 +3,9 @@ package fr.inria.yifan.mysensor.Network;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,6 +15,16 @@ public class NetworkHelper extends AsyncTask {
     private static final String TAG = "Coordinator";
 
     private static final int PORT = 8888;
+
+    // Type: Hello, MAC: MAC address
+    private JSONObject HelloMsg;
+
+    // Type: Data, ...
+    private JSONObject DataMsg;
+    
+    public NetworkHelper() {
+        HelloMsg = new JSONObject();
+    }
 
     @Override
     protected Object doInBackground(Object[] objects) {
@@ -25,18 +36,18 @@ public class NetworkHelper extends AsyncTask {
             ServerSocket serverSocket = new ServerSocket(PORT);
             Socket client = serverSocket.accept();
 
-            client.getInetAddress();
+            HelloMsg.put("MAC", "MAC address");
 
             serverSocket.close();
             return null;
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             return null;
         }
     }
 
     // Send a message to the destination
-    public void sendMessageTo(String dest, String msg) {
+    public void sendMessageTo(String dest, JSONObject msg) {
         Socket socket = new Socket();
         try {
             // Create a client socket with the host, port, and timeout information.
