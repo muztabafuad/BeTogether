@@ -8,7 +8,6 @@ import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
-import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
@@ -34,9 +33,10 @@ public class ServiceHelper extends BroadcastReceiver {
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
 
-    private HashMap<String, HashMap<String, String>> mNeighborContexts; // Neighbor address and its context message
-    private HashMap<String, HashMap<String, String>> mNeighborIntents; // Neighbor address and its intents message
-    private HashMap<String, String> mNeighborService; // Neighbor service and its address, allocation message
+    private HashMap<String, HashMap<String, String>> mNeighborContexts; // Neighbor MAC address and its context message
+    private HashMap<String, HashMap<String, String>> mNeighborIntents; // Neighbor MAC address and its intents message
+    private HashMap<String, String> mNeighborService; // Neighbor service and its MAC address, allocation message
+    private HashMap<String, String> mNeighborAddress; // Neighbor MAC address and its IP address (for socket)
 
     private String mMacAddress; // Mac address of current device
     private HashMap<String, String> mSelfContext; // Context message of current device
@@ -44,7 +44,7 @@ public class ServiceHelper extends BroadcastReceiver {
     private boolean mIsCoordinator; // Coordinator flag of current device
     private List<String> mMyServices; // Services allocated for current device
     private List<String> mMyConnect; // Connected devices for current device
-    private WifiP2pInfo mMyP2PInfo; // Wifi-Direct connection information
+    //private WifiP2pInfo mMyP2PInfo; // Wifi-Direct connection information
 
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
 
@@ -116,13 +116,9 @@ public class ServiceHelper extends BroadcastReceiver {
         }
     };
 
-    private WifiP2pManager.ConnectionInfoListener mConnectListener = new WifiP2pManager.ConnectionInfoListener() {
-        @Override
-        public void onConnectionInfoAvailable(WifiP2pInfo info) {
-            Log.e(TAG, info.toString());
-            mMyP2PInfo = info;
-            Log.e(TAG, info.groupOwnerAddress.getHostAddress());
-        }
+    private WifiP2pManager.ConnectionInfoListener mConnectListener = info -> {
+        Log.e(TAG, info.toString());
+        Log.e(TAG, info.groupOwnerAddress.getHostAddress());
     };
 
     @SuppressWarnings("unchecked")
