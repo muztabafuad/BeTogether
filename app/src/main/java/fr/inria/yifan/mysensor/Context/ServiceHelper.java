@@ -134,19 +134,19 @@ public class ServiceHelper extends BroadcastReceiver {
             // I am the coordinator
             if (info.isGroupOwner) {
                 Log.e(TAG, "I am the coordinator");
-                NetworkHelper helper = new NetworkHelper() {
+                NetworkHelper helper = new NetworkHelper(true) {
                     @Override
-                    public void callbackReceived(JSONObject msg) {
+                    public void serverCallbackReceived(JSONObject msg) {
                         Log.e(TAG, "Coordinator received: " + msg.toString());
                     }
                 };
                 // I am the collaborative member
             } else {
                 Log.e(TAG, "I am a collaborator");
-                NetworkHelper helper = new NetworkHelper() {
+                NetworkHelper helper = new NetworkHelper(false) {
                     @Override
-                    public void callbackReceived(JSONObject msg) {
-                        //
+                    public void serverCallbackReceived(JSONObject msg) {
+                        //PASS
                     }
                 };
                 // Hello message

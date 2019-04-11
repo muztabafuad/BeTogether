@@ -10,6 +10,8 @@ import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class NetworkHelper {
 
@@ -20,51 +22,55 @@ public abstract class NetworkHelper {
     // Type: Data, ...
     private JSONObject DataMsg;
 
-    protected NetworkHelper() {
-        Runnable r = () -> {
-            Socket socket = null;
-            DataInputStream dataInputStream = null;
-            try {
-                /*
-                 * Create a server socket and wait for client connections. This
-                 * call blocks until a connection is accepted from a client
-                 */
-                ServerSocket serverSocket = new ServerSocket();
-                serverSocket.setReuseAddress(true);
-                serverSocket.bind(new InetSocketAddress(PORT));
+    private List<Socket> mClients;
 
-                while (true) {
-                    Log.e(TAG, "Server socket is created!");
-                    socket = serverSocket.accept();
-                    dataInputStream = new DataInputStream(socket.getInputStream());
-
-                    // Thread will wait till message received
-                    String msg = dataInputStream.readUTF();
-                    if (msg != null) {
-                        callbackReceived(new JSONObject(msg));
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
+    protected NetworkHelper(boolean isServer) {
+        if (isServer) {
+            mClients = new ArrayList<>();
+            Runnable r = () -> {
+                Socket socket = null;
+                DataInputStream dataInputStream = null;
                 try {
-                    if (socket != null) {
-                        socket.close();
-                    }
-                    if (dataInputStream != null) {
-                        dataInputStream.close();
+                    /*
+                     * Create a server socket and wait for client connections. This
+                     * call blocks until a connection is accepted from a client
+                     */
+                    ServerSocket serverSocket = new ServerSocket(PORT);
+                    Log.e(TAG, "Server socket is created!");
+
+                    while (true) {
+                        socket = serverSocket.accept();
+                        mClients.add(socket);
+                        dataInputStream = new DataInputStream(socket.getInputStream());
+
+                        // Thread will wait till message received
+                        String msg = dataInputStream.readUTF();
+                        if (msg != null) {
+                            serverCallbackReceived(new JSONObject(msg));
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    try {
+                        if (socket != null) {
+                            socket.close();
+                        }
+                        if (dataInputStream != null) {
+                            dataInputStream.close();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-        };
-        Thread thread = new Thread(r);
-        thread.start();
+            };
+            Thread thread = new Thread(r);
+            thread.start();
+        }
     }
 
     // Callback when receive a JSON message from socket
-    public abstract void callbackReceived(JSONObject msg);
+    public abstract void serverCallbackReceived(JSONObject msg);
 
     // Send a message to the destination
     public void sendMessageTo(String dest, JSONObject msg) {
@@ -100,4 +106,5 @@ public abstract class NetworkHelper {
     public void sendFileTo(String dest, File file) {
 
     }
+
 }
