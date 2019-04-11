@@ -41,18 +41,19 @@ public class ServiceHelper extends BroadcastReceiver {
 
     private HashMap<String, HashMap<String, String>> mNeighborContexts; // Neighbor MAC address and its context message
     private HashMap<String, HashMap<String, String>> mNeighborIntents; // Neighbor MAC address and its intents message
-    private HashMap<String, String> mNeighborService; // Neighbor service and its MAC address, allocation message
+    private HashMap<String, List<String>> mNeighborService; // Neighbor MAC address and its service, allocation info
+
     private HashMap<String, String> mNeighborAddress; // Neighbor MAC address and its IP address (for socket)
 
     private String mMacAddress; // Mac address of current device
     private HashMap<String, String> mSelfContext; // Context message of current device
     private HashMap<String, String> mSelfIntent; // Intents message of current device
-    private boolean mIsCoordinator; // Coordinator flag of current device
     private List<String> mMyServices; // Services allocated for current device
-    private List<String> mMyConnect; // Connected devices for current device
-    //private WifiP2pInfo mMyP2PInfo; // Wifi-Direct connection information
+    private boolean mIsCoordinator; // Coordinator flag of current device
 
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
+    private List<String> mMyConnect; // Connected devices for current device
+    //private WifiP2pInfo mMyP2PInfo; // Wifi-Direct connection information
 
     @SuppressWarnings("unchecked")
     // Listener for record information
@@ -113,7 +114,7 @@ public class ServiceHelper extends BroadcastReceiver {
     private WifiP2pManager.GroupInfoListener mGroupListener = new WifiP2pManager.GroupInfoListener() {
         @Override
         public void onGroupInfoAvailable(WifiP2pGroup group) {
-            //Log.e(TAG, group.toString());
+            Log.e(TAG, group.toString());
 
             // Record my connected devices
             for (WifiP2pDevice member : group.getClientList()) {
@@ -127,10 +128,12 @@ public class ServiceHelper extends BroadcastReceiver {
     // When the network connection is changed
     private WifiP2pManager.ConnectionInfoListener mConnectListener = info -> {
         Log.e(TAG, info.toString());
+
         // A group is created
         if (info.groupFormed) {
             // I am the coordinator
             if (info.isGroupOwner) {
+                Log.e(TAG, "I am the coordinator");
                 NetworkHelper helper = new NetworkHelper() {
                     @Override
                     public void callbackReceived(JSONObject msg) {
@@ -139,6 +142,7 @@ public class ServiceHelper extends BroadcastReceiver {
                 };
                 // I am the collaborative member
             } else {
+                Log.e(TAG, "I am a collaborator");
                 NetworkHelper helper = new NetworkHelper() {
                     @Override
                     public void callbackReceived(JSONObject msg) {
@@ -174,6 +178,7 @@ public class ServiceHelper extends BroadcastReceiver {
 
         mSelfContext = new HashMap<>();
         mSelfIntent = new HashMap<>();
+        mMyServices = new ArrayList<>();
         mIsCoordinator = false;
     }
 
@@ -198,7 +203,7 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                Log.e(TAG, "Success in advertisement.");
+                //Log.e(TAG, "Success in advertisement.");
             }
 
             @Override
@@ -217,7 +222,7 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                Log.e(TAG, "Success in discovery.");
+                //Log.e(TAG, "Success in discovery.");
             }
 
             @Override
@@ -239,11 +244,11 @@ public class ServiceHelper extends BroadcastReceiver {
 
     // Stop connected groups
     public void stopConnection() {
+        mManager.removeGroup(mChannel, null);
+        mManager.cancelConnect(mChannel, null);
         if (!mMyConnect.isEmpty()) {
             mMyConnect.clear();
         }
-        mManager.cancelConnect(mChannel, null);
-        mManager.removeGroup(mChannel, null);
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -295,38 +300,44 @@ public class ServiceHelper extends BroadcastReceiver {
     @SuppressWarnings("ConstantConditions")
     // Given a role, look up the best crowdsensor address (for coordinator)
     // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    public String findBestRole(String role) {
+    public String findBestCollaborator(String role) {
         float maxIntent = Float.parseFloat(mSelfIntent.get(role));
-        String maxNeighbor = "Self";
+        String bestRole = "Self";
         float neighborIntent;
-
+        // Iteration over all collaborative neighbors
         for (String neighborAddr : mNeighborIntents.keySet()) {
             neighborIntent = Float.parseFloat(mNeighborIntents.get(neighborAddr).get(role));
             if (neighborIntent > maxIntent) {
                 maxIntent = neighborIntent;
-                maxNeighbor = neighborAddr;
+                bestRole = neighborAddr;
             }
         }
-        return maxNeighbor;
+        return bestRole;
     }
 
     // Each sensing service may be applied on multiple crowdsensors (for coordinator)
     // "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    public List<String> findMoreRole(String role) {
+    public List<String> findMoreCollaborators(String role) {
         // TODO
         return null;
     }
 
-    // Return the message containing neighbor address and its role (for coordinator)
-    public HashMap<String, String> getAllocationMsg() {
-        mMyServices = new ArrayList<>();
-        // One neighbor for one role for instance
+    @SuppressWarnings("ConstantConditions")
+    // Return the message containing neighbor address and its roles (for coordinator)
+    public HashMap<String, List<String>> getAllocationMsg() {
+        // Iteration over all collaborative roles
         for (String role : new String[]{"Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
-            String neighbor = findBestRole(role);
-            if (!neighbor.equals("Self")) {
-                mNeighborService.put(role, neighbor);
-            } else {
+            String collaborator = findBestCollaborator(role);
+            if (collaborator.equals("Self")) {
                 mMyServices.add(role);
+            } else if (mNeighborService.containsKey(collaborator)) {
+                List<String> services = mNeighborService.get(collaborator);
+                services.add(role);
+                mNeighborService.put(collaborator, services);
+            } else {
+                List<String> services = new ArrayList<>();
+                services.add(role);
+                mNeighborService.put(collaborator, services);
             }
         }
         return mNeighborService;
@@ -353,7 +364,7 @@ public class ServiceHelper extends BroadcastReceiver {
     public void connectToRole(String role) {
 
         WifiP2pConfig config = new WifiP2pConfig();
-        config.deviceAddress = findBestRole(role);
+        config.deviceAddress = findBestCollaborator(role);
         config.wps.setup = WpsInfo.PBC;
         config.groupOwnerIntent = 15; // Max value
 
@@ -377,8 +388,8 @@ public class ServiceHelper extends BroadcastReceiver {
         config.wps.setup = WpsInfo.PBC;
         config.groupOwnerIntent = 15;
 
-        //Log.e(TAG, "Connecting to: " + mNeighborService.values());
-        for (String member : mNeighborService.values()) {
+        Log.e(TAG, "Connection info: " + config);
+        for (String member : mNeighborService.keySet()) {
             config.deviceAddress = member;
             mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
                 @Override
@@ -395,6 +406,7 @@ public class ServiceHelper extends BroadcastReceiver {
         }
     }
 
+    /*
     // Create a group as the coordinator (the coordinator is the group owner)
     public void createGroup() {
         mManager.createGroup(mChannel, new WifiP2pManager.ActionListener() {
@@ -402,7 +414,6 @@ public class ServiceHelper extends BroadcastReceiver {
             public void onSuccess() {
                 // Device is ready to accept incoming connections from peers.
                 Log.e(TAG, "Create group succeed.");
-                mManager.requestGroupInfo(mChannel, wifiP2pGroup -> Log.e(TAG, wifiP2pGroup.toString()));
             }
 
             @Override
@@ -411,6 +422,7 @@ public class ServiceHelper extends BroadcastReceiver {
             }
         });
     }
+    */
 
     // Get my current connection list
     public List<String> getMyConnects() {

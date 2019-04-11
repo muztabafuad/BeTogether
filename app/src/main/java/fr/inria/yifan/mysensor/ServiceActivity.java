@@ -195,20 +195,20 @@ public class ServiceActivity extends AppCompatActivity {
         // I am the coordinator
         if (mServiceHelper.isCoordinator()) {
 
-            mServiceHelper.getAllocationMsg();
+            String allocation = mServiceHelper.getAllocationMsg().toString();
             mServiceHelper.connectAllMembers();
 
             // Fill the service allocation message
-            mServiceMsg.put("MessageType", "ServiceAllocation");
-            mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
-            mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
+            //mServiceMsg.put("MessageType", "ServiceAllocation");
+            //mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
+            //mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
 
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
                             + "\nService allocation are: "
-                            + mServiceMsg.toString()
+                            + allocation
                             + "\nMy connected devices are: "
                             + mServiceHelper.getMyConnects()));
                     //+ "\nMy collaborative power consumption is: "
@@ -226,7 +226,7 @@ public class ServiceActivity extends AppCompatActivity {
                 }
             }).start();
         } else {
-            mServiceHelper.discoverService(); // Discovery the service
+            //mServiceHelper.discoverService(); // Discovery the service
 
             isRunning = true;
             new Thread(() -> {

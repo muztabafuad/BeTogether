@@ -29,9 +29,12 @@ public abstract class NetworkHelper {
                  * Create a server socket and wait for client connections. This
                  * call blocks until a connection is accepted from a client
                  */
-                ServerSocket serverSocket = new ServerSocket(PORT);
-                Log.e(TAG, "Server socket is created!");
+                ServerSocket serverSocket = new ServerSocket();
+                serverSocket.setReuseAddress(true);
+                serverSocket.bind(new InetSocketAddress(PORT));
+
                 while (true) {
+                    Log.e(TAG, "Server socket is created!");
                     socket = serverSocket.accept();
                     dataInputStream = new DataInputStream(socket.getInputStream());
 
@@ -66,7 +69,7 @@ public abstract class NetworkHelper {
     // Send a message to the destination
     public void sendMessageTo(String dest, JSONObject msg) {
         Socket socket = new Socket();
-        DataOutputStream dataOutputStream;
+        DataOutputStream dataOutputStream = null;
 
         try {
             // Create a client socket with the host, port, and timeout information.
@@ -75,18 +78,20 @@ public abstract class NetworkHelper {
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
             // transfer JSONObject as String to the server
             dataOutputStream.writeUTF(msg.toString());
-            dataOutputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
         // Clean up any open sockets when done transferring or if an exception occurred.
         finally {
-            if (socket.isConnected()) {
-                try {
+            try {
+                if (socket.isConnected()) {
                     socket.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
+                if (dataOutputStream != null) {
+                    dataOutputStream.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
