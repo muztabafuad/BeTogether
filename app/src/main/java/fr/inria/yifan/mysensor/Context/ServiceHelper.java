@@ -1,5 +1,6 @@
 package fr.inria.yifan.mysensor.Context;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,10 +15,15 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import fr.inria.yifan.mysensor.Network.NetworkHelper;
 
 /**
  * This class provides functions related to the Wifi Direct service discovery.
@@ -68,26 +74,26 @@ public class ServiceHelper extends BroadcastReceiver {
             assert msgType != null;
             switch (msgType) {
                 case "ContextInfo":
-                    // Context message
-                    Log.e(TAG, "Received context message" + record);
-                    // Check if matched neighbor
-                    if (matchContext((HashMap) record)) {
-                        mNeighborContexts.put(device.deviceAddress, (HashMap) record);
+                    // Context message is discovered
+                    Log.e(TAG, "Discovered context message" + record);
+                    // Check if matched as a neighbor
+                    if (matchContext((HashMap<String, String>) record)) {
+                        mNeighborContexts.put(device.deviceAddress, (HashMap<String, String>) record);
                     }
                     break;
                 case "IntentValues":
-                    // Intent message
+                    // Intent message is discovered
                     Log.e(TAG, "Received intent message" + record);
                     // Put the neighbor intent into list
-                    mNeighborIntents.put(device.deviceAddress, (HashMap) record);
+                    mNeighborIntents.put(device.deviceAddress, (HashMap<String, String>) record);
                     // Check to be the coordinator or not
                     mIsCoordinator = beCoordinator();
                     break;
                 case "ServiceAllocation":
-                    // Service message
+                    // Service message is discovered
                     Log.e(TAG, "Received allocation message" + record);
                     // Retrieve the allocation message for me
-                    readMyServices((HashMap) record);
+                    readMyServices((HashMap<String, String>) record);
                     break;
             }
         }
@@ -102,12 +108,14 @@ public class ServiceHelper extends BroadcastReceiver {
         //Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
     };
 
+    @SuppressLint("StaticFieldLeak")
     // Listener for Wifi-Direct group
     private WifiP2pManager.GroupInfoListener mGroupListener = new WifiP2pManager.GroupInfoListener() {
         @Override
         public void onGroupInfoAvailable(WifiP2pGroup group) {
-            Log.e(TAG, group.toString());
-            mMyConnect = new ArrayList<>();
+            //Log.e(TAG, group.toString());
+
+            // Record my connected devices
             for (WifiP2pDevice member : group.getClientList()) {
                 mMyConnect.add(member.deviceName + " " + member.deviceAddress);
             }
@@ -116,18 +124,49 @@ public class ServiceHelper extends BroadcastReceiver {
         }
     };
 
+    // When the network connection is changed
     private WifiP2pManager.ConnectionInfoListener mConnectListener = info -> {
         Log.e(TAG, info.toString());
-        Log.e(TAG, info.groupOwnerAddress.getHostAddress());
+        // A group is created
+        if (info.groupFormed) {
+            // I am the coordinator
+            if (info.isGroupOwner) {
+                NetworkHelper helper = new NetworkHelper() {
+                    @Override
+                    public void callbackReceived(JSONObject msg) {
+                        Log.e(TAG, "Coordinator received: " + msg.toString());
+                    }
+                };
+                // I am the collaborative member
+            } else {
+                NetworkHelper helper = new NetworkHelper() {
+                    @Override
+                    public void callbackReceived(JSONObject msg) {
+                        //
+                    }
+                };
+                // Hello message
+                JSONObject hello = new JSONObject();
+                try {
+                    hello.put("Type", "Hello");
+                    hello.put("MAC", mMacAddress);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Can't put JSON: " + e);
+                }
+                helper.sendMessageTo(info.groupOwnerAddress.getHostAddress(), hello);
+                Log.e(TAG, "Sending message" + hello);
+            }
+        }
     };
 
     @SuppressWarnings("unchecked")
     // Constructor
-    public ServiceHelper(Context context, ArrayAdapter adapter) {
+    public ServiceHelper(Context context, ArrayAdapter<String> adapter) {
         mManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(context, context.getMainLooper(), null);
 
         mAdapterNeighborList = adapter;
+        mMyConnect = new ArrayList<>();
 
         mNeighborContexts = new HashMap<>();
         mNeighborIntents = new HashMap<>();
@@ -140,8 +179,8 @@ public class ServiceHelper extends BroadcastReceiver {
 
     @SuppressWarnings("unchecked")
     // Advertise the service with a HashMap message
-    public void advertiseService(HashMap service) {
-        String msgType = (String) service.get("MessageType");
+    public void advertiseService(HashMap<String, String> service) {
+        String msgType = service.get("MessageType");
         assert msgType != null;
         // Context message
         if (msgType.equals("ContextInfo")) {
@@ -200,6 +239,10 @@ public class ServiceHelper extends BroadcastReceiver {
 
     // Stop connected groups
     public void stopConnection() {
+        if (!mMyConnect.isEmpty()) {
+            mMyConnect.clear();
+        }
+        mManager.cancelConnect(mChannel, null);
         mManager.removeGroup(mChannel, null);
     }
 
@@ -275,7 +318,7 @@ public class ServiceHelper extends BroadcastReceiver {
     }
 
     // Return the message containing neighbor address and its role (for coordinator)
-    public HashMap getAllocationMsg() {
+    public HashMap<String, String> getAllocationMsg() {
         mMyServices = new ArrayList<>();
         // One neighbor for one role for instance
         for (String role : new String[]{"Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
@@ -334,6 +377,7 @@ public class ServiceHelper extends BroadcastReceiver {
         config.wps.setup = WpsInfo.PBC;
         config.groupOwnerIntent = 15;
 
+        //Log.e(TAG, "Connecting to: " + mNeighborService.values());
         for (String member : mNeighborService.values()) {
             config.deviceAddress = member;
             mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {

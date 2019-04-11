@@ -25,7 +25,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import fr.inria.yifan.mysensor.Context.ContextHelper;
@@ -193,24 +192,29 @@ public class ServiceActivity extends AppCompatActivity {
 
         mWelcomeView.setText(R.string.open_service);
 
+        // I am the coordinator
         if (mServiceHelper.isCoordinator()) {
+
+            mServiceHelper.getAllocationMsg();
+            mServiceHelper.connectAllMembers();
+
             // Fill the service allocation message
             mServiceMsg.put("MessageType", "ServiceAllocation");
             mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
-            Log.e(TAG, mServiceMsg.toString());
             mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
-            mServiceHelper.connectAllMembers();
 
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
+                            + "\nService allocation are: "
+                            + mServiceMsg.toString()
                             + "\nMy connected devices are: "
-                            + mServiceHelper.getMyConnects()
-                            + "\nMy collaborative power consumption is: "
-                            + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
-                            + "\nMy individual power consumption is: "
-                            + mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
+                            + mServiceHelper.getMyConnects()));
+                    //+ "\nMy collaborative power consumption is: "
+                    //+ mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
+                    //+ "\nMy individual power consumption is: "
+                    //+ mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -229,11 +233,11 @@ public class ServiceActivity extends AppCompatActivity {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()
                             + "\nMy connected devices are: "
-                            + mServiceHelper.getMyConnects()
-                            + "\nMy collaborative power consumption is: "
-                            + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
-                            + "\nMy individual power consumption is: "
-                            + mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
+                            + mServiceHelper.getMyConnects()));
+                    //+ "\nMy collaborative power consumption is: "
+                    //+ mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
+                    //+ "\nMy individual power consumption is: "
+                    //+ mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
