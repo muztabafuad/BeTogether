@@ -28,8 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import fr.inria.yifan.mysensor.Context.ContextHelper;
-import fr.inria.yifan.mysensor.Context.ServiceHelper;
 import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
+import fr.inria.yifan.mysensor.Network.ServiceHelper;
 
 public class ServiceActivity extends AppCompatActivity {
 // TODO
@@ -49,7 +49,6 @@ public class ServiceActivity extends AppCompatActivity {
     private ServiceHelper mServiceHelper;
     private HashMap<String, String> mContextMsg;
     private HashMap<String, String> mIntentsMsg;
-    private HashMap<String, String> mServiceMsg;
     private ContextHelper mContextHelper;
 
     // Variables
@@ -102,7 +101,7 @@ public class ServiceActivity extends AppCompatActivity {
         // Create record messages for intents exchange and service allocation
         mContextMsg = new HashMap<>();
         mIntentsMsg = new HashMap<>();
-        mServiceMsg = new HashMap<>();
+
         mContextHelper.startService(); // Start the context detection service
 
         // Get the remaining battery in mAh
@@ -198,19 +197,14 @@ public class ServiceActivity extends AppCompatActivity {
             String allocation = mServiceHelper.getAllocationMsg().toString();
             mServiceHelper.connectAllMembers();
 
-            // Fill the service allocation message
-            //mServiceMsg.put("MessageType", "ServiceAllocation");
-            //mServiceMsg.putAll(mServiceHelper.getAllocationMsg());
-            //mServiceHelper.advertiseService(mServiceMsg); // Advertise the service
-
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
                             + "\nService allocation are: "
-                            + allocation
-                            + "\nMy connected devices are: "
-                            + mServiceHelper.getMyConnects()));
+                            + allocation));
+                    //+ "\nMy connected devices are: "
+                    //+ mServiceHelper.getMyConnects()));
                     //+ "\nMy collaborative power consumption is: "
                     //+ mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
                     //+ "\nMy individual power consumption is: "
@@ -226,14 +220,12 @@ public class ServiceActivity extends AppCompatActivity {
                 }
             }).start();
         } else {
-            //mServiceHelper.discoverService(); // Discovery the service
-
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
-                    runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()
-                            + "\nMy connected devices are: "
-                            + mServiceHelper.getMyConnects()));
+                    runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()));
+                    //+ "\nMy connected devices are: "
+                    //+ mServiceHelper.getMyConnects()));
                     //+ "\nMy collaborative power consumption is: "
                     //+ mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
                     //+ "\nMy individual power consumption is: "

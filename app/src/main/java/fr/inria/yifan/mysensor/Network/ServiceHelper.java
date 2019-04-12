@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Context;
+package fr.inria.yifan.mysensor.Network;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
@@ -8,7 +8,6 @@ import android.net.NetworkInfo;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
@@ -22,8 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import fr.inria.yifan.mysensor.Network.NetworkHelper;
 
 /**
  * This class provides functions related to the Wifi Direct service discovery.
@@ -52,7 +49,7 @@ public class ServiceHelper extends BroadcastReceiver {
     private boolean mIsCoordinator; // Coordinator flag of current device
 
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
-    private List<String> mMyConnect; // Connected devices for current device
+    //private List<String> mMyConnect; // Connected devices for current device
     //private WifiP2pInfo mMyP2PInfo; // Wifi-Direct connection information
 
     @SuppressWarnings("unchecked")
@@ -111,18 +108,15 @@ public class ServiceHelper extends BroadcastReceiver {
 
     @SuppressLint("StaticFieldLeak")
     // Listener for Wifi-Direct group
-    private WifiP2pManager.GroupInfoListener mGroupListener = new WifiP2pManager.GroupInfoListener() {
-        @Override
-        public void onGroupInfoAvailable(WifiP2pGroup group) {
-            Log.e(TAG, group.toString());
+    private WifiP2pManager.GroupInfoListener mGroupListener = group -> {
+        Log.e(TAG, group.toString());
 
-            // Record my connected devices
-            for (WifiP2pDevice member : group.getClientList()) {
-                mMyConnect.add(member.deviceName + " " + member.deviceAddress);
-            }
-            WifiP2pDevice owner = group.getOwner();
-            mMyConnect.add(owner.deviceName + " " + owner.deviceAddress);
-        }
+        // Record my connected devices
+        //for (WifiP2pDevice member : group.getClientList()) {
+        //    mMyConnect.add(member.deviceName + " " + member.deviceAddress);
+        //}
+        //WifiP2pDevice owner = group.getOwner();
+        //mMyConnect.add(owner.deviceName + " " + owner.deviceAddress);
     };
 
     // When the network connection is changed
@@ -133,32 +127,45 @@ public class ServiceHelper extends BroadcastReceiver {
         if (info.groupFormed) {
             // I am the coordinator
             if (info.isGroupOwner) {
+                mIsCoordinator = true;
                 Log.e(TAG, "I am the coordinator");
                 NetworkHelper helper = new NetworkHelper(true) {
                     @Override
-                    public void serverCallbackReceived(JSONObject msg) {
-                        Log.e(TAG, "Coordinator received: " + msg.toString());
+                    JSONObject serverCallbackReceiveReply(JSONObject msg, String source) {
+                        return handleReceivedMsg(msg, source);
+                    }
+
+                    @Override
+                    JSONObject clientCallbackReceiveReply(JSONObject msg, String source) {
+                        return null;
                     }
                 };
                 // I am the collaborative member
             } else {
+                mIsCoordinator = false;
                 Log.e(TAG, "I am a collaborator");
                 NetworkHelper helper = new NetworkHelper(false) {
                     @Override
-                    public void serverCallbackReceived(JSONObject msg) {
-                        //PASS
+                    JSONObject serverCallbackReceiveReply(JSONObject msg, String source) {
+                        return null;
+                    }
+
+                    @Override
+                    JSONObject clientCallbackReceiveReply(JSONObject msg, String source) {
+                        return handleReceivedMsg(msg, source);
                     }
                 };
-                // Hello message
-                JSONObject hello = new JSONObject();
+                // First time connected, send hello message
                 try {
+                    JSONObject hello = new JSONObject();
                     hello.put("Type", "Hello");
                     hello.put("MAC", mMacAddress);
+                    // Send to the coordinator and wait for receiving service allcoation
+                    helper.sendAndReceive(info.groupOwnerAddress.getHostAddress(), hello);
+                    Log.e(TAG, "Sending message" + hello);
                 } catch (JSONException e) {
                     Log.e(TAG, "Can't put JSON: " + e);
                 }
-                helper.sendMessageTo(info.groupOwnerAddress.getHostAddress(), hello);
-                Log.e(TAG, "Sending message" + hello);
             }
         }
     };
@@ -169,17 +176,20 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(context, context.getMainLooper(), null);
 
-        mAdapterNeighborList = adapter;
-        mMyConnect = new ArrayList<>();
-
         mNeighborContexts = new HashMap<>();
         mNeighborIntents = new HashMap<>();
         mNeighborService = new HashMap<>();
 
+        mNeighborAddress = new HashMap<>();
+
+        mMacAddress = null;
         mSelfContext = new HashMap<>();
         mSelfIntent = new HashMap<>();
         mMyServices = new ArrayList<>();
         mIsCoordinator = false;
+
+        mAdapterNeighborList = adapter;
+        //mMyConnect = new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -246,9 +256,9 @@ public class ServiceHelper extends BroadcastReceiver {
     public void stopConnection() {
         mManager.removeGroup(mChannel, null);
         mManager.cancelConnect(mChannel, null);
-        if (!mMyConnect.isEmpty()) {
-            mMyConnect.clear();
-        }
+        //if (!mMyConnect.isEmpty()) {
+        //    mMyConnect.clear();
+        //}
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -391,6 +401,7 @@ public class ServiceHelper extends BroadcastReceiver {
         Log.e(TAG, "Connection info: " + config);
         for (String member : mNeighborService.keySet()) {
             config.deviceAddress = member;
+            mNeighborAddress.put(member, "192.168.49.1");
             mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
                 @Override
                 public void onSuccess() {
@@ -404,6 +415,11 @@ public class ServiceHelper extends BroadcastReceiver {
                 }
             });
         }
+    }
+
+    // Update the IP address to a MAC address of a device
+    public void updateMacIp(String mac, String ip) {
+        mNeighborAddress.put(mac, ip);
     }
 
     /*
@@ -425,8 +441,33 @@ public class ServiceHelper extends BroadcastReceiver {
     */
 
     // Get my current connection list
-    public List<String> getMyConnects() {
-        return mMyConnect;
+    ///public List<String> getMyConnects() {
+    //return mMyConnect;
+    //}
+
+    // Handle different type of messages and return a reply
+    public JSONObject handleReceivedMsg(JSONObject msg, String source) {
+        try {
+            switch ((String) msg.get("Type")) {
+                case "Hello":
+                    // This is a hello message, record the IP address
+                    updateMacIp((String) msg.get("MAC"), source);
+                    Log.e(TAG, "MAC IP pair updated: " + mNeighborAddress.toString());
+                    // Service message
+                    JSONObject allocation = new JSONObject();
+                    allocation.put("Type", "ServiceAllocation");
+                    allocation.put("Service", mNeighborService.get(msg.get("MAC")));
+                    Log.e(TAG, "Replying message" + allocation);
+                    return allocation;
+                case "ServiceAllocation":
+                    Log.e(TAG, "Received message: " + msg + "from" + source);
+                default:
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     // Callback when receive Wifi P2P broadcast

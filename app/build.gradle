@@ -40,5 +40,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.google.android.gms:play-services-nearby:16.0.0'
     implementation 'com.google.firebase:firebase-core:16.0.8'
-    implementation group: 'org.pentaho.pentaho-commons', name: 'pentaho-package-manager', version: '1.0.11'
+    implementation 'org.pentaho.pentaho-commons:pentaho-package-manager:1.0.11'
 }

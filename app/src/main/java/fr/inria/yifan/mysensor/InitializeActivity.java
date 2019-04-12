@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
+import fr.inria.yifan.mysensor.Roles.Proxy;
 
 /**
  * This activity has to be started in the beginning of the application to ensure all user permissions are enabled
@@ -47,6 +48,8 @@ public class InitializeActivity extends AppCompatActivity {
         welcomeView.setText(R.string.hint_initial);
 
         checkPermission();
+
+        Proxy proxy = new Proxy(this);
     }
 
     // Check related user permissions
