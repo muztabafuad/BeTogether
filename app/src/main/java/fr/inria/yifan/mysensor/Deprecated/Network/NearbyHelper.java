@@ -1,29 +1,6 @@
 package fr.inria.yifan.mysensor.Deprecated.Network;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.util.Log;
-
-import com.google.android.gms.nearby.Nearby;
-import com.google.android.gms.nearby.connection.AdvertisingOptions;
-import com.google.android.gms.nearby.connection.ConnectionInfo;
-import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
-import com.google.android.gms.nearby.connection.ConnectionResolution;
-import com.google.android.gms.nearby.connection.ConnectionsStatusCodes;
-import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
-import com.google.android.gms.nearby.connection.DiscoveryOptions;
-import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
-import com.google.android.gms.nearby.connection.Payload;
-import com.google.android.gms.nearby.connection.PayloadCallback;
-import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.HashMap;
-
-import static com.google.android.gms.nearby.connection.Strategy.P2P_CLUSTER;
 
 /**
  * This class provides network methods based on Nearby technology.
@@ -36,6 +13,8 @@ public class NearbyHelper {
     private static final String ServiceID = "CrowdSensingGroup";
 
     private Context mContext;
+
+    /*
 
     // Callback when received the payload from the other
     private final PayloadCallback mPayloadCallback =
@@ -156,5 +135,6 @@ public class NearbyHelper {
         }
         return null;
     }
+    */
 
 }
