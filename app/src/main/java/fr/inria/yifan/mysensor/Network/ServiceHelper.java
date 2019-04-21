@@ -1,6 +1,5 @@
 package fr.inria.yifan.mysensor.Network;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -106,7 +105,6 @@ public class ServiceHelper extends BroadcastReceiver {
         //Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
     };
 
-    @SuppressLint("StaticFieldLeak")
     // Listener for Wifi-Direct group
     private WifiP2pManager.GroupInfoListener mGroupListener = group -> {
         Log.e(TAG, group.toString());

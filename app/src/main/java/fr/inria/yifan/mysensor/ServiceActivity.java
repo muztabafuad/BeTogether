@@ -141,7 +141,6 @@ public class ServiceActivity extends AppCompatActivity {
 
     // Start the exchanging of context message
     @RequiresApi(api = Build.VERSION_CODES.M)
-    @SuppressWarnings("unchecked")
     private void contextExchanging() {
 
         mWelcomeView.setText(R.string.open_context);
@@ -186,7 +185,6 @@ public class ServiceActivity extends AppCompatActivity {
     // Start the exchanging of service message
     @SuppressLint("SetTextI18n")
     @RequiresApi(api = Build.VERSION_CODES.M)
-    @SuppressWarnings("unchecked")
     private void serviceExchanging() {
 
         mWelcomeView.setText(R.string.open_service);
@@ -291,10 +289,8 @@ public class ServiceActivity extends AppCompatActivity {
     // Callback for user enabling Wifi switch
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case ENABLE_REQUEST_WIFI: {
-                checkWifiActive();
-            }
+        if (requestCode == ENABLE_REQUEST_WIFI) {
+            checkWifiActive();
         }
     }
 }
