@@ -17,7 +17,7 @@ import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 import fr.inria.yifan.mysensor.Roles.Proxy;
 
 /**
- * This activity has to be started in the beginning of the application to ensure all user permissions are enabled
+ * This activity has to be started in the beginning of the application to ensure all user permissions are enabled.
  */
 
 public class InitializeActivity extends AppCompatActivity {
@@ -95,7 +95,7 @@ public class InitializeActivity extends AppCompatActivity {
 
     @Override
     // Callback for user allowing permission
-    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMS_REQUEST_RECORD:
                 if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {

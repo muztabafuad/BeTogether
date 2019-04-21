@@ -14,7 +14,6 @@ import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class provides functions related to the Wifi Direct service discovery.
+ * This class provides functions related to the Wifi Direct service discovery and the role allocation.
  */
 
 public class ServiceHelper extends BroadcastReceiver {
@@ -38,11 +37,10 @@ public class ServiceHelper extends BroadcastReceiver {
 
     private HashMap<String, HashMap<String, String>> mNeighborContexts; // Neighbor MAC address and its context message
     private HashMap<String, HashMap<String, String>> mNeighborIntents; // Neighbor MAC address and its intents message
-    private HashMap<String, List<String>> mNeighborService; // Neighbor MAC address and its service, allocation info
-
+    private HashMap<String, List<String>> mNeighborService; // Neighbor MAC address and its service allocation list
     private HashMap<String, String> mNeighborAddress; // Neighbor MAC address and its IP address (for socket)
 
-    private String mMacAddress; // Mac address of current device
+    private String mMacAddress; // MAC address of current device
     private HashMap<String, String> mSelfContext; // Context message of current device
     private HashMap<String, String> mSelfIntent; // Intents message of current device
     private List<String> mMyServices; // Services allocated for current device
@@ -88,6 +86,7 @@ public class ServiceHelper extends BroadcastReceiver {
                     mIsCoordinator = beCoordinator();
                     break;
                 case "ServiceAllocation":
+                    // TODO to be removed
                     // Service message is discovered
                     Log.e(TAG, "Received allocation message" + record);
                     // Retrieve the allocation message for me
@@ -136,12 +135,12 @@ public class ServiceHelper extends BroadcastReceiver {
                     }
 
                     @Override
-                    JSONObject clientCallbackReceiveReply(JSONObject msg, String source) {
-                        return null;
+                    void clientCallbackReceiveReply(JSONObject msg, String source) {
                     }
                 };
-                // I am the collaborative member
-            } else {
+            }
+            // I am the collaborative member
+            else {
                 mIsCoordinator = false;
                 Log.e(TAG, "I am a collaborator");
                 NetworkHelper helper = new NetworkHelper(false) {
@@ -151,26 +150,25 @@ public class ServiceHelper extends BroadcastReceiver {
                     }
 
                     @Override
-                    JSONObject clientCallbackReceiveReply(JSONObject msg, String source) {
-                        return handleReceivedMsg(msg, source);
+                    void clientCallbackReceiveReply(JSONObject msg, String source) {
+                        handleReceivedMsg(msg, source);
                     }
                 };
-                // First time connected, send hello message
+                // First time connected to the server, send hello message
                 try {
                     JSONObject hello = new JSONObject();
                     hello.put("Type", "Hello");
                     hello.put("MAC", mMacAddress);
-                    // Send to the coordinator and wait for receiving service allcoation
+                    // Send to the coordinator and wait for receiving service allocation
                     helper.sendAndReceive(info.groupOwnerAddress.getHostAddress(), hello);
                     Log.e(TAG, "Sending message" + hello);
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     Log.e(TAG, "Can't put JSON: " + e);
                 }
             }
         }
     };
 
-    @SuppressWarnings("unchecked")
     // Constructor
     public ServiceHelper(Context context, ArrayAdapter<String> adapter) {
         mManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
@@ -179,7 +177,6 @@ public class ServiceHelper extends BroadcastReceiver {
         mNeighborContexts = new HashMap<>();
         mNeighborIntents = new HashMap<>();
         mNeighborService = new HashMap<>();
-
         mNeighborAddress = new HashMap<>();
 
         mMacAddress = null;
@@ -192,7 +189,6 @@ public class ServiceHelper extends BroadcastReceiver {
         //mMyConnect = new ArrayList<>();
     }
 
-    @SuppressWarnings("unchecked")
     // Advertise the service with a HashMap message
     public void advertiseService(HashMap<String, String> service) {
         String msgType = service.get("MessageType");
@@ -445,22 +441,26 @@ public class ServiceHelper extends BroadcastReceiver {
     //return mMyConnect;
     //}
 
-    // Handle different type of messages and return a reply
+    @SuppressWarnings("unchecked")
+    // Handle different type of messages and return a reply message (can be null)
     public JSONObject handleReceivedMsg(JSONObject msg, String source) {
         try {
             switch ((String) msg.get("Type")) {
+                // Hello message from the client to the server
                 case "Hello":
                     // This is a hello message, record the IP address
                     updateMacIp((String) msg.get("MAC"), source);
                     Log.e(TAG, "MAC IP pair updated: " + mNeighborAddress.toString());
-                    // Service message
+                    // Reply a service message
                     JSONObject allocation = new JSONObject();
                     allocation.put("Type", "ServiceAllocation");
                     allocation.put("Service", mNeighborService.get(msg.get("MAC")));
                     Log.e(TAG, "Replying message" + allocation);
                     return allocation;
+                // This is a service allocation, record my service allocated
                 case "ServiceAllocation":
                     Log.e(TAG, "Received message: " + msg + "from" + source);
+                    mMyServices = (List<String>) msg.get("Service");
                 default:
                     break;
             }

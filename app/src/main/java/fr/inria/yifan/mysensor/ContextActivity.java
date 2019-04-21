@@ -14,7 +14,7 @@ import fr.inria.yifan.mysensor.Context.ContextHelper;
 import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 
 /**
- * This activity show the context information of the crowdsensor
+ * This activity show the context information of the crowdsensor.
  */
 
 public class ContextActivity extends AppCompatActivity {
