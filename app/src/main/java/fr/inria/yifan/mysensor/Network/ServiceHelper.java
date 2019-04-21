@@ -23,6 +23,7 @@ import java.util.Map;
 
 /**
  * This class provides functions related to the Wifi Direct service discovery and the role allocation.
+ * Service roles: "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise".
  */
 
 public class ServiceHelper extends BroadcastReceiver {
