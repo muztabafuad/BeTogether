@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Deprecated.Support;
+package fr.inria.yifan.mysensor.Sensing;
 
 /**
  * This class implements the A-weighting for noise measurement.
@@ -97,7 +97,7 @@ public class AWeighting {
     }
 
     // Apply the A-weighting filter
-    public short[] apply(short input[]) {
+    public short[] apply(short[] input) {
         short[] output = new short[input.length];
         for (int i = 0; i < input.length; i++) {
             double x_i = input[i];

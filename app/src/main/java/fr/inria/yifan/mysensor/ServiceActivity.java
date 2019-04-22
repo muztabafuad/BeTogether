@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import fr.inria.yifan.mysensor.Context.ContextHelper;
-import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 import fr.inria.yifan.mysensor.Network.ServiceHelper;
 
 public class ServiceActivity extends AppCompatActivity {

@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Deprecated.Support;
+package fr.inria.yifan.mysensor.Sensing;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.STORAGE_FILE_PATH;
 import static java.lang.System.currentTimeMillis;
 
 /**
@@ -21,6 +20,9 @@ import static java.lang.System.currentTimeMillis;
 public class FilesIOHelper {
 
     private static final String TAG = "File IO helper";
+
+    // Storage path for the sensing data file
+    private static final String STORAGE_FILE_PATH = "/Download/MySensor";
 
     private Context mContext;
 

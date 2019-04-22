@@ -13,8 +13,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
-
 /**
  * This activity has to be started in the beginning of the application to ensure all user permissions are enabled.
  */

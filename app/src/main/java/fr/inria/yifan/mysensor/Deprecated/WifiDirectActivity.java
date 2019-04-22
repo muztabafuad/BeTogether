@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import fr.inria.yifan.mysensor.ContextActivity;
 import fr.inria.yifan.mysensor.R;
+import fr.inria.yifan.mysensor.SensingActivity;
 
 @SuppressLint("Registered")
 public class WifiDirectActivity extends AppCompatActivity {
@@ -110,10 +111,8 @@ public class WifiDirectActivity extends AppCompatActivity {
     // Callback for user enabling Wifi switch
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case ENABLE_REQUEST_WIFI: {
-                checkWifiActive();
-            }
+        if (requestCode == ENABLE_REQUEST_WIFI) {
+            checkWifiActive();
         }
     }
 }

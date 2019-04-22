@@ -11,8 +11,8 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
 
-import fr.inria.yifan.mysensor.Deprecated.Support.AWeighting;
 import fr.inria.yifan.mysensor.Deprecated.Support.SlideWindow;
+import fr.inria.yifan.mysensor.Sensing.AWeighting;
 
 import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.INTERCEPT;
 import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SAMPLE_NUM_WINDOW;

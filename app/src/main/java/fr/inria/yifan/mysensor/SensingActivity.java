@@ -1,11 +1,9 @@
-package fr.inria.yifan.mysensor.Deprecated;
+package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,16 +17,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import fr.inria.yifan.mysensor.ContextActivity;
-import fr.inria.yifan.mysensor.Deprecated.Sensing.ContextHelper;
-import fr.inria.yifan.mysensor.Deprecated.Sensing.SensorsHelper;
-import fr.inria.yifan.mysensor.Deprecated.Support.FilesIOHelper;
-import fr.inria.yifan.mysensor.R;
-import fr.inria.yifan.mysensor.ServiceActivity;
+import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
+import fr.inria.yifan.mysensor.Sensing.FilesIOHelper;
 
-import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.DST_MAIL_ADDRESS;
-import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.ENABLE_REQUEST_LOCATION;
-import static fr.inria.yifan.mysensor.Deprecated.Support.Configuration.SAMPLE_WINDOW_MS;
 import static java.lang.System.currentTimeMillis;
 
 /*
@@ -39,9 +30,13 @@ public class SensingActivity extends AppCompatActivity {
 
     private static final String TAG = "Sensing activity";
 
+    // Email destination for the sensing data
+    public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
+    // Parameters for sensing sampling
+    public static final int SAMPLE_WINDOW_MS = 100;
+
     private final Object mLock; // Thread locker
     private boolean isGetSenseRun; // Running flag
-    private int mSenseRound; // Sensing round
     private PowerManager.WakeLock mWakeLock; // Awake locker
 
     // Declare all related views in UI
@@ -53,13 +48,9 @@ public class SensingActivity extends AppCompatActivity {
 
     private FilesIOHelper mFilesIOHelper; // File helper
     private ArrayList<String> mSensingData; // Sensing data
-    private int mPocketLabel; // In-pocket binary label
-    private int mDoorLabel; // In-door binary label
-    private int mGroundLabel; // Under-ground binary label
 
     // Helpers for sensors and context
-    private SensorsHelper mSensorHelper;
-    private ContextHelper mContextHelper;
+    private CrowdSensor mCrowdSensor;
 
     // Constructor initializes locker
     public SensingActivity() {
@@ -86,10 +77,8 @@ public class SensingActivity extends AppCompatActivity {
 
         mStartButton.setOnClickListener(view -> {
             mAdapterSensing.clear();
-            mAdapterSensing.add("0 timestamp, 1 daytime (b), 2 light density (lx), 3 magnetic strength (μT), " +
-                    "4 GSM active (b), 5 RSSI level, 6 RSSI value (dBm), 7 GPS accuracy (m), 8 Wifi active (b), " +
-                    "9 Wifi RSSI (dBm), 10 proximity (b), 11 sound level (dBA), 12 temperature (C), 13 pressure (hPa), " +
-                    "14 humidity (%), 15 in-pocket label, 16 in-door label, 17 under-ground label");
+            mAdapterSensing.add("0 timestamp, 1 location, 2 temperature (C), 3 light density (lx), " +
+                    "4 pressure (hPa), 5 humidity (%), 6 sound level (dBA)");
             startRecord();
             mStartButton.setVisibility(View.INVISIBLE);
             mStopButton.setVisibility(View.VISIBLE);
@@ -109,18 +98,14 @@ public class SensingActivity extends AppCompatActivity {
     }
 
     // Main activity initialization
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensing);
         bindViews();
 
-        mSensorHelper = new SensorsHelper(this);
-        mContextHelper = new ContextHelper(this);
+        mCrowdSensor = new CrowdSensor(this);
         mFilesIOHelper = new FilesIOHelper(this);
-
-        //acquireWakeLock();
     }
 
     // Stop thread when exit!
@@ -136,8 +121,7 @@ public class SensingActivity extends AppCompatActivity {
         }
         //releaseWakeLock();
         isGetSenseRun = false;
-        mSensorHelper.stopService();
-        mContextHelper.stopService();
+        mCrowdSensor.stopAllService();
     }
 
     // Start the sensing thread
@@ -146,34 +130,21 @@ public class SensingActivity extends AppCompatActivity {
             Log.e(TAG, "Still in sensing and recording");
             return;
         }
-        mSensorHelper.startService();
-        mContextHelper.startService();
+        for (String sensor : new String[]{"Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
+            mCrowdSensor.startService(sensor);
+        }
+
         isGetSenseRun = true;
-        mSenseRound = 0;
         new Thread(() -> {
             while (isGetSenseRun) {
-                runOnUiThread(() -> {
-                    mAdapterSensing.add(currentTimeMillis() + ", " +
-                            mContextHelper.isDaytime() + ", " +
-                            mSensorHelper.getLightDensity() + ", " +
-                            mSensorHelper.getMagnet() + ", " +
-                            mContextHelper.isGSMLink() + ", " +
-                            mContextHelper.getRssiLevel() + ", " +
-                            mContextHelper.getRssiValue() + ", " +
-                            mContextHelper.getGPSAccuracy() + ", " +
-                            mContextHelper.isWifiLink() + ", " +
-                            mContextHelper.getWifiRSSI() + ", " +
-                            mSensorHelper.getProximity() + ", " +
-                            mSensorHelper.getSoundLevel() + ", " +
-                            mSensorHelper.getTemperature() + ", " +
-                            mSensorHelper.getPressure() + ", " +
-                            mSensorHelper.getHumidity() + ", " +
-                            mPocketLabel + ", " +
-                            mDoorLabel + ", " +
-                            mGroundLabel);
-                    mSenseRound += 1;
-                    //Log.d(TAG, String.valueOf(mSenseRound));
-                });
+                runOnUiThread(() -> mAdapterSensing.add(currentTimeMillis() + ", " +
+                        mCrowdSensor.getCurrentMeasurement("Latitude") +
+                        mCrowdSensor.getCurrentMeasurement("Longitude") +
+                        mCrowdSensor.getCurrentMeasurement("Temperature") +
+                        mCrowdSensor.getCurrentMeasurement("Light") +
+                        mCrowdSensor.getCurrentMeasurement("Pressure") +
+                        mCrowdSensor.getCurrentMeasurement("Humidity") +
+                        mCrowdSensor.getCurrentMeasurement("Noise")));
                 // Sampling time delay
                 synchronized (mLock) {
                     try {
@@ -190,8 +161,7 @@ public class SensingActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     private void stopRecord() {
         isGetSenseRun = false;
-        mSensorHelper.stopService();
-        mContextHelper.stopService();
+        mCrowdSensor.stopAllService();
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             final EditText editName = new EditText(this);
@@ -232,16 +202,6 @@ public class SensingActivity extends AppCompatActivity {
         goToService.setClass(this, ServiceActivity.class);
         startActivity(goToService);
         finish();
-    }
-
-    // Callback for user enabling GPS switch
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case ENABLE_REQUEST_LOCATION: {
-                mContextHelper.startService();
-            }
-        }
     }
 
     // Turn on the awake locker

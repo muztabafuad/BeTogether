@@ -11,7 +11,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import fr.inria.yifan.mysensor.Context.ContextHelper;
-import fr.inria.yifan.mysensor.Deprecated.SensingActivity;
 
 /**
  * This activity show the context information of the crowdsensor.
