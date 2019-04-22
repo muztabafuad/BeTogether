@@ -21,8 +21,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static java.lang.System.currentTimeMillis;
 
 /**
  * This class provides a crowdsensor and its sensing methods.
@@ -36,19 +39,23 @@ public class CrowdSensor {
     private static final int SAMPLE_RATE_IN_HZ = 44100;
     // Audio recorder parameters for sampling
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
+
     private final Object mLock; // Thread locker
     private Context mContext;
     private LocationManager mLocationManager;
     private SensorManager mSensorManager;
     private AudioRecord mAudioRecord;
     private AWeighting mAWeighting;
+
     // "Temperature", "Light", "Pressure", "Humidity", "Noise"
     private Location mLocation;
     private float mTemperature;
     private float mLight;
     private float mPressure;
     private float mHumidity;
+
     private boolean isGetSenseRun; // Running flag
+    private JSONObject mSamples;
 
     private LocationListener mLocationListener = new LocationListener() {
         @Override
@@ -245,29 +252,95 @@ public class CrowdSensor {
 
     // Start the main thread for all services allocated
     public void startWorkingThread(List<String> services, int numSamples, float delay) {
+        mSamples = new JSONObject();
+        List<Integer> timestamp = new ArrayList<>();
+        List<Float> latitude = new ArrayList<>();
+        List<Float> longitude = new ArrayList<>();
+        List<Float> temperature = new ArrayList<>();
+        List<Float> light = new ArrayList<>();
+        List<Float> pressure = new ArrayList<>();
+        List<Float> humidity = new ArrayList<>();
+        List<Float> noise = new ArrayList<>();
+
         for (String service : services) {
             startService(service);
         }
+
         isGetSenseRun = true;
-        int count = 0;
         new Thread(() -> {
+            int count = 0;
             while (isGetSenseRun && count < numSamples) {
-                // TODO
-            }
-            // Sampling time delay
-            synchronized (mLock) {
-                try {
-                    mLock.wait((long) delay);
-                } catch (Exception e) {
-                    e.printStackTrace();
+
+                timestamp.add((int) (currentTimeMillis() / 1000));
+
+                for (String service : services) {
+                    switch (service) {
+                        case "Location":
+                            latitude.add(getCurrentMeasurement("Latitude"));
+                            longitude.add(getCurrentMeasurement("Longitude"));
+                            break;
+                        case "Temperature":
+                            temperature.add(getCurrentMeasurement("Temperature"));
+                            break;
+                        case "Light":
+                            light.add(getCurrentMeasurement("Light"));
+                            break;
+                        case "Pressure":
+                            pressure.add(getCurrentMeasurement("Pressure"));
+                            break;
+                        case "Humidity":
+                            humidity.add(getCurrentMeasurement("Humidity"));
+                            break;
+                        case "Noise":
+                            noise.add(getCurrentMeasurement("Noise"));
+                            break;
+                    }
+                }
+                count += 1;
+                // Sampling time delay
+                synchronized (mLock) {
+                    try {
+                        mLock.wait((long) delay);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-        }).start();
+            try {
+                if (!timestamp.isEmpty()) {
+                    mSamples.put("Timestamp", timestamp);
+                }
+                if (!latitude.isEmpty()) {
+                    mSamples.put("Latitude", latitude);
+                }
+                if (!longitude.isEmpty()) {
+                    mSamples.put("Longitude", longitude);
+                }
+                if (!temperature.isEmpty()) {
+                    mSamples.put("Temperature", temperature);
+                }
+                if (!light.isEmpty()) {
+                    mSamples.put("Light", light);
+                }
+                if (!pressure.isEmpty()) {
+                    mSamples.put("Pressure", pressure);
+                }
+                if (!humidity.isEmpty()) {
+                    mSamples.put("Humidity", humidity);
+                }
+                if (!noise.isEmpty()) {
+                    mSamples.put("Noise", noise);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        ).start();
     }
 
-    // Stop the main thread for all services allocated
-    public void stopWorkingThread() {
-
+    // Get the main result for all services allocated
+    public JSONObject getWorkingResult() {
+        return mSamples;
     }
 
     /*
