@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -31,7 +30,6 @@ import fr.inria.yifan.mysensor.Context.ContextHelper;
 import fr.inria.yifan.mysensor.Network.ServiceHelper;
 
 public class ServiceActivity extends AppCompatActivity {
-// TODO
 
     public static final int ENABLE_REQUEST_WIFI = 1004;
     private static final String TAG = "Service activity";
@@ -142,14 +140,15 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void contextExchanging() {
 
-        mWelcomeView.setText(R.string.open_context);
-
         // Record the battery and time when start
         mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         mStartTime = System.currentTimeMillis();
 
+        mWelcomeView.setText(R.string.open_context);
+
         // Get the current context information
         HashMap contexts = mContextHelper.getContext();
+
         // Fill the context information message
         mContextMsg.put("MessageType", "ContextInfo");
         mContextMsg.put("UserActivity", (String) contexts.get("UserActivity"));
@@ -158,7 +157,6 @@ public class ServiceActivity extends AppCompatActivity {
         mContextMsg.put("DurationDoor", (String) contexts.get("DurationDoor"));
         mContextMsg.put("UnderGround", (String) contexts.get("UnderGround"));
         mContextMsg.put("DurationGround", (String) contexts.get("DurationGround"));
-        Log.e(TAG, mContextMsg.toString());
 
         mServiceHelper.advertiseService(mContextMsg); // Advertise the service
         mServiceHelper.discoverService(); // Discovery the service
@@ -172,10 +170,12 @@ public class ServiceActivity extends AppCompatActivity {
 
         mWelcomeView.setText(R.string.open_intents);
 
+        // Get the current intent information
+        HashMap intents = mContextHelper.getIntentValues(mServiceHelper.getHistoryConnect());
+
         // Fill the intent information message
         mIntentsMsg.put("MessageType", "IntentValues");
-        mIntentsMsg.putAll(mContextHelper.getIntentValues(mServiceHelper.getHistoryConnect()));
-        Log.e(TAG, mIntentsMsg.toString());
+        mIntentsMsg.putAll(intents);
 
         mServiceHelper.advertiseService(mIntentsMsg); // Advertise the service
         mServiceHelper.discoverService(); // Discovery the service
@@ -191,21 +191,19 @@ public class ServiceActivity extends AppCompatActivity {
         // I am the coordinator
         if (mServiceHelper.isCoordinator()) {
 
-            String allocation = mServiceHelper.getAllocationMsg().toString();
+            // Get the service allocation information
+            HashMap allocation = mServiceHelper.getAllocationMsg();
+            // Connect to all members
             mServiceHelper.connectAllMembers();
 
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
-                            + "\nService allocation are: "
-                            + allocation));
-                    //+ "\nMy connected devices are: "
-                    //+ mServiceHelper.getMyConnects()));
-                    //+ "\nMy collaborative power consumption is: "
-                    //+ mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
-                    //+ "\nMy individual power consumption is: "
-                    //+ mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
+                            + "\nService allocation are: " + allocation.toString()));
+                    //+ "\nMy connected devices are: " + mServiceHelper.getMyConnects()));
+                    //+ "\nMy collaborative power consumption is: " + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
+                    //+ "\nMy individual power consumption is: " + mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -216,17 +214,16 @@ public class ServiceActivity extends AppCompatActivity {
                     }
                 }
             }).start();
-        } else {
+        }
+        // I am the collaborator
+        else {
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()));
-                    //+ "\nMy connected devices are: "
-                    //+ mServiceHelper.getMyConnects()));
-                    //+ "\nMy collaborative power consumption is: "
-                    //+ mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
-                    //+ "\nMy individual power consumption is: "
-                    //+ mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
+                    //+ "\nMy connected devices are: " + mServiceHelper.getMyConnects()));
+                    //+ "\nMy collaborative power consumption is: " + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
+                    //+ "\nMy individual power consumption is: " + mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -250,12 +247,11 @@ public class ServiceActivity extends AppCompatActivity {
         mServiceHelper.stopConnection();
         mAdapterDevices.clear();
 
+        mServiceView.setText(null);
+
         float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         long currentTime = System.currentTimeMillis();
-
-        mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - currentBattery) +
-                "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
-        mServiceView.setText(null);
+        mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - currentBattery) + "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
     }
 
     // Check whether the Wifi is turned on

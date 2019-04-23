@@ -135,10 +135,11 @@ public class CrowdSensor {
     public CrowdSensor(Context context) {
         mContext = context;
         mLock = new Object();
+        isGetSenseRun = false;
     }
 
     // Stop all registered service
-    public void stopAllService() {
+    private void stopAllService() {
         mLocationManager.removeUpdates(mLocationListener);
         // "Temperature", "Light", "Pressure", "Humidity", "Noise"
         mSensorManager.unregisterListener(mTempListener);
@@ -146,6 +147,7 @@ public class CrowdSensor {
         mSensorManager.unregisterListener(mPressListener);
         mSensorManager.unregisterListener(mHumidListener);
         mAudioRecord.stop();
+        isGetSenseRun = false;
     }
 
     // Start the coordinator service
@@ -155,7 +157,7 @@ public class CrowdSensor {
 
     // Upload the content to the database on cloud
     public void doProxyUpload(JSONObject instance) {
-        // Access a Cloud FireStore instance from Activity
+        // Access a Cloud FireStore instance from App
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
             HashMap entry = new ObjectMapper().readValue(instance.toString(), HashMap.class);
@@ -221,12 +223,14 @@ public class CrowdSensor {
     }
 
     // Read the most current value from a service
-    public float getCurrentMeasurement(String service) {
+    private float getCurrentMeasurement(String service) {
         switch (service) {
             case "Latitude":
                 return (float) mLocation.getLatitude();
+            //return mLocation != null ? (float) mLocation.getLatitude() : 0;
             case "Longitude":
                 return (float) mLocation.getLongitude();
+            //return mLocation != null ? (float) mLocation.getLongitude() : 0;
             case "Temperature":
                 return mTemperature;
             case "Light":
@@ -250,7 +254,7 @@ public class CrowdSensor {
         }
     }
 
-    // Start the main thread for all services allocated
+    // Start the main thread for all services allocated, total number of samples, delay of each sample
     public void startWorkingThread(List<String> services, int numSamples, float delay) {
         mSamples = new JSONObject();
         List<Integer> timestamp = new ArrayList<>();
@@ -262,17 +266,25 @@ public class CrowdSensor {
         List<Float> humidity = new ArrayList<>();
         List<Float> noise = new ArrayList<>();
 
+        isGetSenseRun = true;
+
         for (String service : services) {
             startService(service);
         }
-
-        isGetSenseRun = true;
         new Thread(() -> {
             int count = 0;
             while (isGetSenseRun && count < numSamples) {
 
-                timestamp.add((int) (currentTimeMillis() / 1000));
+                // Sampling time delay
+                synchronized (mLock) {
+                    try {
+                        mLock.wait((long) delay);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
 
+                timestamp.add((int) (currentTimeMillis() / 1000));
                 for (String service : services) {
                     switch (service) {
                         case "Location":
@@ -297,14 +309,6 @@ public class CrowdSensor {
                     }
                 }
                 count += 1;
-                // Sampling time delay
-                synchronized (mLock) {
-                    try {
-                        mLock.wait((long) delay);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
             }
             try {
                 if (!timestamp.isEmpty()) {
@@ -340,6 +344,7 @@ public class CrowdSensor {
 
     // Get the main result for all services allocated
     public JSONObject getWorkingResult() {
+        stopAllService();
         return mSamples;
     }
 

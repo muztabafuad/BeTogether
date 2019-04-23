@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * This class provides functions related to the Wifi Direct service discovery and the role allocation.
@@ -61,36 +62,35 @@ public class ServiceHelper extends BroadcastReceiver {
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
             Log.e(TAG, "DnsSdTxtRecord available -" + record.toString());
 
-            // Show the discovered device info in the list
-            mAdapterNeighborList.add(device.deviceAddress + " " + record);
-            mAdapterNeighborList.notifyDataSetChanged();
-
             // Check the discovered message type
             String msgType = (String) record.get("MessageType");
-            assert msgType != null;
-            switch (msgType) {
+            switch (Objects.requireNonNull(msgType)) {
+                // Context message is discovered
                 case "ContextInfo":
-                    // Context message is discovered
-                    Log.e(TAG, "Discovered context message" + record);
                     // Check if matched as a neighbor
                     if (matchContext((HashMap<String, String>) record)) {
                         mNeighborContexts.put(device.deviceAddress, (HashMap<String, String>) record);
                     }
+                    // Show the discovered device info in the list
+                    if (!mNeighborContexts.containsKey(device.deviceAddress)) {
+                        mAdapterNeighborList.add(device.deviceAddress + " " + record);
+                        mAdapterNeighborList.notifyDataSetChanged();
+                    }
                     break;
+                // Intent message is discovered
                 case "IntentValues":
-                    // Intent message is discovered
-                    Log.e(TAG, "Received intent message" + record);
                     // Put the neighbor intent into list
                     mNeighborIntents.put(device.deviceAddress, (HashMap<String, String>) record);
                     // Check to be the coordinator or not
                     mIsCoordinator = beCoordinator();
+                    // Show the discovered device info in the list
+                    if (!mNeighborIntents.containsKey(device.deviceAddress)) {
+                        mAdapterNeighborList.add(device.deviceAddress + " " + record);
+                        mAdapterNeighborList.notifyDataSetChanged();
+                    }
                     break;
-                case "ServiceAllocation":
-                    // TODO to be removed
-                    // Service message is discovered
-                    Log.e(TAG, "Received allocation message" + record);
-                    // Retrieve the allocation message for me
-                    readMyServices((HashMap<String, String>) record);
+                default:
+                    Log.e(TAG, "Service discovered is not corrected.");
                     break;
             }
         }
@@ -119,9 +119,7 @@ public class ServiceHelper extends BroadcastReceiver {
 
     // When the network connection is changed
     private WifiP2pManager.ConnectionInfoListener mConnectListener = info -> {
-        Log.e(TAG, info.toString());
-
-        // A group is created
+        // A Wifi-Direct group was created
         if (info.groupFormed) {
             // I am the coordinator
             if (info.isGroupOwner) {
@@ -185,22 +183,21 @@ public class ServiceHelper extends BroadcastReceiver {
         mIsCoordinator = false;
 
         mAdapterNeighborList = adapter;
-        //mMyConnect = new ArrayList<>();
     }
 
+    @SuppressWarnings("ConstantConditions")
     // Advertise the service with a HashMap message
     public void advertiseService(HashMap<String, String> service) {
         String msgType = service.get("MessageType");
-        assert msgType != null;
         // Context message
         if (msgType.equals("ContextInfo")) {
             mSelfContext.putAll(service);
-            //Log.e(TAG, mSelfContext.toString());
+            Log.e(TAG, mSelfContext.toString());
         }
         // Intent message
         else if (msgType.equals("IntentValues")) {
             mSelfIntent.putAll(service);
-            //Log.e(TAG, mSelfIntent.toString());
+            Log.e(TAG, mSelfIntent.toString());
         }
         // Service information.
         // Pass it an instance name, service type _protocol._transport layer, and the map containing information other devices will want once they connect to this one.
@@ -208,7 +205,7 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                //Log.e(TAG, "Success in advertisement.");
+                Log.e(TAG, "Success in advertisement.");
             }
 
             @Override
@@ -227,7 +224,7 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager.discoverServices(mChannel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                //Log.e(TAG, "Success in discovery.");
+                Log.e(TAG, "Success in discovery.");
             }
 
             @Override
@@ -367,7 +364,6 @@ public class ServiceHelper extends BroadcastReceiver {
     // Connect to a role as the coordinator (the coordinator is the group owner)
     // "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     public void connectToRole(String role) {
-
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = findBestCollaborator(role);
         config.wps.setup = WpsInfo.PBC;
@@ -412,11 +408,6 @@ public class ServiceHelper extends BroadcastReceiver {
         }
     }
 
-    // Update the IP address to a MAC address of a device
-    public void updateMacIp(String mac, String ip) {
-        mNeighborAddress.put(mac, ip);
-    }
-
     /*
     // Create a group as the coordinator (the coordinator is the group owner)
     public void createGroup() {
@@ -447,19 +438,27 @@ public class ServiceHelper extends BroadcastReceiver {
             switch ((String) msg.get("Type")) {
                 // Hello message from the client to the server
                 case "Hello":
-                    // This is a hello message, record the IP address
-                    updateMacIp((String) msg.get("MAC"), source);
+                    // This is a hello message, update the IP address to a MAC address
+                    mNeighborAddress.put((String) msg.get("MAC"), source);
                     Log.e(TAG, "MAC IP pair updated: " + mNeighborAddress.toString());
-                    // Reply a service message
+
+                    // Reply a service allocation message
                     JSONObject allocation = new JSONObject();
                     allocation.put("Type", "ServiceAllocation");
                     allocation.put("Service", mNeighborService.get(msg.get("MAC")));
                     Log.e(TAG, "Replying message" + allocation);
                     return allocation;
-                // This is a service allocation, record my service allocated
+                // This is a service allocation, record my services allocated
                 case "ServiceAllocation":
                     Log.e(TAG, "Received message: " + msg + "from" + source);
                     mMyServices = (List<String>) msg.get("Service");
+                    break;
+                // This is a raw sensing data
+                case "RawData":
+                    break;
+                // This is an aggregated sensing data
+                case "AggregatedData":
+                    break;
                 default:
                     break;
             }

@@ -3,7 +3,6 @@ package fr.inria.yifan.mysensor;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,7 +14,10 @@ import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
 import fr.inria.yifan.mysensor.Sensing.FilesIOHelper;
@@ -23,7 +25,7 @@ import fr.inria.yifan.mysensor.Sensing.FilesIOHelper;
 import static java.lang.System.currentTimeMillis;
 
 /*
- * This activity provides functions including labeling contexts and storing/sending sensing data
+ * This activity provides functions storing/sending sensing data
  */
 
 public class SensingActivity extends AppCompatActivity {
@@ -33,11 +35,10 @@ public class SensingActivity extends AppCompatActivity {
     // Email destination for the sensing data
     public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
     // Parameters for sensing sampling
-    public static final int SAMPLE_WINDOW_MS = 100;
+    public static final int SAMPLE_NUMBER = 3;
+    public static final int SAMPLE_DELAY = 1000;
 
     private final Object mLock; // Thread locker
-    private boolean isGetSenseRun; // Running flag
-    private PowerManager.WakeLock mWakeLock; // Awake locker
 
     // Declare all related views in UI
     private Button mStartButton;
@@ -77,8 +78,8 @@ public class SensingActivity extends AppCompatActivity {
 
         mStartButton.setOnClickListener(view -> {
             mAdapterSensing.clear();
-            mAdapterSensing.add("0 timestamp, 1 location, 2 temperature (C), 3 light density (lx), " +
-                    "4 pressure (hPa), 5 humidity (%), 6 sound level (dBA)");
+            mAdapterSensing.add("0 Timestamp, 1 Latitude, Longitude, 2 Temperature (C), 3 Light density (lx), " +
+                    "4 Pressure (hPa), 5 Humidity (%), 6 Sound level (dBA)");
             startRecord();
             mStartButton.setVisibility(View.INVISIBLE);
             mStopButton.setVisibility(View.VISIBLE);
@@ -112,56 +113,39 @@ public class SensingActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mSwitchLog.isChecked() && isGetSenseRun) {
+        if (mSwitchLog.isChecked()) {
             try {
                 mFilesIOHelper.autoSave(arrayToString(mSensingData));
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        //releaseWakeLock();
-        isGetSenseRun = false;
-        mCrowdSensor.stopAllService();
     }
 
     // Start the sensing thread
     private void startRecord() {
-        if (isGetSenseRun) {
-            Log.e(TAG, "Still in sensing and recording");
-            return;
-        }
-        for (String sensor : new String[]{"Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
-            mCrowdSensor.startService(sensor);
-        }
 
-        isGetSenseRun = true;
+        // Test for a service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+        mCrowdSensor.startWorkingThread(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"), SAMPLE_NUMBER, SAMPLE_DELAY);
+
         new Thread(() -> {
-            while (isGetSenseRun) {
-                runOnUiThread(() -> mAdapterSensing.add(currentTimeMillis() + ", " +
-                        mCrowdSensor.getCurrentMeasurement("Latitude") +
-                        mCrowdSensor.getCurrentMeasurement("Longitude") +
-                        mCrowdSensor.getCurrentMeasurement("Temperature") +
-                        mCrowdSensor.getCurrentMeasurement("Light") +
-                        mCrowdSensor.getCurrentMeasurement("Pressure") +
-                        mCrowdSensor.getCurrentMeasurement("Humidity") +
-                        mCrowdSensor.getCurrentMeasurement("Noise")));
-                // Sampling time delay
-                synchronized (mLock) {
-                    try {
-                        mLock.wait(SAMPLE_WINDOW_MS);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+            // Wait for the sensing thread to finish
+            synchronized (mLock) {
+                try {
+                    mLock.wait(SAMPLE_NUMBER * SAMPLE_DELAY + 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
+            JSONObject result = mCrowdSensor.getWorkingResult();
+            runOnUiThread(() -> mAdapterSensing.add(result.toString()));
+            //mCrowdSensor.doProxyUpload(result);
         }).start();
     }
 
     // Stop the sensing
     @SuppressLint("SetTextI18n")
     private void stopRecord() {
-        isGetSenseRun = false;
-        mCrowdSensor.stopAllService();
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             final EditText editName = new EditText(this);
@@ -202,24 +186,6 @@ public class SensingActivity extends AppCompatActivity {
         goToService.setClass(this, ServiceActivity.class);
         startActivity(goToService);
         finish();
-    }
-
-    // Turn on the awake locker
-    private void acquireWakeLock() {
-        if (mWakeLock == null) {
-            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            assert pm != null;
-            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, this.getClass().getCanonicalName());
-            mWakeLock.acquire(100 * 60 * 1000L /*100 minutes*/);
-        }
-    }
-
-    // Turn off the awake locker
-    private void releaseWakeLock() {
-        if (mWakeLock != null && mWakeLock.isHeld()) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
     }
 
     // Convert string array to single string
