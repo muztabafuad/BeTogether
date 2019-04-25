@@ -32,6 +32,7 @@ import fr.inria.yifan.mysensor.Network.ServiceHelper;
 public class ServiceActivity extends AppCompatActivity {
 
     public static final int ENABLE_REQUEST_WIFI = 1004;
+    public static final int TIMEOUT_DISCOVERY = 5000;
     private static final String TAG = "Service activity";
 
     private final Object mLock; // Thread locker
@@ -95,11 +96,11 @@ public class ServiceActivity extends AppCompatActivity {
 
         mContextHelper = new ContextHelper(this);
         mServiceHelper = new ServiceHelper(this, mAdapterDevices);
+        mContextHelper.startService(); // Start the context detection service
+
         // Create record messages for intents exchange and service allocation
         mContextMsg = new HashMap<>();
         mIntentsMsg = new HashMap<>();
-
-        mContextHelper.startService(); // Start the context detection service
 
         // Get the remaining battery in mAh
         mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
@@ -110,8 +111,8 @@ public class ServiceActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         isRunning = false;
-        mContextHelper.stopService();
         stopExchanging();
+        mContextHelper.stopService();
     }
 
     @Override
@@ -158,8 +159,23 @@ public class ServiceActivity extends AppCompatActivity {
         mContextMsg.put("UnderGround", (String) contexts.get("UnderGround"));
         mContextMsg.put("DurationGround", (String) contexts.get("DurationGround"));
 
-        mServiceHelper.advertiseService(mContextMsg); // Advertise the service
-        mServiceHelper.discoverService(); // Discovery the service
+        // Advertise the service
+        mServiceHelper.advertiseService(mContextMsg);
+        // Discovery the service
+        isRunning = true;
+        new Thread(() -> {
+            while (isRunning) {
+                mServiceHelper.discoverService();
+                // Delay
+                synchronized (mLock) {
+                    try {
+                        mLock.wait(TIMEOUT_DISCOVERY);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
     }
 
     // Start the exchanging of intent message
@@ -177,8 +193,23 @@ public class ServiceActivity extends AppCompatActivity {
         mIntentsMsg.put("MessageType", "IntentValues");
         mIntentsMsg.putAll(intents);
 
-        mServiceHelper.advertiseService(mIntentsMsg); // Advertise the service
-        mServiceHelper.discoverService(); // Discovery the service
+        // Advertise the service
+        mServiceHelper.advertiseService(mIntentsMsg);
+        // Discovery the service
+        isRunning = true;
+        new Thread(() -> {
+            while (isRunning) {
+                mServiceHelper.discoverService();
+                // Delay
+                synchronized (mLock) {
+                    try {
+                        mLock.wait(TIMEOUT_DISCOVERY);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
     }
 
     // Start the exchanging of service message
@@ -193,17 +224,15 @@ public class ServiceActivity extends AppCompatActivity {
 
             // Get the service allocation information
             HashMap allocation = mServiceHelper.getAllocationMsg();
-            // Connect to all members
+            // Connect to all members, once connected, they start the collaboration
             mServiceHelper.connectAllMembers();
 
+            // Refresh the allocation information
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
                             + "\nService allocation are: " + allocation.toString()));
-                    //+ "\nMy connected devices are: " + mServiceHelper.getMyConnects()));
-                    //+ "\nMy collaborative power consumption is: " + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
-                    //+ "\nMy individual power consumption is: " + mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -217,13 +246,11 @@ public class ServiceActivity extends AppCompatActivity {
         }
         // I am the collaborator
         else {
+            // Refresh the allocation information
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()));
-                    //+ "\nMy connected devices are: " + mServiceHelper.getMyConnects()));
-                    //+ "\nMy collaborative power consumption is: " + mContextHelper.getPowerTotal(mServiceHelper.getMyServices(), 10, false)
-                    //+ "\nMy individual power consumption is: " + mContextHelper.getPowerTotal(Arrays.asList("Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"), 10, true)));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -245,8 +272,8 @@ public class ServiceActivity extends AppCompatActivity {
         mServiceHelper.stopDiscover();
         mServiceHelper.stopAdvertise();
         mServiceHelper.stopConnection();
-        mAdapterDevices.clear();
 
+        mAdapterDevices.clear();
         mServiceView.setText(null);
 
         float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;

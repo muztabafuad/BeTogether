@@ -176,7 +176,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     // Constructor
     public PhysicalEnvironment(Context context) {
         mContext = context;
-        loadModels(mContext);
+        loadModels();
 
         // Initial values are set to out-pocket in-door on-ground state
         mLight = 1000f;
@@ -345,19 +345,24 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             switch (mHierarResult) {
                 case 1:
                     updateInPocket();
+                    saveModels();
                     break;
                 case 2:
                     updateInDoor();
+                    saveModels();
                     break;
                 case 3:
                     updateUnderGround();
+                    saveModels();
                     break;
                 case 4:
                     Random ran = new Random();
                     if (ran.nextInt(2) == 1) {
                         updateInDoor();
+                        saveModels();
                     } else {
                         updateUnderGround();
+                        saveModels();
                     }
                     break;
                 default:
@@ -370,63 +375,63 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     }
 
     // Load models and data set format from files
-    private void loadModels(Context context) {
-        File filePocket = context.getFileStreamPath(MODEL_POCKET);
-        File fileDoor = context.getFileStreamPath(MODEL_DOOR);
-        File fileGround = context.getFileStreamPath(MODEL_GROUND);
+    private void loadModels() {
+        File filePocket = mContext.getFileStreamPath(MODEL_POCKET);
+        File fileDoor = mContext.getFileStreamPath(MODEL_DOOR);
+        File fileGround = mContext.getFileStreamPath(MODEL_GROUND);
 
         FileInputStream fileInputStream;
         ObjectInputStream objectInputStream;
         FileOutputStream fileOutputStream;
         ObjectOutputStream objectOutputStream;
 
-        // Check local model existence
+        // Check local models existence
         if (!filePocket.exists() || !fileDoor.exists() || !fileGround.exists()) {
             try {
-                // Load from assets
-                fileInputStream = context.getAssets().openFd(MODEL_POCKET).createInputStream();
+                // Load models from assets
+                fileInputStream = mContext.getAssets().openFd(MODEL_POCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierPocket = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = context.getAssets().openFd(DATASET_POCKET).createInputStream();
+                fileInputStream = mContext.getAssets().openFd(DATASET_POCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesPocket = (Instances) objectInputStream.readObject();
 
-                fileInputStream = context.getAssets().openFd(MODEL_DOOR).createInputStream();
+                fileInputStream = mContext.getAssets().openFd(MODEL_DOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = context.getAssets().openFd(DATASET_DOOR).createInputStream();
+                fileInputStream = mContext.getAssets().openFd(DATASET_DOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesDoor = (Instances) objectInputStream.readObject();
 
-                fileInputStream = context.getAssets().openFd(MODEL_GROUND).createInputStream();
+                fileInputStream = mContext.getAssets().openFd(MODEL_GROUND).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = context.getAssets().openFd(DATASET_GROUND).createInputStream();
+                fileInputStream = mContext.getAssets().openFd(DATASET_GROUND).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesGround = (Instances) objectInputStream.readObject();
 
                 objectInputStream.close();
                 fileInputStream.close();
 
-                // Save into app data
-                fileOutputStream = context.openFileOutput(MODEL_POCKET, Context.MODE_PRIVATE);
+                // Save models into app data
+                fileOutputStream = mContext.openFileOutput(MODEL_POCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierPocket);
-                fileOutputStream = context.openFileOutput(DATASET_POCKET, Context.MODE_PRIVATE);
+                fileOutputStream = mContext.openFileOutput(DATASET_POCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(instancesPocket);
 
-                fileOutputStream = context.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
+                fileOutputStream = mContext.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierDoor);
-                fileOutputStream = context.openFileOutput(DATASET_DOOR, Context.MODE_PRIVATE);
+                fileOutputStream = mContext.openFileOutput(DATASET_DOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(instancesDoor);
 
-                fileOutputStream = context.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
+                fileOutputStream = mContext.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierGround);
-                fileOutputStream = context.openFileOutput(DATASET_GROUND, Context.MODE_PRIVATE);
+                fileOutputStream = mContext.openFileOutput(DATASET_GROUND, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(instancesGround);
 
@@ -438,25 +443,25 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         } else {
             // Local models already exist
             try {
-                // Load from app data
-                fileInputStream = context.openFileInput(MODEL_POCKET);
+                // Load models from app data
+                fileInputStream = mContext.openFileInput(MODEL_POCKET);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierPocket = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = context.openFileInput(DATASET_POCKET);
+                fileInputStream = mContext.openFileInput(DATASET_POCKET);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesPocket = (Instances) objectInputStream.readObject();
 
-                fileInputStream = context.openFileInput(MODEL_DOOR);
+                fileInputStream = mContext.openFileInput(MODEL_DOOR);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = context.openFileInput(DATASET_DOOR);
+                fileInputStream = mContext.openFileInput(DATASET_DOOR);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesDoor = (Instances) objectInputStream.readObject();
 
-                fileInputStream = context.openFileInput(MODEL_GROUND);
+                fileInputStream = mContext.openFileInput(MODEL_GROUND);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (HoeffdingTree) objectInputStream.readObject();
-                fileInputStream = context.openFileInput(DATASET_GROUND);
+                fileInputStream = mContext.openFileInput(DATASET_GROUND);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesGround = (Instances) objectInputStream.readObject();
 
@@ -465,6 +470,31 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             } catch (Exception e) {
                 Log.d(TAG, "Error when loading model file: " + e);
             }
+        }
+    }
+
+    // Save the updated models
+    private void saveModels() {
+        FileOutputStream fileOutputStream;
+        ObjectOutputStream objectOutputStream;
+
+        try {
+            fileOutputStream = mContext.openFileOutput(MODEL_POCKET, Context.MODE_PRIVATE);
+            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(classifierPocket);
+
+            fileOutputStream = mContext.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
+            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(classifierDoor);
+
+            fileOutputStream = mContext.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
+            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(classifierGround);
+
+            objectOutputStream.close();
+            fileOutputStream.close();
+        } catch (Exception e) {
+            Log.d(TAG, "Error when saving model file: " + e);
         }
     }
 

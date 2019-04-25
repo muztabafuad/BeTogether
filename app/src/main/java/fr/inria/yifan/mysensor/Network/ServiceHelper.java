@@ -19,7 +19,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+
+import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
+
+import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_DELAY;
+import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_NUMBER;
 
 /**
  * This class provides functions related to the Wifi Direct service discovery and the role allocation.
@@ -33,6 +37,7 @@ public class ServiceHelper extends BroadcastReceiver {
     private static final int nMax = 10; // Maximum number of members for a group
 
     // Variables
+    private Context mContext;
     private WifiP2pManager mManager;
     private WifiP2pManager.Channel mChannel;
 
@@ -61,33 +66,34 @@ public class ServiceHelper extends BroadcastReceiver {
         @Override
         public void onDnsSdTxtRecordAvailable(String fullDomain, Map record, WifiP2pDevice device) {
             Log.e(TAG, "DnsSdTxtRecord available -" + record.toString());
-
             // Check the discovered message type
             String msgType = (String) record.get("MessageType");
-            switch (Objects.requireNonNull(msgType)) {
+            assert msgType != null;
+            switch (msgType) {
                 // Context message is discovered
                 case "ContextInfo":
                     // Check if matched as a neighbor
                     if (matchContext((HashMap<String, String>) record)) {
+                        // Show the discovered context info in the list
+                        if (!mNeighborContexts.containsKey(device.deviceAddress)) {
+                            mAdapterNeighborList.add(device.deviceAddress + " " + record);
+                            mAdapterNeighborList.notifyDataSetChanged();
+                        }
+                        // Put the neighbor context into list
                         mNeighborContexts.put(device.deviceAddress, (HashMap<String, String>) record);
-                    }
-                    // Show the discovered device info in the list
-                    if (!mNeighborContexts.containsKey(device.deviceAddress)) {
-                        mAdapterNeighborList.add(device.deviceAddress + " " + record);
-                        mAdapterNeighborList.notifyDataSetChanged();
                     }
                     break;
                 // Intent message is discovered
                 case "IntentValues":
-                    // Put the neighbor intent into list
-                    mNeighborIntents.put(device.deviceAddress, (HashMap<String, String>) record);
-                    // Check to be the coordinator or not
-                    mIsCoordinator = beCoordinator();
-                    // Show the discovered device info in the list
+                    // Show the discovered intent info in the list
                     if (!mNeighborIntents.containsKey(device.deviceAddress)) {
                         mAdapterNeighborList.add(device.deviceAddress + " " + record);
                         mAdapterNeighborList.notifyDataSetChanged();
                     }
+                    // Put the neighbor intent into list
+                    mNeighborIntents.put(device.deviceAddress, (HashMap<String, String>) record);
+                    // Check to be the coordinator or not
+                    mIsCoordinator = beCoordinator();
                     break;
                 default:
                     Log.e(TAG, "Service discovered is not corrected.");
@@ -151,7 +157,7 @@ public class ServiceHelper extends BroadcastReceiver {
                         handleReceivedMsg(msg, source);
                     }
                 };
-                // First time connected to the server, send hello message
+                // First time connected to the server/coordinator, send hello message
                 try {
                     JSONObject hello = new JSONObject();
                     hello.put("Type", "Hello");
@@ -168,8 +174,9 @@ public class ServiceHelper extends BroadcastReceiver {
 
     // Constructor
     public ServiceHelper(Context context, ArrayAdapter<String> adapter) {
-        mManager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(context, context.getMainLooper(), null);
+        mContext = context;
+        mManager = (WifiP2pManager) mContext.getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(mContext, mContext.getMainLooper(), null);
 
         mNeighborContexts = new HashMap<>();
         mNeighborIntents = new HashMap<>();
@@ -205,12 +212,12 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                Log.e(TAG, "Success in advertisement.");
+                //Log.d(TAG, "Success in advertisement.");
             }
 
             @Override
             public void onFailure(int i) {
-                Log.e(TAG, "Failed in advertisement.");
+                //Log.d(TAG, "Failed in advertisement.");
             }
         });
     }
@@ -435,10 +442,13 @@ public class ServiceHelper extends BroadcastReceiver {
     // Handle different type of messages and return a reply message (can be null)
     public JSONObject handleReceivedMsg(JSONObject msg, String source) {
         try {
+            CrowdSensor crowdSensor;
+
             switch ((String) msg.get("Type")) {
-                // Hello message from the client to the server
+
+                // Hello message handled by the server
                 case "Hello":
-                    // This is a hello message, update the IP address to a MAC address
+                    // New client is connected, update the IP address to a MAC address
                     mNeighborAddress.put((String) msg.get("MAC"), source);
                     Log.e(TAG, "MAC IP pair updated: " + mNeighborAddress.toString());
 
@@ -448,17 +458,32 @@ public class ServiceHelper extends BroadcastReceiver {
                     allocation.put("Service", mNeighborService.get(msg.get("MAC")));
                     Log.e(TAG, "Replying message" + allocation);
                     return allocation;
-                // This is a service allocation, record my services allocated
+
+                // Allocation message handled by clients
                 case "ServiceAllocation":
                     Log.e(TAG, "Received message: " + msg + "from" + source);
                     mMyServices = (List<String>) msg.get("Service");
+                    crowdSensor = new CrowdSensor(mContext) {
+                        // When the work is finished
+                        @Override
+                        public void onWorkFinished(JSONObject result) {
+                            Log.e(TAG, "Work finished: " + result);
+                            // Send the sensing data to the server
+                        }
+                    };
+                    crowdSensor.startWorkingThread(mMyServices, SAMPLE_NUMBER, SAMPLE_DELAY);
                     break;
-                // This is a raw sensing data
+
+                // Raw sensing data handled by aggregator
                 case "RawData":
+                    JSONObject result = CrowdSensor.doAggregation(null);
                     break;
-                // This is an aggregated sensing data
+
+                // Aggregated sensing data handled by proxy
                 case "AggregatedData":
+                    CrowdSensor.doProxyUpload(msg);
                     break;
+
                 default:
                     break;
             }

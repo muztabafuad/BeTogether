@@ -19,10 +19,12 @@ import android.widget.Toast;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import static java.lang.System.currentTimeMillis;
@@ -31,7 +33,7 @@ import static java.lang.System.currentTimeMillis;
  * This class provides a crowdsensor and its sensing methods.
  */
 
-public class CrowdSensor {
+public abstract class CrowdSensor {
 
     private static final String TAG = "CrowdSensor";
 
@@ -132,31 +134,14 @@ public class CrowdSensor {
     };
 
     // Constructor
-    public CrowdSensor(Context context) {
+    protected CrowdSensor(Context context) {
         mContext = context;
         mLock = new Object();
         isGetSenseRun = false;
     }
 
-    // Stop all registered service
-    private void stopAllService() {
-        mLocationManager.removeUpdates(mLocationListener);
-        // "Temperature", "Light", "Pressure", "Humidity", "Noise"
-        mSensorManager.unregisterListener(mTempListener);
-        mSensorManager.unregisterListener(mLightListener);
-        mSensorManager.unregisterListener(mPressListener);
-        mSensorManager.unregisterListener(mHumidListener);
-        mAudioRecord.stop();
-        isGetSenseRun = false;
-    }
-
-    // Start the coordinator service
-    public void startCoordinator() {
-
-    }
-
     // Upload the content to the database on cloud
-    public void doProxyUpload(JSONObject instance) {
+    public static void doProxyUpload(JSONObject instance) {
         // Access a Cloud FireStore instance from App
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
@@ -173,12 +158,38 @@ public class CrowdSensor {
     }
 
     // Get the aggregation result
-    public JSONObject doAggregation(JSONObject[] jsonList) {
+    public static JSONObject doAggregation(List<JSONObject> jsonList) {
         JSONObject result = new JSONObject();
         for (JSONObject json : jsonList) {
-            // TODO
+            for (Iterator<String> it = json.keys(); it.hasNext(); ) {
+                String key = it.next();
+                try {
+                    result.put(key, json.get(key));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        return null;
+        return result;
+    }
+
+    // Start the coordinator service
+    public void startCoordinator() {
+
+    }
+
+    // Stop all registered service
+    private void stopAllService() {
+        isGetSenseRun = false;
+        mLocationManager.removeUpdates(mLocationListener);
+        // "Temperature", "Light", "Pressure", "Humidity", "Noise"
+        mSensorManager.unregisterListener(mTempListener);
+        mSensorManager.unregisterListener(mLightListener);
+        mSensorManager.unregisterListener(mPressListener);
+        mSensorManager.unregisterListener(mHumidListener);
+        if (mAudioRecord != null) {
+            mAudioRecord.stop();
+        }
     }
 
     // Starting a sensing service
@@ -200,6 +211,7 @@ public class CrowdSensor {
                     mLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 } else {
                     Toast.makeText(mContext, "Please enable the GPS/Network location!", Toast.LENGTH_SHORT).show();
+                    mLocation = new Location("");
                 }
                 break;
             case "Temperature":
@@ -256,6 +268,9 @@ public class CrowdSensor {
 
     // Start the main thread for all services allocated, total number of samples, delay of each sample
     public void startWorkingThread(List<String> services, int numSamples, float delay) {
+        isGetSenseRun = true;
+        //Log.e(TAG, "Work allocated: " + services);
+
         mSamples = new JSONObject();
         List<Integer> timestamp = new ArrayList<>();
         List<Float> latitude = new ArrayList<>();
@@ -266,15 +281,13 @@ public class CrowdSensor {
         List<Float> humidity = new ArrayList<>();
         List<Float> noise = new ArrayList<>();
 
-        isGetSenseRun = true;
-
         for (String service : services) {
             startService(service);
         }
         new Thread(() -> {
+
             int count = 0;
             while (isGetSenseRun && count < numSamples) {
-
                 // Sampling time delay
                 synchronized (mLock) {
                     try {
@@ -283,7 +296,6 @@ public class CrowdSensor {
                         e.printStackTrace();
                     }
                 }
-
                 timestamp.add((int) (currentTimeMillis() / 1000));
                 for (String service : services) {
                     switch (service) {
@@ -335,6 +347,7 @@ public class CrowdSensor {
                 if (!noise.isEmpty()) {
                     mSamples.put("Noise", noise);
                 }
+                onWorkFinished(mSamples);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -348,6 +361,9 @@ public class CrowdSensor {
         return mSamples;
     }
 
+    // Callback when the sensing work is finished
+    public abstract void onWorkFinished(JSONObject result);
+
     /*
     db.collection("SensingData").get()
                 .addOnCompleteListener(task -> {
@@ -360,5 +376,4 @@ public class CrowdSensor {
         }
     });
     */
-
 }

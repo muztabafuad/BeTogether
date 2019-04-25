@@ -105,7 +105,14 @@ public class SensingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sensing);
         bindViews();
 
-        mCrowdSensor = new CrowdSensor(this);
+        mCrowdSensor = new CrowdSensor(this) {
+            @Override
+            public void onWorkFinished(JSONObject result) {
+                Log.e(TAG, "Work finished: " + result);
+                //mAdapterSensing.add(result.toString());
+            }
+        };
+
         mFilesIOHelper = new FilesIOHelper(this);
     }
 
@@ -132,7 +139,7 @@ public class SensingActivity extends AppCompatActivity {
             // Wait for the sensing thread to finish
             synchronized (mLock) {
                 try {
-                    mLock.wait(SAMPLE_NUMBER * SAMPLE_DELAY + 1000);
+                    mLock.wait(SAMPLE_NUMBER * SAMPLE_DELAY + 500);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
