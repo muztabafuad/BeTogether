@@ -97,15 +97,15 @@ public class ServiceActivity extends AppCompatActivity {
         mContextHelper = new ContextHelper(this);
         mServiceHelper = new ServiceHelper(this, mAdapterDevices);
 
+        // Start the context service
+        mContextHelper.startService(); // Start the context detection service
+
         // Create record messages for intents exchange and service allocation
         mContextMsg = new HashMap<>();
         mIntentsMsg = new HashMap<>();
 
         // Get the battery manager
         mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
-
-        // Start the context service
-        mContextHelper.startService(); // Start the context detection service
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -225,6 +225,7 @@ public class ServiceActivity extends AppCompatActivity {
         // I am the collaborator
         else {
             // Refresh the allocation information
+            isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
                     runOnUiThread(() -> mServiceView.setText("Coordinator: " + mServiceHelper.isCoordinator()
@@ -246,6 +247,10 @@ public class ServiceActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void stopExchanging() {
+        float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        long currentTime = System.currentTimeMillis();
+        mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - currentBattery) + "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
+
         isRunning = false;
 
         mServiceHelper.stopAdvertise();
@@ -254,10 +259,6 @@ public class ServiceActivity extends AppCompatActivity {
 
         mAdapterDevices.clear();
         mServiceView.setText(null);
-
-        float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-        long currentTime = System.currentTimeMillis();
-        mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - currentBattery) + "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
     }
 
     // Check whether the Wifi is turned on

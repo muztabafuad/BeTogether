@@ -22,6 +22,9 @@ import java.util.Map;
 
 import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
 
+import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_DELAY;
+import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_NUMBER;
+
 /**
  * This class provides functions related to the Wifi Direct service discovery and the role allocation.
  * Service roles: "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise".
@@ -43,6 +46,8 @@ public class ServiceHelper extends BroadcastReceiver {
     private HashMap<String, List<String>> mNeighborService; // Neighbor MAC address and its service allocation list
     private HashMap<String, String> mNeighborAddress; // Neighbor MAC address and its IP address (for socket)
 
+    private JSONObject mDataToUpload;
+
     private String mMacAddress; // MAC address of current device
     private HashMap<String, String> mSelfContext; // Context message of current device
     private HashMap<String, String> mSelfIntent; // Intents message of current device
@@ -50,7 +55,6 @@ public class ServiceHelper extends BroadcastReceiver {
     private boolean mIsCoordinator; // Coordinator flag of current device
 
     private NetworkHelper mNetworkHelper;
-
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
     //private List<String> mMyConnect; // Connected devices for current device
     //private WifiP2pInfo mMyP2PInfo; // Wifi-Direct connection information
@@ -172,6 +176,8 @@ public class ServiceHelper extends BroadcastReceiver {
         mSelfIntent = new HashMap<>();
         mMyServices = new ArrayList<>();
         mIsCoordinator = false;
+
+        mDataToUpload = new JSONObject();
 
         mAdapterNeighborList = adapter;
     }
@@ -315,6 +321,7 @@ public class ServiceHelper extends BroadcastReceiver {
     @SuppressWarnings("ConstantConditions")
     // Return the message containing neighbor address and its roles (for coordinator)
     public HashMap<String, List<String>> getAllocationMsg() {
+        mMyServices = new ArrayList<>();
         // Iteration over all collaborative roles
         for (String role : new String[]{"Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"}) {
             String collaborator = findBestCollaborator(role);
@@ -377,7 +384,7 @@ public class ServiceHelper extends BroadcastReceiver {
         config.wps.setup = WpsInfo.PBC;
         config.groupOwnerIntent = 15;
 
-        Log.e(TAG, "Connection info: " + config);
+        //Log.e(TAG, "Connection info: " + config);
         for (String member : mNeighborService.keySet()) {
             config.deviceAddress = member;
             mNeighborAddress.put(member, "192.168.49.1");
@@ -454,12 +461,12 @@ public class ServiceHelper extends BroadcastReceiver {
                             // Send the sensing data to the aggregator
                         }
                     };
-                    //crowdSensor.startWorkingThread(mMyServices, SAMPLE_NUMBER, SAMPLE_DELAY);
+                    crowdSensor.startWorkingThread(mMyServices, SAMPLE_NUMBER, SAMPLE_DELAY);
                     break;
 
                 // Raw sensing data handled by aggregator (currently coordinator)
                 case "RawData":
-                    JSONObject result = CrowdSensor.doAggregation(null);
+                    CrowdSensor.doAggregation(mDataToUpload, msg);
                     break;
 
                 // Aggregated sensing data handled by proxy (currently coordinator)

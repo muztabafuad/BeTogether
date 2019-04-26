@@ -158,19 +158,16 @@ public abstract class CrowdSensor {
     }
 
     // Get the aggregation result
-    public static JSONObject doAggregation(List<JSONObject> jsonList) {
-        JSONObject result = new JSONObject();
-        for (JSONObject json : jsonList) {
-            for (Iterator<String> it = json.keys(); it.hasNext(); ) {
-                String key = it.next();
-                try {
-                    result.put(key, json.get(key));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+    public static JSONObject doAggregation(JSONObject json1, JSONObject json2) {
+        for (Iterator<String> it = json2.keys(); it.hasNext(); ) {
+            String key = it.next();
+            try {
+                json1.put(key, json2.get(key));
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
         }
-        return result;
+        return json1;
     }
 
     // Start the coordinator service

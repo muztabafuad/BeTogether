@@ -146,7 +146,7 @@ public class SensingActivity extends AppCompatActivity {
             }
             JSONObject result = mCrowdSensor.getWorkingResult();
             runOnUiThread(() -> mAdapterSensing.add(result.toString()));
-            //mCrowdSensor.doProxyUpload(result);
+            CrowdSensor.doProxyUpload(result);
         }).start();
     }
 
