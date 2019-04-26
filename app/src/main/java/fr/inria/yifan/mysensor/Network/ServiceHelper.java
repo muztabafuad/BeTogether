@@ -74,10 +74,8 @@ public class ServiceHelper extends BroadcastReceiver {
                     // Check if matched as a neighbor
                     if (matchContext((HashMap<String, String>) record)) {
                         // Show the discovered context info in the list
-                        if (!mNeighborContexts.containsKey(device.deviceAddress)) {
-                            mAdapterNeighborList.add(device.deviceAddress + " " + record);
-                            mAdapterNeighborList.notifyDataSetChanged();
-                        }
+                        mAdapterNeighborList.add(device.deviceAddress + " " + record);
+                        mAdapterNeighborList.notifyDataSetChanged();
                         // Put the neighbor context into list
                         mNeighborContexts.put(device.deviceAddress, (HashMap<String, String>) record);
                     }
@@ -85,10 +83,8 @@ public class ServiceHelper extends BroadcastReceiver {
                 // Intent message is discovered
                 case "IntentValues":
                     // Show the discovered intent info in the list
-                    if (!mNeighborIntents.containsKey(device.deviceAddress)) {
-                        mAdapterNeighborList.add(device.deviceAddress + " " + record);
-                        mAdapterNeighborList.notifyDataSetChanged();
-                    }
+                    mAdapterNeighborList.add(device.deviceAddress + " " + record);
+                    mAdapterNeighborList.notifyDataSetChanged();
                     // Put the neighbor intent into list
                     mNeighborIntents.put(device.deviceAddress, (HashMap<String, String>) record);
                     // Check to be the coordinator or not

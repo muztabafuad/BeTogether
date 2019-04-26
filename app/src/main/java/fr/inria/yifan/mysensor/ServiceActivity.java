@@ -114,7 +114,6 @@ public class ServiceActivity extends AppCompatActivity {
         super.onDestroy();
         isRunning = false;
         stopExchanging();
-        mServiceHelper.stopAdvertise();
         // Stop the context service
         mContextHelper.stopService();
     }
@@ -249,8 +248,9 @@ public class ServiceActivity extends AppCompatActivity {
     private void stopExchanging() {
         isRunning = false;
 
-        mServiceHelper.stopConnection();
+        mServiceHelper.stopAdvertise();
         mServiceHelper.stopDiscover();
+        mServiceHelper.stopConnection();
 
         mAdapterDevices.clear();
         mServiceView.setText(null);
