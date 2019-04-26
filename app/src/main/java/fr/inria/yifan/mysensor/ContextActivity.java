@@ -43,10 +43,11 @@ public class ContextActivity extends AppCompatActivity {
         attributeView = findViewById(R.id.intents_view);
 
         mContextHelper = new ContextHelper(this);
-        mContextHelper.startService();
 
         Button feedbackButton = findViewById(R.id.feedback_button);
         feedbackButton.setOnClickListener(v -> mContextHelper.updatePEModels());
+
+        mContextHelper.startService();
 
         new Thread(() -> {
             while (isRunning) {

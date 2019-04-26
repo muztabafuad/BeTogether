@@ -22,9 +22,6 @@ import java.util.Map;
 
 import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
 
-import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_DELAY;
-import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_NUMBER;
-
 /**
  * This class provides functions related to the Wifi Direct service discovery and the role allocation.
  * Service roles: "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise".
@@ -51,6 +48,8 @@ public class ServiceHelper extends BroadcastReceiver {
     private HashMap<String, String> mSelfIntent; // Intents message of current device
     private List<String> mMyServices; // Services allocated for current device
     private boolean mIsCoordinator; // Coordinator flag of current device
+
+    private NetworkHelper mNetworkHelper;
 
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
     //private List<String> mMyConnect; // Connected devices for current device
@@ -107,9 +106,7 @@ public class ServiceHelper extends BroadcastReceiver {
      * String registrationType
      * WifiP2pDevice source device
      */
-    private WifiP2pManager.DnsSdServiceResponseListener mServiceListener = (instanceName, registrationType, resourceType) -> {
-        //Log.d(TAG, "onBonjourServiceAvailable " + instanceName);
-    };
+    private WifiP2pManager.DnsSdServiceResponseListener mServiceListener = (instanceName, registrationType, resourceType) -> Log.e(TAG, "onBonjourServiceAvailable " + instanceName);
 
     // Listener for Wifi-Direct group
     private WifiP2pManager.GroupInfoListener mGroupListener = group -> {
@@ -131,14 +128,10 @@ public class ServiceHelper extends BroadcastReceiver {
             if (info.isGroupOwner) {
                 mIsCoordinator = true;
                 Log.e(TAG, "I am the coordinator");
-                NetworkHelper helper = new NetworkHelper(true) {
+                mNetworkHelper = new NetworkHelper(mIsCoordinator) {
                     @Override
-                    JSONObject serverCallbackReceiveReply(JSONObject msg, String source) {
+                    JSONObject callbackReceiveReply(JSONObject msg, String source) {
                         return handleReceivedMsg(msg, source);
-                    }
-
-                    @Override
-                    void clientCallbackReceiveReply(JSONObject msg, String source) {
                     }
                 };
             }
@@ -146,15 +139,10 @@ public class ServiceHelper extends BroadcastReceiver {
             else {
                 mIsCoordinator = false;
                 Log.e(TAG, "I am a collaborator");
-                NetworkHelper helper = new NetworkHelper(false) {
+                mNetworkHelper = new NetworkHelper(mIsCoordinator) {
                     @Override
-                    JSONObject serverCallbackReceiveReply(JSONObject msg, String source) {
-                        return null;
-                    }
-
-                    @Override
-                    void clientCallbackReceiveReply(JSONObject msg, String source) {
-                        handleReceivedMsg(msg, source);
+                    JSONObject callbackReceiveReply(JSONObject msg, String source) {
+                        return handleReceivedMsg(msg, source);
                     }
                 };
                 // First time connected to the server/coordinator, send hello message
@@ -163,7 +151,7 @@ public class ServiceHelper extends BroadcastReceiver {
                     hello.put("Type", "Hello");
                     hello.put("MAC", mMacAddress);
                     // Send to the coordinator and wait for receiving service allocation
-                    helper.sendAndReceive(info.groupOwnerAddress.getHostAddress(), hello);
+                    mNetworkHelper.sendAndReceive(info.groupOwnerAddress.getHostAddress(), hello);
                     Log.e(TAG, "Sending message" + hello);
                 } catch (Exception e) {
                     Log.e(TAG, "Can't put JSON: " + e);
@@ -212,12 +200,12 @@ public class ServiceHelper extends BroadcastReceiver {
         mManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                //Log.d(TAG, "Success in advertisement.");
+                Log.e(TAG, "Success in advertisement.");
             }
 
             @Override
             public void onFailure(int i) {
-                //Log.d(TAG, "Failed in advertisement.");
+                Log.e(TAG, "Failed in advertisement.");
             }
         });
     }
@@ -255,9 +243,6 @@ public class ServiceHelper extends BroadcastReceiver {
     public void stopConnection() {
         mManager.removeGroup(mChannel, null);
         mManager.cancelConnect(mChannel, null);
-        //if (!mMyConnect.isEmpty()) {
-        //    mMyConnect.clear();
-        //}
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -291,7 +276,7 @@ public class ServiceHelper extends BroadcastReceiver {
         String selfIntent = mSelfIntent.get("Coordinator");
         for (String neighborAddr : mNeighborIntents.keySet()) {
             String neighborIntent = mNeighborIntents.get(neighborAddr).get("Coordinator");
-            if (Float.parseFloat(selfIntent) > Float.parseFloat(neighborIntent)) {
+            if (Float.parseFloat(selfIntent) >= Float.parseFloat(neighborIntent)) {
                 counter++;
                 if (counter == _k) {
                     return true;
@@ -441,9 +426,9 @@ public class ServiceHelper extends BroadcastReceiver {
     @SuppressWarnings("unchecked")
     // Handle different type of messages and return a reply message (can be null)
     public JSONObject handleReceivedMsg(JSONObject msg, String source) {
+        // TODO
         try {
             CrowdSensor crowdSensor;
-
             switch ((String) msg.get("Type")) {
 
                 // Hello message handled by the server
@@ -456,30 +441,32 @@ public class ServiceHelper extends BroadcastReceiver {
                     JSONObject allocation = new JSONObject();
                     allocation.put("Type", "ServiceAllocation");
                     allocation.put("Service", mNeighborService.get(msg.get("MAC")));
-                    Log.e(TAG, "Replying message" + allocation);
+                    Log.e(TAG, "Replying message: " + allocation);
                     return allocation;
 
                 // Allocation message handled by clients
                 case "ServiceAllocation":
-                    Log.e(TAG, "Received message: " + msg + "from" + source);
-                    mMyServices = (List<String>) msg.get("Service");
+                    Log.e(TAG, "Received message: " + msg + " from " + source);
+                    mMyServices = new ArrayList<>();
+                    mMyServices.addAll((List<String>) msg.get("Service"));
+                    Log.e(TAG, "Received: " + msg.get("Service").getClass() + ", my services are: " + mMyServices);
                     crowdSensor = new CrowdSensor(mContext) {
                         // When the work is finished
                         @Override
                         public void onWorkFinished(JSONObject result) {
                             Log.e(TAG, "Work finished: " + result);
-                            // Send the sensing data to the server
+                            // Send the sensing data to the aggregator
                         }
                     };
-                    crowdSensor.startWorkingThread(mMyServices, SAMPLE_NUMBER, SAMPLE_DELAY);
+                    //crowdSensor.startWorkingThread(mMyServices, SAMPLE_NUMBER, SAMPLE_DELAY);
                     break;
 
-                // Raw sensing data handled by aggregator
+                // Raw sensing data handled by aggregator (currently coordinator)
                 case "RawData":
                     JSONObject result = CrowdSensor.doAggregation(null);
                     break;
 
-                // Aggregated sensing data handled by proxy
+                // Aggregated sensing data handled by proxy (currently coordinator)
                 case "AggregatedData":
                     CrowdSensor.doProxyUpload(msg);
                     break;

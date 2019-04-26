@@ -66,7 +66,7 @@ public abstract class NetworkHelper {
                     String msg = dataInputStream.readUTF();
                     if (msg != null) {
                         // Handle the incoming message and get the reply from the callback
-                        JSONObject reply = serverCallbackReceiveReply(new JSONObject(msg), socket.getInetAddress().getHostAddress());
+                        JSONObject reply = callbackReceiveReply(new JSONObject(msg), socket.getInetAddress().getHostAddress());
                         if (reply != null) {
                             // Transfer JSONObject as String to reply the client
                             dataOutputStream = new DataOutputStream(socket.getOutputStream());
@@ -96,8 +96,8 @@ public abstract class NetworkHelper {
         }).start();
     }
 
-    // Callback when server receives a JSON message, return the message to reply
-    abstract JSONObject serverCallbackReceiveReply(JSONObject msg, String source);
+    // Callback when receives a JSON message, return the message to reply
+    abstract JSONObject callbackReceiveReply(JSONObject msg, String source);
 
     // Send a message to the destination and wait for a reply, for client
     void sendAndReceive(String dest, JSONObject msg) {
@@ -119,7 +119,7 @@ public abstract class NetworkHelper {
                 dataInputStream = new DataInputStream(socket.getInputStream());
                 String reply = dataInputStream.readUTF();
                 if (reply != null) {
-                    clientCallbackReceiveReply(new JSONObject(reply), socket.getInetAddress().getHostAddress());
+                    callbackReceiveReply(new JSONObject(reply), socket.getInetAddress().getHostAddress());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -142,9 +142,6 @@ public abstract class NetworkHelper {
             }
         }).start();
     }
-
-    // Callback when client receive a JSON message, return the message to reply
-    abstract void clientCallbackReceiveReply(JSONObject msg, String source);
 
     // Send a message to the destination only, for client
     void sendOnly(String dest, JSONObject msg) {

@@ -231,6 +231,9 @@ public abstract class CrowdSensor {
                 mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
                 mAudioRecord.startRecording();
                 break;
+            default:
+                Log.d(TAG, "Aggregator or proxy collaborator");
+                break;
         }
     }
 
@@ -317,6 +320,9 @@ public abstract class CrowdSensor {
                             break;
                         case "Noise":
                             noise.add(getCurrentMeasurement("Noise"));
+                            break;
+                        default:
+                            Log.d(TAG, "Aggregator or proxy collaborator");
                             break;
                     }
                 }

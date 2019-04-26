@@ -13,6 +13,11 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This activity has to be started in the beginning of the application to ensure all user permissions are enabled.
  */
@@ -45,6 +50,22 @@ public class InitializeActivity extends AppCompatActivity {
         welcomeView.setText(R.string.hint_initial);
 
         checkPermission();
+
+        try {
+            List<String> services = new ArrayList<>();
+            services.add("Locator");
+            services.add("Aggregator");
+            services.add("Light");
+
+            JSONObject json = new JSONObject();
+            json.put("Service", services);
+
+            List<String> myServices = new ArrayList<>((List<String>) json.get("Service"));
+            Log.e(TAG, "Received: " + json.get("Service") + ", my services are: " + myServices);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     // Check related user permissions

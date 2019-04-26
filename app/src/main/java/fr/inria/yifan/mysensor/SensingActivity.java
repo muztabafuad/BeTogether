@@ -132,7 +132,7 @@ public class SensingActivity extends AppCompatActivity {
     // Start the sensing thread
     private void startRecord() {
 
-        // Test for a service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+        // JSONTest for a service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
         mCrowdSensor.startWorkingThread(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"), SAMPLE_NUMBER, SAMPLE_DELAY);
 
         new Thread(() -> {

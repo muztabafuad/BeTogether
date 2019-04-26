@@ -7,7 +7,6 @@ import weka.core.Attribute;
 import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.SerializationHelper;
 
 /**
  * Training and exportation of multi-class learning models
@@ -158,6 +157,6 @@ public class TrainDurationModel {
         System.out.println(model.classifyInstance(test_inst));
 
         // Save and load
-        SerializationHelper.write("/Users/Yifan/Documents/SenseGroupTogether/app/src/main/assets/Ground_prediction.model", model);
+        //SerializationHelper.write("/Users/Yifan/Documents/SenseGroupTogether/app/src/main/assets/Ground_prediction.model", model);
     }
 }

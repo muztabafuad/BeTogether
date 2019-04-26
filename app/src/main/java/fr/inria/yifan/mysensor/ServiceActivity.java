@@ -96,14 +96,16 @@ public class ServiceActivity extends AppCompatActivity {
 
         mContextHelper = new ContextHelper(this);
         mServiceHelper = new ServiceHelper(this, mAdapterDevices);
-        mContextHelper.startService(); // Start the context detection service
 
         // Create record messages for intents exchange and service allocation
         mContextMsg = new HashMap<>();
         mIntentsMsg = new HashMap<>();
 
-        // Get the remaining battery in mAh
+        // Get the battery manager
         mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
+
+        // Start the context service
+        mContextHelper.startService(); // Start the context detection service
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -112,6 +114,8 @@ public class ServiceActivity extends AppCompatActivity {
         super.onDestroy();
         isRunning = false;
         stopExchanging();
+        mServiceHelper.stopAdvertise();
+        // Stop the context service
         mContextHelper.stopService();
     }
 
@@ -162,24 +166,10 @@ public class ServiceActivity extends AppCompatActivity {
         // Advertise the service
         mServiceHelper.advertiseService(mContextMsg);
         // Discovery the service
-        isRunning = true;
-        new Thread(() -> {
-            while (isRunning) {
-                mServiceHelper.discoverService();
-                // Delay
-                synchronized (mLock) {
-                    try {
-                        mLock.wait(TIMEOUT_DISCOVERY);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+        mServiceHelper.discoverService();
     }
 
     // Start the exchanging of intent message
-    @SuppressLint("SetTextI18n")
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressWarnings("unchecked")
     private void intentExchanging() {
@@ -196,42 +186,31 @@ public class ServiceActivity extends AppCompatActivity {
         // Advertise the service
         mServiceHelper.advertiseService(mIntentsMsg);
         // Discovery the service
-        isRunning = true;
-        new Thread(() -> {
-            while (isRunning) {
-                mServiceHelper.discoverService();
-                // Delay
-                synchronized (mLock) {
-                    try {
-                        mLock.wait(TIMEOUT_DISCOVERY);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+        mServiceHelper.discoverService();
     }
 
     // Start the exchanging of service message
     @SuppressLint("SetTextI18n")
-    @RequiresApi(api = Build.VERSION_CODES.M)
     private void serviceExchanging() {
 
         mWelcomeView.setText(R.string.open_service);
 
         // I am the coordinator
         if (mServiceHelper.isCoordinator()) {
-
-            // Get the service allocation information
-            HashMap allocation = mServiceHelper.getAllocationMsg();
             // Connect to all members, once connected, they start the collaboration
             mServiceHelper.connectAllMembers();
+        }
 
+        // I am the coordinator
+        if (mServiceHelper.isCoordinator()) {
+            // Get the service allocation information
+            HashMap allocation = mServiceHelper.getAllocationMsg();
             // Refresh the allocation information
             isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
-                    runOnUiThread(() -> mServiceView.setText("I am the coordinator: " + mServiceHelper.getMyServices()
+                    runOnUiThread(() -> mServiceView.setText("Coordinator: " + mServiceHelper.isCoordinator()
+                            + "\nMy services are: " + mServiceHelper.getMyServices()
                             + "\nService allocation are: " + allocation.toString()));
                     // Delay
                     synchronized (mLock) {
@@ -247,10 +226,10 @@ public class ServiceActivity extends AppCompatActivity {
         // I am the collaborator
         else {
             // Refresh the allocation information
-            isRunning = true;
             new Thread(() -> {
                 while (isRunning) {
-                    runOnUiThread(() -> mServiceView.setText("My services allocated are: " + mServiceHelper.getMyServices()));
+                    runOnUiThread(() -> mServiceView.setText("Coordinator: " + mServiceHelper.isCoordinator()
+                            + "\nMy services are: " + mServiceHelper.getMyServices()));
                     // Delay
                     synchronized (mLock) {
                         try {
@@ -269,9 +248,9 @@ public class ServiceActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void stopExchanging() {
         isRunning = false;
-        mServiceHelper.stopDiscover();
-        mServiceHelper.stopAdvertise();
+
         mServiceHelper.stopConnection();
+        mServiceHelper.stopDiscover();
 
         mAdapterDevices.clear();
         mServiceView.setText(null);
