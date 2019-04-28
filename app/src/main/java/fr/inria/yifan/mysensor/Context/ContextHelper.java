@@ -287,6 +287,7 @@ public class ContextHelper {
         } else if (!currentUA.equals("UNKNOWN") && !currentUA.equals(previousUA)) {
             //Log.d(TAG, "Activity is: " + currentUA + ", time is: " + startTimeUA.getTimeInMillis());
             mDurationPredict.updateActivityModel(startTimeUA, previousUA);
+            mDurationPredict.saveModels();
             startTimeUA = Calendar.getInstance();
             previousUA = currentUA;
         }
@@ -304,6 +305,7 @@ public class ContextHelper {
             // Indoor state has changed and it's not null
             //Log.d(TAG, "Indoor is: " + currentDoor + ", time is: " + startTimeDoor.getTimeInMillis());
             mDurationPredict.updateDoorModel(startTimeDoor, previousIndoor);
+            mDurationPredict.saveModels();
             startTimeDoor = Calendar.getInstance();
             previousIndoor = currentDoor;
         }
@@ -321,6 +323,7 @@ public class ContextHelper {
             // Underground state has changed and it's not null
             //Log.d(TAG, "Underground is: " + currentGround + ", time is: " + startTimeGround.getTimeInMillis());
             mDurationPredict.updateGroundModel(startTimeGround, previousUnderground);
+            mDurationPredict.saveModels();
             startTimeGround = Calendar.getInstance();
             previousUnderground = currentGround;
         }

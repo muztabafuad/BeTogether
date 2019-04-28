@@ -40,12 +40,17 @@ class DurationPredict {
     private LWL classifierDoor;
     private LWL classifierGround;
 
+    private Context mContext;
+
     // Constructor
     DurationPredict(Context context) {
+
+        mContext = context;
+
         // Load learning models
-        File fileActivity = context.getFileStreamPath(MODEL_ACTIVITY);
-        File fileDoor = context.getFileStreamPath(MODEL_DOOR);
-        File fileGround = context.getFileStreamPath(MODEL_GROUND);
+        File fileActivity = mContext.getFileStreamPath(MODEL_ACTIVITY);
+        File fileDoor = mContext.getFileStreamPath(MODEL_DOOR);
+        File fileGround = mContext.getFileStreamPath(MODEL_GROUND);
 
         FileInputStream fileInputStream;
         ObjectInputStream objectInputStream;
@@ -56,15 +61,15 @@ class DurationPredict {
         if (!fileActivity.exists() || !fileDoor.exists() || !fileGround.exists()) {
             try {
                 // Load from assets
-                fileInputStream = context.getAssets().openFd(MODEL_ACTIVITY).createInputStream();
+                fileInputStream = mContext.getAssets().openFd(MODEL_ACTIVITY).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierActivity = (LWL) objectInputStream.readObject();
 
-                fileInputStream = context.getAssets().openFd(MODEL_DOOR).createInputStream();
+                fileInputStream = mContext.getAssets().openFd(MODEL_DOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (LWL) objectInputStream.readObject();
 
-                fileInputStream = context.getAssets().openFd(MODEL_GROUND).createInputStream();
+                fileInputStream = mContext.getAssets().openFd(MODEL_GROUND).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (LWL) objectInputStream.readObject();
 
@@ -72,15 +77,15 @@ class DurationPredict {
                 fileInputStream.close();
 
                 // Save into app data
-                fileOutputStream = context.openFileOutput(MODEL_ACTIVITY, Context.MODE_PRIVATE);
+                fileOutputStream = mContext.openFileOutput(MODEL_ACTIVITY, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierActivity);
 
-                fileOutputStream = context.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
+                fileOutputStream = mContext.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierDoor);
 
-                fileOutputStream = context.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
+                fileOutputStream = mContext.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierGround);
 
@@ -93,15 +98,15 @@ class DurationPredict {
             // Local models already exist
             try {
                 // Load from app data
-                fileInputStream = context.openFileInput(MODEL_ACTIVITY);
+                fileInputStream = mContext.openFileInput(MODEL_ACTIVITY);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierActivity = (LWL) objectInputStream.readObject();
 
-                fileInputStream = context.openFileInput(MODEL_DOOR);
+                fileInputStream = mContext.openFileInput(MODEL_DOOR);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (LWL) objectInputStream.readObject();
 
-                fileInputStream = context.openFileInput(MODEL_GROUND);
+                fileInputStream = mContext.openFileInput(MODEL_GROUND);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (LWL) objectInputStream.readObject();
 
@@ -266,6 +271,32 @@ class DurationPredict {
         }
         return 0;
     }
+
+    // Save the updated models
+    void saveModels() {
+        FileOutputStream fileOutputStream;
+        ObjectOutputStream objectOutputStream;
+        try {
+            // Save into app data
+            fileOutputStream = mContext.openFileOutput(MODEL_ACTIVITY, Context.MODE_PRIVATE);
+            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(classifierActivity);
+
+            fileOutputStream = mContext.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
+            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(classifierDoor);
+
+            fileOutputStream = mContext.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
+            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(classifierGround);
+
+            objectOutputStream.close();
+            fileOutputStream.close();
+        } catch (Exception e) {
+            Log.d(TAG, "Error when saving model file: " + e);
+        }
+    }
+
 
     // Convert to numeric value for the model
     private int convertActivity(String activity) {

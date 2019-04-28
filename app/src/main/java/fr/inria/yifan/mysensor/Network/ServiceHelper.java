@@ -34,7 +34,8 @@ public class ServiceHelper extends BroadcastReceiver {
 
     private static final String TAG = "Service helper";
 
-    private static final int nMax = 10; // Maximum number of members for a group
+    private static final int N_Max = 10; // Maximum number of members for a group
+    private static final int TIME_CONTEXT = 1; // Time threshold of a detected context
 
     // Variables
     private Context mContext;
@@ -251,11 +252,11 @@ public class ServiceHelper extends BroadcastReceiver {
     // Check if the context matches for the neighbor
     private boolean matchContext(HashMap<String, String> context) {
         return mSelfContext.get("UserActivity").equals(context.get("UserActivity")) &&
-                Float.parseFloat(mSelfContext.get("DurationUA")) > 10f && Float.parseFloat(context.get("DurationUA")) > 10f &&
+                Float.parseFloat(mSelfContext.get("DurationUA")) > TIME_CONTEXT && Float.parseFloat(context.get("DurationUA")) > TIME_CONTEXT &&
                 mSelfContext.get("InDoor").equals(context.get("InDoor")) &&
-                Float.parseFloat(mSelfContext.get("DurationDoor")) > 10f && Float.parseFloat(context.get("DurationDoor")) > 10f &&
+                Float.parseFloat(mSelfContext.get("DurationDoor")) > TIME_CONTEXT && Float.parseFloat(context.get("DurationDoor")) > TIME_CONTEXT &&
                 mSelfContext.get("UnderGround").equals(context.get("UnderGround")) &&
-                Float.parseFloat(mSelfContext.get("DurationGround")) > 10f && Float.parseFloat(context.get("DurationGround")) > 10f;
+                Float.parseFloat(mSelfContext.get("DurationGround")) > TIME_CONTEXT && Float.parseFloat(context.get("DurationGround")) > TIME_CONTEXT;
     }
 
     // Get the history connection time of neighbors as a list
@@ -271,7 +272,7 @@ public class ServiceHelper extends BroadcastReceiver {
     // Look at self whether should be the coordinator or not
     private boolean beCoordinator() {
         // Ranking top k number
-        int k = Math.max(1, (mNeighborIntents.size() / nMax));
+        int k = Math.max(1, (mNeighborIntents.size() / N_Max));
         // Better than other _k neighbors
         int _k = mNeighborIntents.size() + 1 - k;
         int counter = 0;
