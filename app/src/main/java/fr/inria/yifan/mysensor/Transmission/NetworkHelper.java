@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Network;
+package fr.inria.yifan.mysensor.Transmission;
 
 import org.json.JSONObject;
 
@@ -26,7 +26,7 @@ public abstract class NetworkHelper {
     private List<Socket> mClients;
 
     // Constructor
-    NetworkHelper(boolean isServer) {
+    protected NetworkHelper(boolean isServer) {
         // The server listens for incoming socket
         if (isServer) {
             mClients = new ArrayList<>();
@@ -97,10 +97,10 @@ public abstract class NetworkHelper {
     }
 
     // Callback when receives a JSON message, return the message to reply
-    abstract JSONObject callbackReceiveReply(JSONObject msg, String source);
+    public abstract JSONObject callbackReceiveReply(JSONObject msg, String source);
 
     // Send a message to the destination and wait for a reply, for client
-    void sendAndReceive(String dest, JSONObject msg) {
+    public void sendAndReceive(String dest, JSONObject msg) {
         // Network operation must use a new thread
         new Thread(() -> {
             Socket socket = new Socket();

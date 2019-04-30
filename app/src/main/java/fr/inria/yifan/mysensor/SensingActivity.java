@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
-import fr.inria.yifan.mysensor.Sensing.FilesIOHelper;
+import fr.inria.yifan.mysensor.Transmission.FilesIOHelper;
 
 import static java.lang.System.currentTimeMillis;
 

@@ -1,4 +1,4 @@
-package fr.inria.yifan.mysensor.Network;
+package fr.inria.yifan.mysensor.Sensing;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
+import fr.inria.yifan.mysensor.Transmission.NetworkHelper;
 
 import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_DELAY;
 import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_NUMBER;
@@ -131,7 +131,7 @@ public class ServiceHelper extends BroadcastReceiver {
                 Log.e(TAG, "I am the coordinator");
                 mNetworkHelper = new NetworkHelper(mIsCoordinator) {
                     @Override
-                    JSONObject callbackReceiveReply(JSONObject msg, String source) {
+                    public JSONObject callbackReceiveReply(JSONObject msg, String source) {
                         return handleReceivedMsg(msg, source);
                     }
                 };
@@ -142,7 +142,7 @@ public class ServiceHelper extends BroadcastReceiver {
                 Log.e(TAG, "I am a collaborator");
                 mNetworkHelper = new NetworkHelper(mIsCoordinator) {
                     @Override
-                    JSONObject callbackReceiveReply(JSONObject msg, String source) {
+                    public JSONObject callbackReceiveReply(JSONObject msg, String source) {
                         return handleReceivedMsg(msg, source);
                     }
                 };
