@@ -2,7 +2,9 @@ package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -17,8 +19,9 @@ import android.widget.TextView;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 
+import fr.inria.yifan.mysensor.Context.ContextHelper;
 import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
 import fr.inria.yifan.mysensor.Transmission.FilesIOHelper;
 
@@ -39,6 +42,7 @@ public class SensingActivity extends AppCompatActivity {
     public static final int SAMPLE_DELAY = 1000;
 
     private final Object mLock; // Thread locker
+    private boolean isGetSenseRun; // Running flag
 
     // Declare all related views in UI
     private Button mStartButton;
@@ -50,6 +54,8 @@ public class SensingActivity extends AppCompatActivity {
     private FilesIOHelper mFilesIOHelper; // File helper
     private ArrayList<String> mSensingData; // Sensing data
 
+    private ContextHelper mContextHelper;
+
     // Helpers for sensors and context
     private CrowdSensor mCrowdSensor;
 
@@ -59,6 +65,7 @@ public class SensingActivity extends AppCompatActivity {
     }
 
     // Initially bind all views
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void bindViews() {
         TextView mWelcomeView = findViewById(R.id.welcome_view);
         mWelcomeView.setText(R.string.hint_sensing);
@@ -78,8 +85,8 @@ public class SensingActivity extends AppCompatActivity {
 
         mStartButton.setOnClickListener(view -> {
             mAdapterSensing.clear();
-            mAdapterSensing.add("0 Timestamp, 1 Latitude, Longitude, 2 Temperature (C), 3 Light density (lx), " +
-                    "4 Pressure (hPa), 5 Humidity (%), 6 Sound level (dBA)");
+            //mAdapterSensing.add("0 Timestamp, 1 Latitude, Longitude, 2 Temperature (C), 3 Light density (lx), " +
+            //"4 Pressure (hPa), 5 Humidity (%), 6 Sound level (dBA)");
             startRecord();
             mStartButton.setVisibility(View.INVISIBLE);
             mStopButton.setVisibility(View.VISIBLE);
@@ -99,6 +106,7 @@ public class SensingActivity extends AppCompatActivity {
     }
 
     // Main activity initialization
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,6 +122,9 @@ public class SensingActivity extends AppCompatActivity {
         };
 
         mFilesIOHelper = new FilesIOHelper(this);
+
+        mContextHelper = new ContextHelper(this);
+        mContextHelper.startService();
     }
 
     // Stop thread when exit!
@@ -127,32 +138,59 @@ public class SensingActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+
+        isGetSenseRun = false;
+        mContextHelper.stopService();
     }
 
     // Start the sensing thread
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void startRecord() {
 
         // JSONTest for a service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-        mCrowdSensor.startWorkingThread(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"), SAMPLE_NUMBER, SAMPLE_DELAY);
+        //mCrowdSensor.startWorkingThread(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"), SAMPLE_NUMBER, SAMPLE_DELAY);
+
+        isGetSenseRun = true;
+        mAdapterSensing.add("0 Memory, 1 Battery, 2 Bandwidth, 3 Internet, 4 Location, " +
+                "5 Locator, 6 Proxy, 7 Aggregator, 8 Coordinator");
 
         new Thread(() -> {
-            // Wait for the sensing thread to finish
-            synchronized (mLock) {
-                try {
-                    mLock.wait(SAMPLE_NUMBER * SAMPLE_DELAY + 500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            while (isGetSenseRun) {
+                // Wait for the sensing thread to finish
+                synchronized (mLock) {
+                    try {
+                        //mLock.wait(SAMPLE_NUMBER * SAMPLE_DELAY + 500);
+                        mLock.wait(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+                //JSONObject result = mCrowdSensor.getWorkingResult();
+                //runOnUiThread(() -> mAdapterSensing.add(result.toString()));
+                //CrowdSensor.doProxyUpload(result);
+
+                // Context and intent test
+                HashMap context = mContextHelper.getContext();
+                HashMap intent = mContextHelper.getIntentValues(new int[]{1, 1, 1});
+                runOnUiThread(() -> mAdapterSensing.add(context.get("Memory") + ", " +
+                        context.get("Battery") + ", " +
+                        context.get("UpBandwidth") + ", " +
+                        context.get("Internet") + ", " +
+                        context.get("Location") + ", " +
+                        intent.get("Locator") + ", " +
+                        intent.get("Proxy") + ", " +
+                        intent.get("Aggregator") + ", " +
+                        intent.get("Coordinator")));
             }
-            JSONObject result = mCrowdSensor.getWorkingResult();
-            runOnUiThread(() -> mAdapterSensing.add(result.toString()));
-            CrowdSensor.doProxyUpload(result);
         }).start();
     }
 
     // Stop the sensing
     @SuppressLint("SetTextI18n")
     private void stopRecord() {
+
+        isGetSenseRun = false;
+
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             final EditText editName = new EditText(this);

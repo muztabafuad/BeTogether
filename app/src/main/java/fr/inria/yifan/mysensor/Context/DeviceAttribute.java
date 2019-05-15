@@ -50,27 +50,6 @@ public class DeviceAttribute {
 
     // Read device profile and put attributes into the hashmap
     public void startService() {
-        // Get the maximum CPU frequency in MHz
-        try {
-            // Read from the system
-            RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
-            float mCpuFrequency = Float.parseFloat(reader.readLine()) / 1e3f;
-            mDeviceAttr.put("CPU", mCpuFrequency);
-            mDeviceAttr.put("CPUPow", CPUPow);
-            reader.close();
-        } catch (Exception e) {
-            // In case it's not accessible
-            e.printStackTrace();
-            mDeviceAttr.put("CPU", 1000f);
-            mDeviceAttr.put("CPUPow", CPUPow);
-        }
-
-        // Get the total memory size in MB
-        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
-        ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
-        am.getMemoryInfo(memInfo);
-        float mMemorySize = memInfo.totalMem / 1e6f;
-        mDeviceAttr.put("Memory", mMemorySize);
 
         SensorManager mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
         // Get the sensors attributes
@@ -115,10 +94,34 @@ public class DeviceAttribute {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressLint("MissingPermission")
     HashMap getDeviceAttr() {
+
+        // Get the current CPU frequency in MHz
+        try {
+            // Read from the system
+            RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies", "r");
+            float mCpuFrequency = Float.parseFloat(reader.readLine()) / 1e3f;
+            //Log.e(TAG, String.valueOf(mCpuFrequency));
+            mDeviceAttr.put("CPU", mCpuFrequency);
+            mDeviceAttr.put("CPUPow", CPUPow);
+            reader.close();
+        } catch (Exception e) {
+            // In case it's not accessible
+            e.printStackTrace();
+            mDeviceAttr.put("CPU", 1000f);
+            mDeviceAttr.put("CPUPow", CPUPow);
+        }
+
         // Get the remaining battery in mAh
         BatteryManager batteryManager = (BatteryManager) mContext.getSystemService(Context.BATTERY_SERVICE);
         float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         mDeviceAttr.put("Battery", mRemainBattery);
+
+        // Get the remaining memory size in MB
+        ActivityManager am = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+        am.getMemoryInfo(memInfo);
+        float mMemorySize = memInfo.availMem / 1e6f;
+        mDeviceAttr.put("Memory", mMemorySize);
 
         // Get the internet connection type
         ConnectivityManager connectivityManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -128,10 +131,10 @@ public class DeviceAttribute {
 
         // Get yhe internet connection attributes
         switch (mInternetType) {
-            case "Wifi":
+            case "WIFI":
                 mDeviceAttr.put("InternetPower", WifiTxPow);
                 break;
-            case "Cellular":
+            case "CELLULAR":
                 mDeviceAttr.put("InternetPower", CellTxPow);
                 break;
             default:
@@ -139,7 +142,6 @@ public class DeviceAttribute {
                 mDeviceAttr.put("InternetPower", 999f);
                 break;
         }
-
         mDeviceAttr.put("UpBandwidth", capability != null ? (float) capability.getLinkUpstreamBandwidthKbps() : 0f);
 
         // Get the location service type
@@ -157,7 +159,7 @@ public class DeviceAttribute {
         } else {
             mDeviceAttr.put("Location", "Null");
             mDeviceAttr.put("LocationAcc", 1000f);
-            mDeviceAttr.put("LocationPower", 99f);
+            mDeviceAttr.put("LocationPower", 999f);
         }
 
         return mDeviceAttr;
@@ -173,9 +175,11 @@ public class DeviceAttribute {
         if (capability != null) {
             String cap = capability.toString();
             String[] pairs = cap.split(" ");
+            //Log.e(TAG, pairs[2]);
             return pairs[2];
+        } else {
+            return "Null";
         }
-        return "Null";
     }
 
     // Read the Internet RSSI from network capability (ONLY works for WiFi)

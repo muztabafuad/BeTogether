@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.HashMap;
+
 import fr.inria.yifan.mysensor.Context.ContextHelper;
 
 /**
@@ -61,14 +63,10 @@ public class ContextActivity extends AppCompatActivity {
                 }
 
                 runOnUiThread(() -> {
-                    contextView.setText(mContextHelper.getContext().toString());
-                    //HashMap<String, String> rules = new HashMap<>();
-                    //rules.put("InPocket", "False");
-                    //rules.put("UserActivity", "STILL");
-                    //rules.put("Internet", "WIFI");
-                    //Log.e(TAG, "Rule applied: " + rules.toString());
-                    //Log.e(TAG, "Matched rules: " + mContextHelper.matchRules(rules));
-                    attributeView.setText(mContextHelper.getIntentValues(new int[]{1, 0, 1}).toString());
+                    HashMap context = mContextHelper.getContext();
+                    contextView.setText(context.toString());
+                    HashMap intent = mContextHelper.getIntentValues(new int[]{1, 1, 1});
+                    attributeView.setText(intent.toString());
                 });
 
             }

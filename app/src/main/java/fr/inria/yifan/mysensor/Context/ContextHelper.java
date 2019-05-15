@@ -134,12 +134,12 @@ public class ContextHelper {
         float b = sigmoidFunction(bat, 0.001f, 1000f);
 
         // Coordinator utility
-        float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
         float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 1), 1f, 3f);
-        int sum = 0;
+        float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
+        float sum = 0;
         for (int i : historyNeighbors) sum += i;
-        float h = sigmoidFunction(sum, 1f, 3f);
-        mIntents.put("Coordinator", String.valueOf(d + delta + h + b));
+        float h = sigmoidFunction(sum / historyNeighbors.length, 1f, 1f);
+        mIntents.put("Coordinator", String.valueOf(d * (delta + h + b)));
 
         // Locator utility
         float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
@@ -164,27 +164,27 @@ public class ContextHelper {
         // Temperature utility
         float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
         float tpow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow");
-        mIntents.put("Temperature", String.valueOf(sigmoidFunction(tacc, 0.05f, 10f) - sigmoidFunction(tpow, 1f, 0.1f)));
+        mIntents.put("Temperature", String.valueOf(sigmoidFunction(tacc, 0.1f, 10f) - sigmoidFunction(tpow, 1f, 0.1f)));
 
         // Light utility
         float lacc = (float) mDeviceAttribute.getDeviceAttr().get("LightAcc");
         float lpow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow");
-        mIntents.put("Light", String.valueOf(sigmoidFunction(lacc, 0.05f, 10f) - sigmoidFunction(lpow, 1f, 0.1f)));
+        mIntents.put("Light", String.valueOf(sigmoidFunction(lacc, 0.1f, 10f) - sigmoidFunction(lpow, 1f, 0.1f)));
 
         // Pressure utility
         float pacc = (float) mDeviceAttribute.getDeviceAttr().get("PressureAcc");
         float ppow = (float) mDeviceAttribute.getDeviceAttr().get("PressurePow");
-        mIntents.put("Pressure", String.valueOf(sigmoidFunction(pacc, 0.05f, 10f) - sigmoidFunction(ppow, 1f, 0.1f)));
+        mIntents.put("Pressure", String.valueOf(sigmoidFunction(pacc, 0.1f, 10f) - sigmoidFunction(ppow, 1f, 0.1f)));
 
         // Humidity utility
         float hacc = (float) mDeviceAttribute.getDeviceAttr().get("HumidityAcc");
         float hpow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow");
-        mIntents.put("Humidity", String.valueOf(sigmoidFunction(hacc, 0.05f, 10f) - sigmoidFunction(hpow, 1f, 0.1f)));
+        mIntents.put("Humidity", String.valueOf(sigmoidFunction(hacc, 0.1f, 10f) - sigmoidFunction(hpow, 1f, 0.1f)));
 
         // Noise utility
         float nacc = (float) mDeviceAttribute.getDeviceAttr().get("NoiseAcc");
         float npow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow");
-        mIntents.put("Noise", String.valueOf(sigmoidFunction(nacc, 0.05f, 10f) - sigmoidFunction(npow, 1f, 0.1f)));
+        mIntents.put("Noise", String.valueOf(sigmoidFunction(nacc, 0.1f, 10f) - sigmoidFunction(npow, 1f, 0.1f)));
 
         // Return the intents result
         return mIntents;
