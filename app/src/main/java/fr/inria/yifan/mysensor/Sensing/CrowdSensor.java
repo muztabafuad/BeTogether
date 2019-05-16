@@ -158,7 +158,7 @@ public abstract class CrowdSensor {
     }
 
     // Get the aggregation result
-    public static JSONObject doAggregation(JSONObject json1, JSONObject json2) {
+    static JSONObject doAggregation(JSONObject json1, JSONObject json2) {
         for (Iterator<String> it = json2.keys(); it.hasNext(); ) {
             String key = it.next();
             try {

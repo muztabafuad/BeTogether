@@ -1,9 +1,7 @@
 package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -18,12 +16,10 @@ import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 
-import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
+import fr.inria.yifan.mysensor.Context.ContextHelper;
 import fr.inria.yifan.mysensor.Transmission.FilesIOHelper;
 
 import static java.lang.System.currentTimeMillis;
@@ -32,16 +28,12 @@ import static java.lang.System.currentTimeMillis;
  * This activity provides functions storing/sending sensing data
  */
 
-public class SensingActivity extends AppCompatActivity {
-
-    private static final String TAG = "Sensing activity";
+@SuppressLint("Registered")
+public class ContextIntentActivity extends AppCompatActivity {
 
     // Email destination for the sensing data
     public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
-    // Parameters for sensing sampling
-    public static final int SAMPLE_NUMBER = 30;
-    public static final int SAMPLE_DELAY = 1000;
-
+    private static final String TAG = "Sensing activity";
     private final Object mLock; // Thread locker
     private boolean isGetSenseRun; // Running flag
 
@@ -55,14 +47,10 @@ public class SensingActivity extends AppCompatActivity {
     private FilesIOHelper mFilesIOHelper; // File helper
     private ArrayList<String> mSensingData; // Sensing data
 
-    private BatteryManager mBatteryManager;
-    private float mStartBattery;
-
-    // Helpers for sensors and context
-    private CrowdSensor mCrowdSensor;
+    private ContextHelper mContextHelper;
 
     // Constructor initializes locker
-    public SensingActivity() {
+    public ContextIntentActivity() {
         mLock = new Object();
     }
 
@@ -115,17 +103,9 @@ public class SensingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sensing);
         bindViews();
 
-        mCrowdSensor = new CrowdSensor(this) {
-            @Override
-            public void onWorkFinished(JSONObject result) {
-                Log.e(TAG, "Work finished: " + result);
-                //mAdapterSensing.add(result.toString());
-            }
-        };
-
-        //mFilesIOHelper = new FilesIOHelper(this);
-        // Get the battery manager
-        mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
+        mFilesIOHelper = new FilesIOHelper(this);
+        mContextHelper = new ContextHelper(this);
+        mContextHelper.startService();
     }
 
     // Stop thread when exit!
@@ -139,37 +119,42 @@ public class SensingActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+
         isGetSenseRun = false;
+        mContextHelper.stopService();
     }
 
     // Start the sensing thread
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void startRecord() {
 
-        // Record the battery when start
-        mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-
-        // JSONTest for a service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-        mCrowdSensor.startWorkingThread(Arrays.asList("Location", "Light", "Noise"), SAMPLE_NUMBER, SAMPLE_DELAY);
-
         isGetSenseRun = true;
+        mAdapterSensing.add("0 Memory, 1 Battery, 2 Bandwidth, 3 Internet, 4 Location, " + "5 Locator, 6 Proxy, 7 Aggregator, 8 Coordinator");
+
         new Thread(() -> {
-
-            // Wait for the sensing thread to finish
-            synchronized (mLock) {
-                try {
-                    mLock.wait(SAMPLE_NUMBER * SAMPLE_DELAY + 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            while (isGetSenseRun) {
+                // Wait for the sensing thread to finish
+                synchronized (mLock) {
+                    try {
+                        mLock.wait(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+
+                // Context and intent test
+                HashMap context = mContextHelper.getContext();
+                HashMap intent = mContextHelper.getIntentValues(new int[]{1, 1, 1});
+                runOnUiThread(() -> mAdapterSensing.add(context.get("Memory") + ", " +
+                        context.get("Battery") + ", " +
+                        context.get("UpBandwidth") + ", " +
+                        context.get("Internet") + ", " +
+                        context.get("Location") + ", " +
+                        intent.get("Locator") + ", " +
+                        intent.get("Proxy") + ", " +
+                        intent.get("Aggregator") + ", " +
+                        intent.get("Coordinator")));
             }
-
-            JSONObject result = mCrowdSensor.getWorkingResult();
-            runOnUiThread(() -> mAdapterSensing.add(result.toString()));
-
-            // Upload to the cloud
-            CrowdSensor.doProxyUpload(result);
-
         }).start();
     }
 
@@ -180,13 +165,10 @@ public class SensingActivity extends AppCompatActivity {
 
         isGetSenseRun = false;
 
-        float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-        mAdapterSensing.add("Power energy consumed in mA: " + (mStartBattery - currentBattery));
-
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             final EditText editName = new EditText(this);
-            editName.setText(android.os.Build.MODEL + "_" + currentTimeMillis());
+            editName.setText(Build.MODEL + "_" + currentTimeMillis());
             dialog.setTitle("Enter file name: ");
             dialog.setView(editName);
             dialog.setPositiveButton("OK", (dialogInterface, i) -> {

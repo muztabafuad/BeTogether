@@ -1,6 +1,7 @@
 package fr.inria.yifan.mysensor.Context;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.hardware.Sensor;
@@ -91,7 +92,8 @@ public class DeviceAttribute {
     }
 
     // Get the most recent device attributes
-    @RequiresApi(api = Build.VERSION_CODES.M)
+    @TargetApi(Build.VERSION_CODES.M)
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("MissingPermission")
     HashMap getDeviceAttr() {
 
@@ -113,7 +115,8 @@ public class DeviceAttribute {
 
         // Get the remaining battery in mAh
         BatteryManager batteryManager = (BatteryManager) mContext.getSystemService(Context.BATTERY_SERVICE);
-        float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        //float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER) / 1000f;
         mDeviceAttr.put("Battery", mRemainBattery);
 
         // Get the remaining memory size in MB

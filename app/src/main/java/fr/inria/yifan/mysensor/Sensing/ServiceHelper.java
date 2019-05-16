@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -427,7 +428,6 @@ public class ServiceHelper extends BroadcastReceiver {
     //return mMyConnect;
     //}
 
-    @SuppressWarnings("unchecked")
     // Handle different type of messages and return a reply message (can be null)
     public JSONObject handleReceivedMsg(JSONObject msg, String source) {
         // TODO
@@ -451,8 +451,9 @@ public class ServiceHelper extends BroadcastReceiver {
                 // Allocation message handled by clients
                 case "ServiceAllocation":
                     Log.e(TAG, "Received message: " + msg + " from " + source);
-                    mMyServices = new ArrayList<>();
-                    mMyServices.addAll((List<String>) msg.get("Service"));
+                    String service = (String) msg.get("Service");
+                    String services = service.replace("[", "").replace("]", "");
+                    mMyServices = new ArrayList<>(Arrays.asList(services.split(",")));
                     Log.e(TAG, "Received: " + msg.get("Service").getClass() + ", my services are: " + mMyServices);
                     crowdSensor = new CrowdSensor(mContext) {
                         // When the work is finished
@@ -467,7 +468,7 @@ public class ServiceHelper extends BroadcastReceiver {
 
                 // Raw sensing data handled by aggregator (currently coordinator)
                 case "RawData":
-                    CrowdSensor.doAggregation(mDataToUpload, msg);
+                    JSONObject aggregatedData = CrowdSensor.doAggregation(mDataToUpload, msg);
                     break;
 
                 // Aggregated sensing data handled by proxy (currently coordinator)
