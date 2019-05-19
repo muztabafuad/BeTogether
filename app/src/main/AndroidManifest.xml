@@ -54,6 +54,10 @@
             android:name=".ServiceActivity"
             android:screenOrientation="portrait"
             tools:ignore="InnerclassSeparator" />
+        <activity
+            android:name=".ContextIntentActivity"
+            android:screenOrientation="portrait"
+            tools:ignore="InnerclassSeparator" />
     </application>
 
 </manifest>

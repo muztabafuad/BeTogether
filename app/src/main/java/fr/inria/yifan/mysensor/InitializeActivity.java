@@ -13,11 +13,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * This activity has to be started in the beginning of the application to ensure all user permissions are enabled.
  */
@@ -51,6 +46,7 @@ public class InitializeActivity extends AppCompatActivity {
 
         checkPermission();
 
+        /*
         try {
             List<String> services = new ArrayList<>();
             services.add("Locator");
@@ -65,6 +61,7 @@ public class InitializeActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        */
 
     }
 
@@ -148,7 +145,8 @@ public class InitializeActivity extends AppCompatActivity {
     // Go to the sensing activity
     public void goSensing(View view) {
         Intent goToSensing = new Intent();
-        goToSensing.setClass(this, SensingActivity.class);
+        //goToSensing.setClass(this, SensingActivity.class);
+        goToSensing.setClass(this, ContextIntentActivity.class);
         startActivity(goToSensing);
         finish();
     }

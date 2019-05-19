@@ -65,7 +65,7 @@ public class ContextActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     HashMap context = mContextHelper.getContext();
                     contextView.setText(context.toString());
-                    HashMap intent = mContextHelper.getIntentValues(new int[]{1, 1, 1});
+                    HashMap intent = mContextHelper.getIntentValues(new int[]{0, 0, 0});
                     attributeView.setText(intent.toString());
                 });
 

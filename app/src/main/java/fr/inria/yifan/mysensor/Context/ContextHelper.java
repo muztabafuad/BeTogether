@@ -133,19 +133,30 @@ public class ContextHelper {
         float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
         float b = sigmoidFunction(bat, 0.001f, 1000f);
 
+        // Test
+        mIntents.put("Battery", String.valueOf(bat));
+
         // Coordinator utility
         float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 1), 1f, 3f);
         float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
         float sum = 0;
         for (int i : historyNeighbors) sum += i;
-        float h = sigmoidFunction(sum / historyNeighbors.length, 1f, 1f);
-        mIntents.put("Coordinator", String.valueOf(d * (delta + h + b)));
+        float h = historyNeighbors.length != 0 ? sigmoidFunction(sum / historyNeighbors.length, 1f, 1f) : 0;
+        mIntents.put("Coordinator", String.valueOf(d + delta + h + b));
+
+        // Test
+        mIntents.put("Duration", String.valueOf(Math.min(durationUA, Math.min(durationDoor, durationGround))));
+        mIntents.put("Neighbors", String.valueOf(historyNeighbors.length));
+        mIntents.put("History", String.valueOf(historyNeighbors.length != 0 ? sum / historyNeighbors.length : 0));
 
         // Locator utility
         float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
         float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
-        float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 30f);
+        float l = -sigmoidFunction(locAcc, 0.1f, 20f) - sigmoidFunction(locPow, 0.1f, 30f);
         mIntents.put("Locator", String.valueOf(l + b));
+
+        // Test
+        mIntents.put("LocAccuracy", String.valueOf(locAcc));
 
         // Proxy utility
         float p = mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi" ? 1f : 0.6f;
@@ -154,12 +165,19 @@ public class ContextHelper {
         float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.05f, 100f);
         mIntents.put("Proxy", String.valueOf(n + b));
 
+        // Test
+        mIntents.put("Bandwidth", String.valueOf(netBw));
+        mIntents.put("NetPower", String.valueOf(netPow));
+
         // Aggregator utility
         float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
         float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
         float cpow = (float) mDeviceAttribute.getDeviceAttr().get("CPUPow");
         float cp = sigmoidFunction(cpu, 0.001f, 1000f) - sigmoidFunction(cpow, 0.01f, 100f);
         mIntents.put("Aggregator", String.valueOf(cp + sigmoidFunction(ram, 0.001f, 2000f)));
+
+        // Test
+        mIntents.put("Memory", String.valueOf(ram));
 
         // Temperature utility
         float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
@@ -266,7 +284,7 @@ public class ContextHelper {
 
     // The logistic function ranging from -1 to 1
     private float sigmoidFunction(float x, float k, float x0) {
-        return (float) ((Math.exp(2 * k * (x - x0)) - 1) / (Math.exp(2 * k * (x - x0)) + 1));
+        return (float) (1 / (1 + Math.exp(k * (x0 - x))));
     }
 
     // Update the learning models for physical environments

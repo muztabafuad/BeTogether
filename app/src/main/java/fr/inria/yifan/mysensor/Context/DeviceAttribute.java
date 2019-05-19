@@ -30,13 +30,13 @@ public class DeviceAttribute {
      */
     //public static final float BluetoothTxPow = 10f; // Bluetooth data transfer
     //public static final float BluetoothScanPow = 0.1f; // Bluetooth scanning
-    static final float WifiTxPow = 200f; // WIFI data transfer
+    static final float WifiTxPow = 31f; // WIFI data transfer
     static final float WifiScanPow = 100f; // WIFI scanning
     //public static final float WifiIdlePow = 3f; // WIFI network on
     //public static final float AudioPow = 10f; // Audio DSP encoding
     static final float CPUPow = 100f; // CPU computing power
     static final float GPSPow = 50f; // GPS is acquiring a signal
-    static final float CellTxPow = 200f; // Cellular radio is transmitting
+    static final float CellTxPow = 100f; // Cellular radio is transmitting
     private static final float CellScanPow = 10f; // Cellular radio is scanning
 
     // Variables
@@ -100,7 +100,7 @@ public class DeviceAttribute {
         // Get the current CPU frequency in MHz
         try {
             // Read from the system
-            RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies", "r");
+            RandomAccessFile reader = new RandomAccessFile("/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "r");
             float mCpuFrequency = Float.parseFloat(reader.readLine()) / 1e3f;
             //Log.e(TAG, String.valueOf(mCpuFrequency));
             mDeviceAttr.put("CPU", mCpuFrequency);
@@ -115,8 +115,8 @@ public class DeviceAttribute {
 
         // Get the remaining battery in mAh
         BatteryManager batteryManager = (BatteryManager) mContext.getSystemService(Context.BATTERY_SERVICE);
-        //float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-        float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER) / 1000f;
+        float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        //float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER) / 1000f;
         mDeviceAttr.put("Battery", mRemainBattery);
 
         // Get the remaining memory size in MB

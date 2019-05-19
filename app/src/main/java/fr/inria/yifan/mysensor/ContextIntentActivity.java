@@ -129,7 +129,8 @@ public class ContextIntentActivity extends AppCompatActivity {
     private void startRecord() {
 
         isGetSenseRun = true;
-        mAdapterSensing.add("0 Memory, 1 Battery, 2 Bandwidth, 3 Internet, 4 Location, " + "5 Locator, 6 Proxy, 7 Aggregator, 8 Coordinator");
+        mAdapterSensing.add("0 Duration, 1 Neighbors, 2 History, 3 LocAccuracy, 4 Bandwidth, 5 NetPower, 6 Battery, 7 Memory, "
+                + "8 Coordinator, 9 Locator, 10 Proxy, 11 Aggregator");
 
         new Thread(() -> {
             while (isGetSenseRun) {
@@ -144,16 +145,32 @@ public class ContextIntentActivity extends AppCompatActivity {
 
                 // Context and intent test
                 HashMap context = mContextHelper.getContext();
-                HashMap intent = mContextHelper.getIntentValues(new int[]{1, 1, 1});
-                runOnUiThread(() -> mAdapterSensing.add(context.get("Memory") + ", " +
-                        context.get("Battery") + ", " +
-                        context.get("UpBandwidth") + ", " +
-                        context.get("Internet") + ", " +
-                        context.get("Location") + ", " +
-                        intent.get("Locator") + ", " +
-                        intent.get("Proxy") + ", " +
-                        intent.get("Aggregator") + ", " +
-                        intent.get("Coordinator")));
+
+                // Random neighbors
+                //Random rand = new Random();
+                //int num = rand.nextInt(4);
+                //int[] neighbors = new int[]{1};
+                //int[] neighbors = new int[]{1, 2};
+                int[] neighbors = new int[]{1, 2, 3};
+
+                //for (int i = 0; i < neighbors.length; i++) {
+                //    neighbors[i] = rand.nextInt(2);
+                //}
+
+                HashMap intent = mContextHelper.getIntentValues(neighbors);
+                runOnUiThread(() -> mAdapterSensing.add(
+                        intent.get("Duration") + ", " +
+                                intent.get("Neighbors") + ", " +
+                                intent.get("History") + ", " +
+                                intent.get("LocAccuracy") + ", " +
+                                intent.get("Bandwidth") + ", " +
+                                intent.get("NetPower") + ", " +
+                                intent.get("Battery") + ", " +
+                                intent.get("Memory") + ", " +
+                                intent.get("Coordinator") + ", " +
+                                intent.get("Locator") + ", " +
+                                intent.get("Proxy") + ", " +
+                                intent.get("Aggregator")));
             }
         }).start();
     }
