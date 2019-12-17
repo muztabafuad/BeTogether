@@ -41,7 +41,7 @@ dependencies {
     //implementation 'com.google.android.gms:play-services-nearby:16.0.0'
     implementation 'com.google.firebase:firebase-core:16.0.8'
     implementation 'com.google.firebase:firebase-firestore:18.2.0'
-    //implementation 'org.pentaho.pentaho-commons:pentaho-package-manager:1.0.11'
+    implementation 'org.pentaho.pentaho-commons:pentaho-package-manager:1.0.11'
     implementation 'com.android.support:multidex:1.0.3'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
 }
