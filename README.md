@@ -6,4 +6,4 @@ Android application "GroupSense" for research purpose of PhD project, leveraging
 * Environment sensing and logging
   + Save and send observation data
 * In-network colaboration
-  + Wifir Direct and neighbor aware networking
+  + Wi-Fi Direct and neighbor aware networking
