@@ -65,7 +65,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
 
     // Variables
     private Context mContext;
-    private HashMap<String, String> mPhysicalEnv;
+    private HashMap<String, Object> mPhysicalEnv;
     private int mHierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
 
     private SensorManager mSensorManager;
@@ -77,6 +77,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     private float mRssiLevel;
     private float mRssiValue;
     private float mAccuracy;
+    private float mBearing;
     private float mWifiRssi;
     private float mProximity;
     private float mTemperature;
@@ -110,6 +111,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         @Override
         public void onLocationChanged(Location location) {
             mAccuracy = location.getAccuracy();
+            mBearing = location.getBearing();
         }
 
         @Override
@@ -198,6 +200,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         mPhysicalEnv.put("InPocket", "Null");
         mPhysicalEnv.put("InDoor", "Null");
         mPhysicalEnv.put("UnderGround", "Null");
+        mPhysicalEnv.put("Bearing", "Null");
     }
 
     // Method to generate a Poisson number
@@ -255,6 +258,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
                 mPhysicalEnv.put("InDoor", "True");
                 mPhysicalEnv.put("UnderGround", "False");
             }
+            mPhysicalEnv.put("Bearing", mBearing);
         } catch (Exception e) {
             e.printStackTrace();
         }

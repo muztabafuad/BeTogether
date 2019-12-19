@@ -257,7 +257,8 @@ public class ServiceHelper extends BroadcastReceiver {
                 mSelfContext.get("InDoor").equals(context.get("InDoor")) &&
                 Float.parseFloat(mSelfContext.get("DurationDoor")) > TIME_CONTEXT && Float.parseFloat(context.get("DurationDoor")) > TIME_CONTEXT &&
                 mSelfContext.get("UnderGround").equals(context.get("UnderGround")) &&
-                Float.parseFloat(mSelfContext.get("DurationGround")) > TIME_CONTEXT && Float.parseFloat(context.get("DurationGround")) > TIME_CONTEXT;
+                Float.parseFloat(mSelfContext.get("DurationGround")) > TIME_CONTEXT && Float.parseFloat(context.get("DurationGround")) > TIME_CONTEXT &&
+                mSelfContext.get("Bearing").equals(context.get("Bearing"));
     }
 
     // Get the history connection time of neighbors as a list

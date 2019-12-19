@@ -21,7 +21,7 @@ import static fr.inria.yifan.mysensor.Context.DeviceAttribute.WifiTxPow;
  * Available key-value paris are:
  * ("UserActivity", <"VEHICLE", "BICYCLE", "FOOT", "STILL", "UNKNOWN">), ("DurationUA", <Float>)
  * (<"InPocket", "InDoor", "UnderGround">, <"True", "False", "Null">), ("DurationDoor", <Float>), ("DurationGround", <Float>)
- * ("Location", <"GPS", "NETWORK", "Null">), ("LocationAcc", <Float>), ("LocationPower", <Float>)
+ * ("Location", <"GPS", "NETWORK", "Null">), ("LocationAcc", <Float>), ("LocationPower", <Float>), ("Bearing", <Float>)
  * ("Internet", <"WIFI", "Cellular", "Null">), ("UpBandwidth", <Float>), ("InternetPower", <Float>)
  * ("Battery", <Float>), ("CPU", <Float>), ("CPUPow", <Float>), ("Memory", <Float>),
  * (<"TemperatureAcc", "LightAcc", "PressureAcc", "HumidityAcc", "NoiseAcc">, <Float>),
@@ -36,7 +36,7 @@ public class ContextHelper {
     // The lambda parameter for learning model update
     static final int LAMBDA = 10;
 
-    private static final String TAG = "Feature helper";
+    private static final String TAG = "Context helper";
 
     // Variables
     private UserActivity mUserActivity;
@@ -134,10 +134,10 @@ public class ContextHelper {
         float b = sigmoidFunction(bat, 0.001f, 1000f);
 
         // Test
-        mIntents.put("Battery", String.valueOf(bat));
+        //mIntents.put("Battery", String.valueOf(bat));
 
         // Coordinator utility
-        float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 1), 1f, 3f);
+        float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 4), 1f, 1f);
         float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
         float sum = 0;
         for (int i : historyNeighbors) sum += i;
@@ -145,39 +145,39 @@ public class ContextHelper {
         mIntents.put("Coordinator", String.valueOf(d + delta + h + b));
 
         // Test
-        mIntents.put("Duration", String.valueOf(Math.min(durationUA, Math.min(durationDoor, durationGround))));
-        mIntents.put("Neighbors", String.valueOf(historyNeighbors.length));
-        mIntents.put("History", String.valueOf(historyNeighbors.length != 0 ? sum / historyNeighbors.length : 0));
+        //mIntents.put("Duration", String.valueOf(Math.min(durationUA, Math.min(durationDoor, durationGround))));
+        //mIntents.put("Neighbors", String.valueOf(historyNeighbors.length));
+        //mIntents.put("History", String.valueOf(historyNeighbors.length != 0 ? sum / historyNeighbors.length : 0));
 
         // Locator utility
         float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
         float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
-        float l = -sigmoidFunction(locAcc, 0.1f, 20f) - sigmoidFunction(locPow, 0.1f, 30f);
+        float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 30f);
         mIntents.put("Locator", String.valueOf(l + b));
 
         // Test
-        mIntents.put("LocAccuracy", String.valueOf(locAcc));
+        //mIntents.put("LocAccuracy", String.valueOf(locAcc));
 
         // Proxy utility
-        float p = mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi" ? 1f : 0.6f;
+        //float p = mDeviceAttribute.getDeviceAttr().get("Internet") == "Wifi" ? 1f : 0.6f;
         float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
         float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
-        float n = p * sigmoidFunction(netBw, 0.00001f, 200000f) - sigmoidFunction(netPow, 0.05f, 100f);
+        float n = sigmoidFunction(netBw, 0.00001f, 100000f) - sigmoidFunction(netPow, 0.01f, 100f);
         mIntents.put("Proxy", String.valueOf(n + b));
 
         // Test
-        mIntents.put("Bandwidth", String.valueOf(netBw));
-        mIntents.put("NetPower", String.valueOf(netPow));
+        //mIntents.put("Bandwidth", String.valueOf(netBw));
+        //mIntents.put("NetPower", String.valueOf(netPow));
 
         // Aggregator utility
         float cpu = (float) mDeviceAttribute.getDeviceAttr().get("CPU");
         float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
         float cpow = (float) mDeviceAttribute.getDeviceAttr().get("CPUPow");
         float cp = sigmoidFunction(cpu, 0.001f, 1000f) - sigmoidFunction(cpow, 0.01f, 100f);
-        mIntents.put("Aggregator", String.valueOf(cp + sigmoidFunction(ram, 0.001f, 2000f)));
+        mIntents.put("Aggregator", String.valueOf(cp + sigmoidFunction(ram, 0.001f, 1000f)));
 
         // Test
-        mIntents.put("Memory", String.valueOf(ram));
+        //mIntents.put("Memory", String.valueOf(ram));
 
         // Temperature utility
         float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");

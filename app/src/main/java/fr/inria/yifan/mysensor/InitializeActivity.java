@@ -146,7 +146,7 @@ public class InitializeActivity extends AppCompatActivity {
     public void goSensing(View view) {
         Intent goToSensing = new Intent();
         //goToSensing.setClass(this, SensingActivity.class);
-        goToSensing.setClass(this, ContextIntentActivity.class);
+        goToSensing.setClass(this, SensingActivity.class);
         startActivity(goToSensing);
         finish();
     }

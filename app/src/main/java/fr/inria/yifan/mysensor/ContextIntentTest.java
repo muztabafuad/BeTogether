@@ -29,7 +29,7 @@ import static java.lang.System.currentTimeMillis;
  */
 
 @SuppressLint("Registered")
-public class ContextIntentActivity extends AppCompatActivity {
+public class ContextIntentTest extends AppCompatActivity {
 
     // Email destination for the sensing data
     public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
@@ -50,7 +50,7 @@ public class ContextIntentActivity extends AppCompatActivity {
     private ContextHelper mContextHelper;
 
     // Constructor initializes locker
-    public ContextIntentActivity() {
+    public ContextIntentTest() {
         mLock = new Object();
     }
 
