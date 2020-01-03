@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Context;
 
 import android.content.Context;
@@ -30,7 +32,8 @@ import static fr.inria.yifan.mysensor.Context.DeviceAttribute.WifiTxPow;
 
 public class ContextHelper {
 
-    // Time interval between activity and GPS updates in milliseconds
+    /* Hyper parameters:
+    Time interval between activity and GPS updates in milliseconds */
     static final int MIN_UPDATE_TIME = 1000;
 
     // The lambda parameter for learning model update
@@ -39,13 +42,12 @@ public class ContextHelper {
     private static final String TAG = "Context helper";
 
     // Variables
+    private HashMap<String, String> mContext;
+    private HashMap<String, String> mIntents;
     private UserActivity mUserActivity;
     private PhysicalEnvironment mPhysicalEnvironment;
     private DurationPredict mDurationPredict;
     private DeviceAttribute mDeviceAttribute;
-
-    private HashMap<String, String> mContext;
-    private HashMap<String, String> mIntents;
 
     // Variables used for duration prediction update
     private String previousUA;
@@ -123,9 +125,10 @@ public class ContextHelper {
         return true;
     }
 
-    // Calculate and get the intent values for all roles:
-    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    // Input is the historical connection time of neighbors
+    /* Calculate and get the intent values for all roles:
+     "Coordinator" "Locator", "Proxy", "Aggregator"
+     Sensors: "Temperature", "Light", "Pressure", "Humidity", "Noise"
+     Input is the historical connection time of neighbors */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public HashMap getIntentValues(int[] historyNeighbors) {
 
@@ -133,18 +136,16 @@ public class ContextHelper {
         float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
         float b = sigmoidFunction(bat, 0.001f, 1000f);
 
-        // Test
         //mIntents.put("Battery", String.valueOf(bat));
 
         // Coordinator utility
         float delta = sigmoidFunction(Math.max(0, historyNeighbors.length - 4), 1f, 1f);
-        float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
         float sum = 0;
         for (int i : historyNeighbors) sum += i;
         float h = historyNeighbors.length != 0 ? sigmoidFunction(sum / historyNeighbors.length, 1f, 1f) : 0;
-        mIntents.put("Coordinator", String.valueOf(d + delta + h + b));
+        float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
+        mIntents.put("Coordinator", String.valueOf(delta + h + d + b));
 
-        // Test
         //mIntents.put("Duration", String.valueOf(Math.min(durationUA, Math.min(durationDoor, durationGround))));
         //mIntents.put("Neighbors", String.valueOf(historyNeighbors.length));
         //mIntents.put("History", String.valueOf(historyNeighbors.length != 0 ? sum / historyNeighbors.length : 0));
@@ -153,9 +154,8 @@ public class ContextHelper {
         float locAcc = (float) mDeviceAttribute.getDeviceAttr().get("LocationAcc");
         float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
         float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 30f);
-        mIntents.put("Locator", String.valueOf(l + b));
+        mIntents.put("Locator", String.valueOf(l + d + b));
 
-        // Test
         //mIntents.put("LocAccuracy", String.valueOf(locAcc));
 
         // Proxy utility
@@ -163,9 +163,8 @@ public class ContextHelper {
         float netBw = (float) mDeviceAttribute.getDeviceAttr().get("UpBandwidth");
         float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
         float n = sigmoidFunction(netBw, 0.00001f, 100000f) - sigmoidFunction(netPow, 0.01f, 100f);
-        mIntents.put("Proxy", String.valueOf(n + b));
+        mIntents.put("Proxy", String.valueOf(n + d + b));
 
-        // Test
         //mIntents.put("Bandwidth", String.valueOf(netBw));
         //mIntents.put("NetPower", String.valueOf(netPow));
 
@@ -174,44 +173,43 @@ public class ContextHelper {
         float ram = (float) mDeviceAttribute.getDeviceAttr().get("Memory");
         float cpow = (float) mDeviceAttribute.getDeviceAttr().get("CPUPow");
         float cp = sigmoidFunction(cpu, 0.001f, 1000f) - sigmoidFunction(cpow, 0.01f, 100f);
-        mIntents.put("Aggregator", String.valueOf(cp + sigmoidFunction(ram, 0.001f, 1000f)));
+        mIntents.put("Aggregator", String.valueOf(cp + d + sigmoidFunction(ram, 0.001f, 1000f)));
 
-        // Test
         //mIntents.put("Memory", String.valueOf(ram));
 
         // Temperature utility
         float tacc = (float) mDeviceAttribute.getDeviceAttr().get("TemperatureAcc");
         float tpow = (float) mDeviceAttribute.getDeviceAttr().get("TemperaturePow");
-        mIntents.put("Temperature", String.valueOf(sigmoidFunction(tacc, 0.1f, 10f) - sigmoidFunction(tpow, 1f, 0.1f)));
+        mIntents.put("Temperature", String.valueOf(d + sigmoidFunction(tacc, 0.1f, 10f) - sigmoidFunction(tpow, 1f, 0.1f)));
 
         // Light utility
         float lacc = (float) mDeviceAttribute.getDeviceAttr().get("LightAcc");
         float lpow = (float) mDeviceAttribute.getDeviceAttr().get("LightPow");
-        mIntents.put("Light", String.valueOf(sigmoidFunction(lacc, 0.1f, 10f) - sigmoidFunction(lpow, 1f, 0.1f)));
+        mIntents.put("Light", String.valueOf(d + sigmoidFunction(lacc, 0.1f, 10f) - sigmoidFunction(lpow, 1f, 0.1f)));
 
         // Pressure utility
         float pacc = (float) mDeviceAttribute.getDeviceAttr().get("PressureAcc");
         float ppow = (float) mDeviceAttribute.getDeviceAttr().get("PressurePow");
-        mIntents.put("Pressure", String.valueOf(sigmoidFunction(pacc, 0.1f, 10f) - sigmoidFunction(ppow, 1f, 0.1f)));
+        mIntents.put("Pressure", String.valueOf(d + sigmoidFunction(pacc, 0.1f, 10f) - sigmoidFunction(ppow, 1f, 0.1f)));
 
         // Humidity utility
         float hacc = (float) mDeviceAttribute.getDeviceAttr().get("HumidityAcc");
         float hpow = (float) mDeviceAttribute.getDeviceAttr().get("HumidityPow");
-        mIntents.put("Humidity", String.valueOf(sigmoidFunction(hacc, 0.1f, 10f) - sigmoidFunction(hpow, 1f, 0.1f)));
+        mIntents.put("Humidity", String.valueOf(d + sigmoidFunction(hacc, 0.1f, 10f) - sigmoidFunction(hpow, 1f, 0.1f)));
 
         // Noise utility
         float nacc = (float) mDeviceAttribute.getDeviceAttr().get("NoiseAcc");
         float npow = (float) mDeviceAttribute.getDeviceAttr().get("NoisePow");
-        mIntents.put("Noise", String.valueOf(sigmoidFunction(nacc, 0.1f, 10f) - sigmoidFunction(npow, 1f, 0.1f)));
+        mIntents.put("Noise", String.valueOf(d + sigmoidFunction(nacc, 0.1f, 10f) - sigmoidFunction(npow, 1f, 0.1f)));
 
         // Return the intents result
         return mIntents;
     }
 
-    // Calculate and get the power consumption for a given role in one time scycle:
-    // "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    // Active time: how much time the components are active, in seconds
-    // Individual: work by itself or using a neighboring collaboration
+    /* Calculate and get the power consumption for a given role in one time cycle:
+     Service: "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+     Active time: how much time the components are active, in seconds
+     Individual: work by itself or using a neighboring collaboration */
     @RequiresApi(api = Build.VERSION_CODES.M)
     private float getPowerOneRole(String service, int activeTime, boolean individual) {
         // Two working mode for each role
@@ -267,10 +265,10 @@ public class ContextHelper {
         return 0f;
     }
 
-    // Calculate and get the total power consumption for several roles in one time cycle:
-    // Roles: set of roles applied
-    // Active time: how much time the components are active, in seconds
-    // Individual: work by itself or using a neighboring collaboration
+    /* Calculate and get the total power consumption for several roles in one time cycle:
+     Roles: set of services applied
+     Active time: how much time the components are active, in seconds
+     Individual: work by itself or using a neighboring collaboration */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public float getPowerTotal(List<String> roles, int activeTime, boolean individual) {
         float sum = 0;

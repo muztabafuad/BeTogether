@@ -39,7 +39,7 @@ public class SensingActivity extends AppCompatActivity {
     // Email destination for the sensing data
     public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
     // Parameters for sensing sampling
-    public static final int SAMPLE_NUMBER = 30;
+    public static final int SAMPLE_NUMBER = 10;
     public static final int SAMPLE_DELAY = 1000;
 
     private final Object mLock; // Thread locker
