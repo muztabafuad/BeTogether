@@ -53,7 +53,6 @@ public class DeviceAttribute {
 
     // Read device profile and put attributes into the HashMap
     public void startService() {
-
         SensorManager mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
         // Get the sensors attributes
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE) == null) {
