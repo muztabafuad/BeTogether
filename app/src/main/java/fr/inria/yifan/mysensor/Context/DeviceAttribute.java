@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Context;
 
 import android.annotation.SuppressLint;
@@ -49,7 +51,7 @@ public class DeviceAttribute {
         mDeviceAttr = new HashMap<>();
     }
 
-    // Read device profile and put attributes into the hashmap
+    // Read device profile and put attributes into the HashMap
     public void startService() {
 
         SensorManager mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
@@ -96,7 +98,6 @@ public class DeviceAttribute {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("MissingPermission")
     HashMap getDeviceAttr() {
-
         // Get the current CPU frequency in MHz
         try {
             // Read from the system
@@ -116,7 +117,6 @@ public class DeviceAttribute {
         // Get the remaining battery in mAh
         BatteryManager batteryManager = (BatteryManager) mContext.getSystemService(Context.BATTERY_SERVICE);
         float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-        //float mRemainBattery = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_ENERGY_COUNTER) / 1000f;
         mDeviceAttr.put("Battery", mRemainBattery);
 
         // Get the remaining memory size in MB
@@ -168,7 +168,7 @@ public class DeviceAttribute {
         return mDeviceAttr;
     }
 
-    // Set the accuracy % of a specific sensor
+    // Set the accuracy percentage of a specific sensor
     public void setSensorAcc(String sensor, float accuracy) {
         mDeviceAttr.put(sensor, accuracy);
     }
