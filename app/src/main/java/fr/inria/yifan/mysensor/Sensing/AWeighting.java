@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Sensing;
 
 /**
@@ -115,5 +117,4 @@ public class AWeighting {
         }
         return output;
     }
-
 }

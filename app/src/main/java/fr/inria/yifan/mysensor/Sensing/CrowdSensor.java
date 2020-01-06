@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Sensing;
 
 import android.annotation.SuppressLint;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import static fr.inria.yifan.mysensor.Context.ContextHelper.MIN_UPDATE_TIME;
 import static java.lang.System.currentTimeMillis;
 
 /**
@@ -43,21 +46,21 @@ public abstract class CrowdSensor {
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
 
     private final Object mLock; // Thread locker
+    private boolean isGetSenseRun; // Running flag
+
     private Context mContext;
     private LocationManager mLocationManager;
     private SensorManager mSensorManager;
-    private AudioRecord mAudioRecord;
-    private AWeighting mAWeighting;
+    private JSONObject mSamples;
 
-    // "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    // "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     private Location mLocation;
     private float mTemperature;
     private float mLight;
     private float mPressure;
     private float mHumidity;
-
-    private boolean isGetSenseRun; // Running flag
-    private JSONObject mSamples;
+    private AudioRecord mAudioRecord;
+    private AWeighting mAWeighting;
 
     private LocationListener mLocationListener = new LocationListener() {
         @Override
@@ -138,6 +141,8 @@ public abstract class CrowdSensor {
         mContext = context;
         mLock = new Object();
         isGetSenseRun = false;
+        mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
+        mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
     }
 
     // Upload the content to the database on cloud
@@ -148,10 +153,8 @@ public abstract class CrowdSensor {
             HashMap entry = new ObjectMapper().readValue(instance.toString(), HashMap.class);
             // Add a new document with a generated ID
             db.collection("SensingData").add(entry)
-                    .addOnSuccessListener(documentReference ->
-                            Log.d(TAG, "Document added with ID: " + documentReference.getId()))
-                    .addOnFailureListener(e ->
-                            Log.w(TAG, "Error adding document", e));
+                    .addOnSuccessListener(documentReference -> Log.d(TAG, "Document added with ID: " + documentReference.getId()))
+                    .addOnFailureListener(e -> Log.w(TAG, "Error adding document", e));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -172,66 +175,7 @@ public abstract class CrowdSensor {
 
     // Start the coordinator service
     public void startCoordinator() {
-
-    }
-
-    // Stop all registered service
-    private void stopAllService() {
-        isGetSenseRun = false;
-        mLocationManager.removeUpdates(mLocationListener);
-        // "Temperature", "Light", "Pressure", "Humidity", "Noise"
-        mSensorManager.unregisterListener(mTempListener);
-        mSensorManager.unregisterListener(mLightListener);
-        mSensorManager.unregisterListener(mPressListener);
-        mSensorManager.unregisterListener(mHumidListener);
-        if (mAudioRecord != null) {
-            mAudioRecord.stop();
-        }
-    }
-
-    // Starting a sensing service
-    // "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    @SuppressLint("MissingPermission")
-    public void startService(String service) {
-        mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
-        mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
-        switch (service) {
-            case "Location":
-                // Check whether the GPS is enabled
-                if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, mLocationListener);
-                    mLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                }
-                // Check whether the network is enabled
-                else if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1, mLocationListener);
-                    mLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                } else {
-                    Toast.makeText(mContext, "Please enable the GPS/Network location!", Toast.LENGTH_SHORT).show();
-                    mLocation = new Location("");
-                }
-                break;
-            case "Temperature":
-                mSensorManager.registerListener(mTempListener, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_FASTEST);
-                break;
-            case "Light":
-                mSensorManager.registerListener(mLightListener, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_FASTEST);
-                break;
-            case "Pressure":
-                mSensorManager.registerListener(mPressListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_FASTEST);
-                break;
-            case "Humidity":
-                mSensorManager.registerListener(mHumidListener, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_FASTEST);
-                break;
-            case "Noise":
-                mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
-                mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
-                mAudioRecord.startRecording();
-                break;
-            default:
-                Log.d(TAG, "Aggregator or proxy collaborator");
-                break;
-        }
+        // Pass
     }
 
     // Read the most current value from a service
@@ -266,6 +210,67 @@ public abstract class CrowdSensor {
         }
     }
 
+    // Starting a sensing service
+    // "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    @SuppressLint("MissingPermission")
+    public void startService(String service) {
+        switch (service) {
+            case "Location":
+                // Check whether the GPS is enabled
+                if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_UPDATE_TIME, 1, mLocationListener);
+                    mLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                }
+                // Check whether the network is enabled
+                else if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                    mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_UPDATE_TIME, 1, mLocationListener);
+                    mLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                } else {
+                    Toast.makeText(mContext, "Please enable the GPS/Network location!", Toast.LENGTH_SHORT).show();
+                    mLocation = new Location("");
+                }
+                break;
+            case "Temperature":
+                mSensorManager.registerListener(mTempListener, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
+                break;
+            case "Light":
+                mSensorManager.registerListener(mLightListener, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
+                break;
+            case "Pressure":
+                mSensorManager.registerListener(mPressListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
+                break;
+            case "Humidity":
+                mSensorManager.registerListener(mHumidListener, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
+                break;
+            case "Noise":
+                mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
+                mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
+                mAudioRecord.startRecording();
+                break;
+            default:
+                Log.d(TAG, "Aggregator or proxy collaborator");
+                break;
+        }
+    }
+
+    // Stop all registered service
+    private void stopAllService() {
+        isGetSenseRun = false;
+        try {
+            // "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+            mLocationManager.removeUpdates(mLocationListener);
+            mSensorManager.unregisterListener(mTempListener);
+            mSensorManager.unregisterListener(mLightListener);
+            mSensorManager.unregisterListener(mPressListener);
+            mSensorManager.unregisterListener(mHumidListener);
+            //if (mAudioRecord != null) {
+            mAudioRecord.stop();
+            //}
+        } catch (Exception e) {
+            Log.e(TAG, String.valueOf(e));
+        }
+    }
+
     // Start the main thread for all services allocated, total number of samples, delay of each sample
     public void startWorkingThread(List<String> services, int numSamples, float delay) {
         isGetSenseRun = true;
@@ -285,7 +290,6 @@ public abstract class CrowdSensor {
             startService(service);
         }
         new Thread(() -> {
-
             int count = 0;
             while (isGetSenseRun && count < numSamples) {
                 // Sampling time delay
@@ -368,8 +372,7 @@ public abstract class CrowdSensor {
     public abstract void onWorkFinished(JSONObject result);
 
     /*
-    db.collection("SensingData").get()
-                .addOnCompleteListener(task -> {
+    db.collection("SensingData").get().addOnCompleteListener(task -> {
         if (task.isSuccessful()) {
             for (QueryDocumentSnapshot document : task.getResult()) {
                 Log.d(TAG, document.getId() + " => " + document.getData());

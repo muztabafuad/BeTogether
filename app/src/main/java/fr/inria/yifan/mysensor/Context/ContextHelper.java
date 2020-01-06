@@ -34,7 +34,7 @@ public class ContextHelper {
 
     /* Hyper parameters:
     Time interval between activity and GPS updates in milliseconds */
-    static final int MIN_UPDATE_TIME = 1000;
+    public static final int MIN_UPDATE_TIME = 1000;
 
     // The lambda parameter for learning model update
     static final int LAMBDA = 10;

@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Sensing;
 
 import android.content.BroadcastReceiver;
@@ -36,7 +38,7 @@ public class ServiceHelper extends BroadcastReceiver {
     private static final String TAG = "Service helper";
 
     private static final int N_Max = 10; // Maximum number of members for a group
-    private static final int TIME_CONTEXT = 1; // Time threshold of a detected context
+    private static final int TIME_CONTEXT = 10; // Time threshold of a detected context
 
     // Variables
     private Context mContext;
@@ -48,18 +50,17 @@ public class ServiceHelper extends BroadcastReceiver {
     private HashMap<String, List<String>> mNeighborService; // Neighbor MAC address and its service allocation list
     private HashMap<String, String> mNeighborAddress; // Neighbor MAC address and its IP address (for socket)
 
-    private JSONObject mDataToUpload;
-
     private String mMacAddress; // MAC address of current device
     private HashMap<String, String> mSelfContext; // Context message of current device
     private HashMap<String, String> mSelfIntent; // Intents message of current device
     private List<String> mMyServices; // Services allocated for current device
     private boolean mIsCoordinator; // Coordinator flag of current device
 
-    private NetworkHelper mNetworkHelper;
     private ArrayAdapter<String> mAdapterNeighborList; // For the list shown in UI
     //private List<String> mMyConnect; // Connected devices for current device
     //private WifiP2pInfo mMyP2PInfo; // Wifi-Direct connection information
+
+    private JSONObject mDataToUpload; // Sensing data aggregated
 
     @SuppressWarnings("unchecked")
     // Listener for record information
@@ -113,7 +114,6 @@ public class ServiceHelper extends BroadcastReceiver {
     // Listener for Wifi-Direct group
     private WifiP2pManager.GroupInfoListener mGroupListener = group -> {
         Log.e(TAG, group.toString());
-
         // Record my connected devices
         //for (WifiP2pDevice member : group.getClientList()) {
         //    mMyConnect.add(member.deviceName + " " + member.deviceAddress);
@@ -127,6 +127,7 @@ public class ServiceHelper extends BroadcastReceiver {
         // A Wifi-Direct group was created
         if (info.groupFormed) {
             // I am the coordinator
+            NetworkHelper mNetworkHelper;
             if (info.isGroupOwner) {
                 mIsCoordinator = true;
                 Log.e(TAG, "I am the coordinator");
@@ -179,9 +180,9 @@ public class ServiceHelper extends BroadcastReceiver {
         mMyServices = new ArrayList<>();
         mIsCoordinator = false;
 
-        mDataToUpload = new JSONObject();
-
         mAdapterNeighborList = adapter;
+
+        mDataToUpload = new JSONObject();
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -214,6 +215,11 @@ public class ServiceHelper extends BroadcastReceiver {
         });
     }
 
+    // Stop advertising the service
+    public void stopAdvertise() {
+        mManager.clearLocalServices(mChannel, null);
+    }
+
     // Discovery neighboring services
     public void discoverService() {
         mManager.setDnsSdResponseListeners(mChannel, mServiceListener, mTxtListener);
@@ -231,11 +237,6 @@ public class ServiceHelper extends BroadcastReceiver {
                 Log.e(TAG, "Failed in discovery.");
             }
         });
-    }
-
-    // Stop advertising the service
-    public void stopAdvertise() {
-        mManager.clearLocalServices(mChannel, null);
     }
 
     // Stop discovering the service
@@ -435,7 +436,6 @@ public class ServiceHelper extends BroadcastReceiver {
         try {
             CrowdSensor crowdSensor;
             switch ((String) msg.get("Type")) {
-
                 // Hello message handled by the server
                 case "Hello":
                     // New client is connected, update the IP address to a MAC address
