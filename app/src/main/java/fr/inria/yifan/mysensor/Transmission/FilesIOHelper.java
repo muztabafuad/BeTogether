@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Transmission;
 
 import android.content.Context;
@@ -28,7 +30,7 @@ public class FilesIOHelper {
 
     // Constructor
     public FilesIOHelper(Context context) {
-        super();
+        //super();
         this.mContext = context;
     }
 

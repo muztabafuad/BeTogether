@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Transmission;
 
 import org.json.JSONObject;
@@ -60,7 +62,6 @@ public abstract class NetworkHelper {
                 while (true) {
                     socket = serverSocket.accept();
                     mClients.add(socket);
-
                     // Thread will wait till message received
                     dataInputStream = new DataInputStream(socket.getInputStream());
                     String msg = dataInputStream.readUTF();
@@ -110,11 +111,9 @@ public abstract class NetworkHelper {
                 // Create a client socket with the host, port, and timeout information.
                 socket.bind(null);
                 socket.connect((new InetSocketAddress(dest, PORT)), 500);
-
                 // Transfer JSONObject as String to the server
                 dataOutputStream = new DataOutputStream(socket.getOutputStream());
                 dataOutputStream.writeUTF(msg.toString());
-
                 // Read the reply, thread will wait till server replies
                 dataInputStream = new DataInputStream(socket.getInputStream());
                 String reply = dataInputStream.readUTF();
@@ -153,7 +152,6 @@ public abstract class NetworkHelper {
                 // Create a client socket with the host, port, and timeout information.
                 socket.bind(null);
                 socket.connect((new InetSocketAddress(dest, PORT)), 500);
-
                 // Transfer JSONObject as String to the destination
                 dataOutputStream = new DataOutputStream(socket.getOutputStream());
                 dataOutputStream.writeUTF(msg.toString());
@@ -180,5 +178,4 @@ public abstract class NetworkHelper {
     public void sendFileTo(String dest, File file) {
         //TODO
     }
-
 }
