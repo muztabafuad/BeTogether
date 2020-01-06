@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor;
 
 import android.Manifest;
@@ -45,24 +47,6 @@ public class InitializeActivity extends AppCompatActivity {
         welcomeView.setText(R.string.hint_initial);
 
         checkPermission();
-
-        /*
-        try {
-            List<String> services = new ArrayList<>();
-            services.add("Locator");
-            services.add("Aggregator");
-            services.add("Light");
-
-            JSONObject json = new JSONObject();
-            json.put("Service", services);
-
-            List<String> myServices = new ArrayList<>((List<String>) json.get("Service"));
-            Log.e(TAG, "Received: " + json.get("Service") + ", my services are: " + myServices);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        */
-
     }
 
     // Check related user permissions
@@ -158,5 +142,4 @@ public class InitializeActivity extends AppCompatActivity {
         startActivity(goToService);
         finish();
     }
-
 }

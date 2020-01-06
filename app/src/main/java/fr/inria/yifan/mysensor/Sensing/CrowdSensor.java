@@ -137,12 +137,19 @@ public abstract class CrowdSensor {
     };
 
     // Constructor
+    @SuppressLint("MissingPermission")
     protected CrowdSensor(Context context) {
         mContext = context;
         mLock = new Object();
         isGetSenseRun = false;
         mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
         mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+
+        mLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        mLight = 1000f;
+        mTemperature = 25f;
+        mPressure = 1007f;
+        mHumidity = 65f;
     }
 
     // Upload the content to the database on cloud

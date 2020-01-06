@@ -1,9 +1,9 @@
+// V1
+
 package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -38,12 +38,13 @@ public class SensingActivity extends AppCompatActivity {
 
     // Email destination for the sensing data
     public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
+
     // Parameters for sensing sampling
-    public static final int SAMPLE_NUMBER = 10;
-    public static final int SAMPLE_DELAY = 1000;
+    public static final int SAMPLE_NUMBER = 50;
+    public static final int SAMPLE_DELAY = 100;
 
     private final Object mLock; // Thread locker
-    private boolean isGetSenseRun; // Running flag
+    //private boolean isGetSenseRun; // Running flag
 
     // Declare all related views in UI
     private Button mStartButton;
@@ -54,9 +55,6 @@ public class SensingActivity extends AppCompatActivity {
 
     private FilesIOHelper mFilesIOHelper; // File helper
     private ArrayList<String> mSensingData; // Sensing data
-
-    private BatteryManager mBatteryManager;
-    private float mStartBattery;
 
     // Helpers for sensors and context
     private CrowdSensor mCrowdSensor;
@@ -122,10 +120,7 @@ public class SensingActivity extends AppCompatActivity {
                 //mAdapterSensing.add(result.toString());
             }
         };
-
-        //mFilesIOHelper = new FilesIOHelper(this);
-        // Get the battery manager
-        mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
+        mFilesIOHelper = new FilesIOHelper(this);
     }
 
     // Stop thread when exit!
@@ -139,22 +134,17 @@ public class SensingActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-        isGetSenseRun = false;
     }
 
     // Start the sensing thread
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void startRecord() {
 
-        // Record the battery when start
-        mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
 
         // JSONTest for a service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-        mCrowdSensor.startWorkingThread(Arrays.asList("Location", "Light", "Noise"), SAMPLE_NUMBER, SAMPLE_DELAY);
+        mCrowdSensor.startWorkingThread(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"), SAMPLE_NUMBER, SAMPLE_DELAY);
 
-        isGetSenseRun = true;
         new Thread(() -> {
-
             // Wait for the sensing thread to finish
             synchronized (mLock) {
                 try {
@@ -169,7 +159,6 @@ public class SensingActivity extends AppCompatActivity {
 
             // Upload to the cloud
             CrowdSensor.doProxyUpload(result);
-
         }).start();
     }
 
@@ -177,11 +166,6 @@ public class SensingActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("SetTextI18n")
     private void stopRecord() {
-
-        isGetSenseRun = false;
-
-        float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-        mAdapterSensing.add("Power energy consumed in mA: " + (mStartBattery - currentBattery));
 
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -233,5 +217,4 @@ public class SensingActivity extends AppCompatActivity {
         }
         return content.toString();
     }
-
 }

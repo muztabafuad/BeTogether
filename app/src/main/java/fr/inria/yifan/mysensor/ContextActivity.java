@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
@@ -15,23 +17,23 @@ import java.util.HashMap;
 import fr.inria.yifan.mysensor.Context.ContextHelper;
 
 /**
- * This activity show the context information of the crowdsensor.
+ * This activity shows the context information of the crowdsensor.
  */
 
 public class ContextActivity extends AppCompatActivity {
-    // TODO
+
     private static final String TAG = "Context Activity";
 
     private final Object mLock; // Thread locker
     private boolean isRunning;
 
     private TextView contextView;
-    private TextView attributeView;
+    private TextView intentView;
+
     private ContextHelper mContextHelper;
 
     public ContextActivity() {
         mLock = new Object();
-        isRunning = true;
     }
 
     // Main activity initialization
@@ -42,13 +44,13 @@ public class ContextActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_context);
         contextView = findViewById(R.id.context_view);
-        attributeView = findViewById(R.id.intents_view);
+        intentView = findViewById(R.id.intents_view);
+        Button feedbackButton = findViewById(R.id.feedback_button);
 
         mContextHelper = new ContextHelper(this);
-
-        Button feedbackButton = findViewById(R.id.feedback_button);
         feedbackButton.setOnClickListener(v -> mContextHelper.updatePEModels());
 
+        isRunning = true;
         mContextHelper.startService();
 
         new Thread(() -> {
@@ -61,14 +63,12 @@ public class ContextActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-
                 runOnUiThread(() -> {
                     HashMap context = mContextHelper.getContext();
                     contextView.setText(context.toString());
-                    HashMap intent = mContextHelper.getIntentValues(new int[]{0, 0, 0});
-                    attributeView.setText(intent.toString());
+                    HashMap intent = mContextHelper.getIntentValues(new int[]{1, 1, 1, 1});
+                    intentView.setText(intent.toString());
                 });
-
             }
         }).start();
     }
@@ -95,5 +95,4 @@ public class ContextActivity extends AppCompatActivity {
         startActivity(goToService);
         finish();
     }
-
 }

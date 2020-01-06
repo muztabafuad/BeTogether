@@ -2,6 +2,7 @@ package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -29,7 +30,7 @@ import static java.lang.System.currentTimeMillis;
  */
 
 @SuppressLint("Registered")
-public class SensingTest extends AppCompatActivity {
+public class BatteryUsage extends AppCompatActivity {
 
     // Email destination for the sensing data
     public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
@@ -49,8 +50,11 @@ public class SensingTest extends AppCompatActivity {
 
     private ContextHelper mContextHelper;
 
+    private BatteryManager mBatteryManager;
+    private float mStartBattery;
+
     // Constructor initializes locker
-    public SensingTest() {
+    public BatteryUsage() {
         mLock = new Object();
     }
 
@@ -173,6 +177,32 @@ public class SensingTest extends AppCompatActivity {
                                 intent.get("Aggregator")));
             }
         }).start();
+
+
+        // Record the battery when start
+        mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        //mFilesIOHelper = new FilesIOHelper(this);
+        // Get the battery manager
+        //mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
+
+        /*
+        try {
+            List<String> services = new ArrayList<>();
+            services.add("Locator");
+            services.add("Aggregator");
+            services.add("Light");
+
+            JSONObject json = new JSONObject();
+            json.put("Service", services);
+
+            List<String> myServices = new ArrayList<>((List<String>) json.get("Service"));
+            Log.e(TAG, "Received: " + json.get("Service") + ", my services are: " + myServices);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        */
+        float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+        mAdapterSensing.add("Power energy consumed in mA: " + (mStartBattery - currentBattery));
     }
 
     // Stop the sensing

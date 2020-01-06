@@ -55,7 +55,7 @@
             android:screenOrientation="portrait"
             tools:ignore="InnerclassSeparator" />
         <activity
-            android:name=".SensingTest"
+            android:name=".BatteryUsage"
             android:screenOrientation="portrait"
             tools:ignore="InnerclassSeparator" />
     </application>
