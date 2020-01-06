@@ -1,9 +1,9 @@
 # Android_GroupSense
-Android application "GroupSense" for research purpose of PhD project, leveraging all embedded sensors to contribute to mobile crowd sensing.
+Android application "GroupSense" is a procotype for research purpose. It leverages embedded sensors on smartphones to elaborate in-network collaborative crowdsensing.
 
-* Physical context classification
-  + Hierarchical inference and update
-* Environment sensing and logging
-  + Save and send observation data
-* In-network colaboration
-  + Wi-Fi Direct and neighbor aware networking
+* Context inference
+  + User activity, physical environment, device attributes
+* Context-aware collaboration
+  + Intent value calculation and Wi-Fi Direct service discovery
+* Sensing and logging
+  + Task execution and observation transmission to cloud
