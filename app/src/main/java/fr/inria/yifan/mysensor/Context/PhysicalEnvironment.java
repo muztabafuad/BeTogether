@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Context;
 
 import android.annotation.SuppressLint;
@@ -66,23 +68,23 @@ public class PhysicalEnvironment extends BroadcastReceiver {
     // Variables
     private Context mContext;
     private HashMap<String, Object> mPhysicalEnv;
-    private int mHierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
 
     private SensorManager mSensorManager;
     private TelephonyManager mTelephonyManager;
     private LocationManager mLocationManager;
     private WifiManager mWifiManager;
 
+    private int mHierarResult; // 1 in-pocket, 2 out-pocket out-door, 3 out-pocket in-door under-ground, 4 out-pocket in-door on-ground
     private float mLight;
     private float mRssiLevel;
     private float mRssiValue;
     private float mAccuracy;
-    private float mBearing;
     private float mWifiRssi;
     private float mProximity;
     private float mTemperature;
     private float mPressure;
     private float mHumidity;
+    private float mBearing;
 
     // Declare light sensor listener
     private SensorEventListener mListenerLight = new SensorEventListener() {
@@ -190,6 +192,7 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         mTemperature = 25f;
         mPressure = 1007f;
         mHumidity = 65f;
+        mBearing = 0f;
 
         mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
         mTelephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
@@ -213,24 +216,6 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             p *= Math.random();
         } while (p > L);
         return k - 1;
-    }
-
-    // Start the service
-    @SuppressLint("MissingPermission")
-    public void startService() {
-        // Register listeners for all sensors and components
-        try {
-            mSensorManager.registerListener(mListenerLight, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
-            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-            mContext.registerReceiver(this, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_UPDATE_TIME, 1, mListenerLoc, mContext.getMainLooper());
-            mSensorManager.registerListener(mListenerProxy, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(mListenerTemp, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(mListenerPress, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
-            mSensorManager.registerListener(mListenerHumid, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     // Get the most recent physical environment
@@ -263,6 +248,40 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             e.printStackTrace();
         }
         return mPhysicalEnv;
+    }
+
+    // Start the service
+    @SuppressLint("MissingPermission")
+    public void startService() {
+        // Register listeners for all sensors and components
+        try {
+            mSensorManager.registerListener(mListenerLight, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
+            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_UPDATE_TIME, 1, mListenerLoc, mContext.getMainLooper());
+            mContext.registerReceiver(this, new IntentFilter(WifiManager.RSSI_CHANGED_ACTION));
+            mSensorManager.registerListener(mListenerProxy, mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(mListenerTemp, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(mListenerPress, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(mListenerHumid, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Stop the service
+    public void stopService() {
+        try {
+            mSensorManager.unregisterListener(mListenerLight);
+            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
+            mLocationManager.removeUpdates(mListenerLoc);
+            mContext.unregisterReceiver(this);
+            mSensorManager.unregisterListener(mListenerProxy);
+            mSensorManager.unregisterListener(mListenerTemp);
+            mSensorManager.unregisterListener(mListenerPress);
+            mSensorManager.unregisterListener(mListenerHumid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // Inference on the new instance
@@ -325,23 +344,6 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         }
     }
 
-    // Stop the service
-    public void stopService() {
-        try {
-            mSensorManager.unregisterListener(mListenerLight);
-            mTelephonyManager.listen(mListenerPhone, PhoneStateListener.LISTEN_NONE);
-            mLocationManager.removeUpdates(mListenerLoc);
-            mContext.unregisterReceiver(this);
-
-            mSensorManager.unregisterListener(mListenerProxy);
-            mSensorManager.unregisterListener(mListenerTemp);
-            mSensorManager.unregisterListener(mListenerPress);
-            mSensorManager.unregisterListener(mListenerHumid);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     // Update the classifiers hierarchically by one click
     public void updateAllModels() {
         try {
@@ -398,14 +400,12 @@ public class PhysicalEnvironment extends BroadcastReceiver {
                 fileInputStream = mContext.getAssets().openFd(DATASET_POCKET).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesPocket = (Instances) objectInputStream.readObject();
-
                 fileInputStream = mContext.getAssets().openFd(MODEL_DOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (HoeffdingTree) objectInputStream.readObject();
                 fileInputStream = mContext.getAssets().openFd(DATASET_DOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesDoor = (Instances) objectInputStream.readObject();
-
                 fileInputStream = mContext.getAssets().openFd(MODEL_GROUND).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (HoeffdingTree) objectInputStream.readObject();
@@ -423,14 +423,12 @@ public class PhysicalEnvironment extends BroadcastReceiver {
                 fileOutputStream = mContext.openFileOutput(DATASET_POCKET, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(instancesPocket);
-
                 fileOutputStream = mContext.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierDoor);
                 fileOutputStream = mContext.openFileOutput(DATASET_DOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(instancesDoor);
-
                 fileOutputStream = mContext.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierGround);
@@ -453,14 +451,12 @@ public class PhysicalEnvironment extends BroadcastReceiver {
                 fileInputStream = mContext.openFileInput(DATASET_POCKET);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesPocket = (Instances) objectInputStream.readObject();
-
                 fileInputStream = mContext.openFileInput(MODEL_DOOR);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (HoeffdingTree) objectInputStream.readObject();
                 fileInputStream = mContext.openFileInput(DATASET_DOOR);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 instancesDoor = (Instances) objectInputStream.readObject();
-
                 fileInputStream = mContext.openFileInput(MODEL_GROUND);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (HoeffdingTree) objectInputStream.readObject();
@@ -485,15 +481,12 @@ public class PhysicalEnvironment extends BroadcastReceiver {
             fileOutputStream = mContext.openFileOutput(MODEL_POCKET, Context.MODE_PRIVATE);
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(classifierPocket);
-
             fileOutputStream = mContext.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(classifierDoor);
-
             fileOutputStream = mContext.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(classifierGround);
-
             objectOutputStream.close();
             fileOutputStream.close();
         } catch (Exception e) {
@@ -507,4 +500,3 @@ public class PhysicalEnvironment extends BroadcastReceiver {
         mWifiRssi = mWifiManager.getConnectionInfo().getRssi();
     }
 }
-

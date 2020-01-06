@@ -135,7 +135,6 @@ public class ContextHelper {
         // Battery metric
         float bat = (float) mDeviceAttribute.getDeviceAttr().get("Battery");
         float b = sigmoidFunction(bat, 0.001f, 1000f);
-
         //mIntents.put("Battery", String.valueOf(bat));
 
         // Coordinator utility
@@ -145,7 +144,6 @@ public class ContextHelper {
         float h = historyNeighbors.length != 0 ? sigmoidFunction(sum / historyNeighbors.length, 1f, 1f) : 0;
         float d = sigmoidFunction(Math.min(durationUA, Math.min(durationDoor, durationGround)), 0.1f, 10f);
         mIntents.put("Coordinator", String.valueOf(delta + h + d + b));
-
         //mIntents.put("Duration", String.valueOf(Math.min(durationUA, Math.min(durationDoor, durationGround))));
         //mIntents.put("Neighbors", String.valueOf(historyNeighbors.length));
         //mIntents.put("History", String.valueOf(historyNeighbors.length != 0 ? sum / historyNeighbors.length : 0));
@@ -155,7 +153,6 @@ public class ContextHelper {
         float locPow = (float) mDeviceAttribute.getDeviceAttr().get("LocationPower");
         float l = -sigmoidFunction(locAcc, 0.1f, 10f) - sigmoidFunction(locPow, 0.1f, 30f);
         mIntents.put("Locator", String.valueOf(l + d + b));
-
         //mIntents.put("LocAccuracy", String.valueOf(locAcc));
 
         // Proxy utility
@@ -164,7 +161,6 @@ public class ContextHelper {
         float netPow = (float) mDeviceAttribute.getDeviceAttr().get("InternetPower");
         float n = sigmoidFunction(netBw, 0.00001f, 100000f) - sigmoidFunction(netPow, 0.01f, 100f);
         mIntents.put("Proxy", String.valueOf(n + d + b));
-
         //mIntents.put("Bandwidth", String.valueOf(netBw));
         //mIntents.put("NetPower", String.valueOf(netPow));
 
@@ -174,7 +170,6 @@ public class ContextHelper {
         float cpow = (float) mDeviceAttribute.getDeviceAttr().get("CPUPow");
         float cp = sigmoidFunction(cpu, 0.001f, 1000f) - sigmoidFunction(cpow, 0.01f, 100f);
         mIntents.put("Aggregator", String.valueOf(cp + d + sigmoidFunction(ram, 0.001f, 1000f)));
-
         //mIntents.put("Memory", String.valueOf(ram));
 
         // Temperature utility

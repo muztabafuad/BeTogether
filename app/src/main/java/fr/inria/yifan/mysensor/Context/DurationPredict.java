@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Context;
 
 import android.content.Context;
@@ -26,12 +28,12 @@ class DurationPredict {
     private static final String TAG = "Duration prediction";
 
     // Naming the learning model files to load
-    private static final String MODEL_ACTIVITY = "UA_prediction.model";
+    private static final String MODEL_ACTIVITY = "Activity_prediction.model";
     private static final String MODEL_DOOR = "Door_prediction.model";
     private static final String MODEL_GROUND = "Ground_prediction.model";
 
     // Instances for data set declaration
-    private Instances instancesUA;
+    private Instances instancesActivity;
     private Instances instancesDoor;
     private Instances instancesGround;
 
@@ -44,7 +46,6 @@ class DurationPredict {
 
     // Constructor
     DurationPredict(Context context) {
-
         mContext = context;
 
         // Load learning models
@@ -64,11 +65,9 @@ class DurationPredict {
                 fileInputStream = mContext.getAssets().openFd(MODEL_ACTIVITY).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierActivity = (LWL) objectInputStream.readObject();
-
                 fileInputStream = mContext.getAssets().openFd(MODEL_DOOR).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (LWL) objectInputStream.readObject();
-
                 fileInputStream = mContext.getAssets().openFd(MODEL_GROUND).createInputStream();
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (LWL) objectInputStream.readObject();
@@ -80,11 +79,9 @@ class DurationPredict {
                 fileOutputStream = mContext.openFileOutput(MODEL_ACTIVITY, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierActivity);
-
                 fileOutputStream = mContext.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierDoor);
-
                 fileOutputStream = mContext.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
                 objectOutputStream = new ObjectOutputStream(fileOutputStream);
                 objectOutputStream.writeObject(classifierGround);
@@ -101,11 +98,9 @@ class DurationPredict {
                 fileInputStream = mContext.openFileInput(MODEL_ACTIVITY);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierActivity = (LWL) objectInputStream.readObject();
-
                 fileInputStream = mContext.openFileInput(MODEL_DOOR);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierDoor = (LWL) objectInputStream.readObject();
-
                 fileInputStream = mContext.openFileInput(MODEL_GROUND);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 classifierGround = (LWL) objectInputStream.readObject();
@@ -123,10 +118,10 @@ class DurationPredict {
         attInfo1.add(new Attribute("Day"));
         attInfo1.add(new Attribute("Hour"));
         attInfo1.add(new Attribute("Minute"));
-        attInfo1.add(new Attribute("UA"));
+        attInfo1.add(new Attribute("Activity"));
         attInfo1.add(new Attribute("Duration"));
-        instancesUA = new Instances("UserActivity", attInfo1, 0);
-        instancesUA.setClassIndex(instancesUA.numAttributes() - 1);
+        instancesActivity = new Instances("UserActivity", attInfo1, 0);
+        instancesActivity.setClassIndex(instancesActivity.numAttributes() - 1);
 
         // Day 1-7; Hour 0-23; Minute 0-59; Indoor 0 or 1; Duration in minutes
         ArrayList<Attribute> attInfo2 = new ArrayList<>();
@@ -161,7 +156,7 @@ class DurationPredict {
         float duration = (Calendar.getInstance().getTimeInMillis() - starTime.getTimeInMillis()) / (60f * 1000f);
         double[] entry = new double[]{day, hour, minute, activity_idx, duration};
         Instance inst = new DenseInstance(1, entry);
-        inst.setDataset(instancesUA);
+        inst.setDataset(instancesActivity);
         try {
             classifierActivity.updateClassifier(inst);
         } catch (Exception e) {
@@ -221,7 +216,7 @@ class DurationPredict {
         int minute = now.get(Calendar.MINUTE);
         double[] entry = new double[]{day, hour, minute, activity_idx, 0};
         Instance inst = new DenseInstance(1, entry);
-        inst.setDataset(instancesUA);
+        inst.setDataset(instancesActivity);
         try {
             return (float) classifierActivity.classifyInstance(inst);
         } catch (Exception e) {
@@ -281,11 +276,9 @@ class DurationPredict {
             fileOutputStream = mContext.openFileOutput(MODEL_ACTIVITY, Context.MODE_PRIVATE);
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(classifierActivity);
-
             fileOutputStream = mContext.openFileOutput(MODEL_DOOR, Context.MODE_PRIVATE);
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(classifierDoor);
-
             fileOutputStream = mContext.openFileOutput(MODEL_GROUND, Context.MODE_PRIVATE);
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(classifierGround);
@@ -296,7 +289,6 @@ class DurationPredict {
             Log.d(TAG, "Error when saving model file: " + e);
         }
     }
-
 
     // Convert to numeric value for the model
     private int convertActivity(String activity) {

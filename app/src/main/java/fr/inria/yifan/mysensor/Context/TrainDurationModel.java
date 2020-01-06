@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Context;
 
 import weka.classifiers.lazy.LWL;
@@ -97,7 +99,7 @@ public class TrainDurationModel {
         //System.out.println(eva.toSummaryString());
 
         // Save and load
-        //SerializationHelper.write("/Users/Yifan/Documents/SenseGroupTogether/app/src/main/assets/UA_prediction.model", model);
+        //SerializationHelper.write("/Users/Yifan/Documents/SenseGroupTogether/app/src/main/assets/Activity_prediction.model", model);
 
         /*
         // Train the in-door context model

@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor.Context;
 
 import android.app.PendingIntent;
@@ -45,12 +47,6 @@ public class UserActivity extends BroadcastReceiver {
         mContext.registerReceiver(this, new IntentFilter("ActivityRecognitionResult"));
     }
 
-    // Stop the service
-    public void stopService() {
-        // Unregister the update receiver
-        mContext.unregisterReceiver(this);
-    }
-
     // Get the most recent user activity
     public HashMap getUserActivity() {
         // Map the numeric to a string
@@ -72,6 +68,12 @@ public class UserActivity extends BroadcastReceiver {
                 break;
         }
         return mUserActiv;
+    }
+
+    // Stop the service
+    public void stopService() {
+        // Unregister the update receiver
+        mContext.unregisterReceiver(this);
     }
 
     // Callback when receive a user activity result
