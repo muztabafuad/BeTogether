@@ -24,7 +24,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -45,13 +44,11 @@ public abstract class CrowdSensor {
     // Audio recorder parameters for sampling
     private static final int BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
 
-    private final Object mLock; // Thread locker
-    private boolean isGetSenseRun; // Running flag
-
     private Context mContext;
     private LocationManager mLocationManager;
     private SensorManager mSensorManager;
-    private JSONObject mSamples;
+    private final Object mLock; // Thread locker
+    private List<String> mServices;
 
     // "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
     private Location mLocation;
@@ -140,12 +137,11 @@ public abstract class CrowdSensor {
     @SuppressLint("MissingPermission")
     protected CrowdSensor(Context context) {
         mContext = context;
-        mLock = new Object();
-        isGetSenseRun = false;
         mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
         mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
 
-        mLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        mLock = new Object();
+
         mLight = 1000f;
         mTemperature = 25f;
         mPressure = 1007f;
@@ -153,7 +149,7 @@ public abstract class CrowdSensor {
     }
 
     // Upload the content to the database on cloud
-    public static void doProxyUpload(JSONObject instance) {
+    static void doProxyUpload(JSONObject instance) {
         // Access a Cloud FireStore instance from App
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
@@ -183,6 +179,60 @@ public abstract class CrowdSensor {
     // Start the coordinator service
     public void startCoordinator() {
         // Pass
+    }
+
+    // Starting a sensing service
+    // "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+    @SuppressLint("MissingPermission")
+    private void startAService(String service) {
+        switch (service) {
+            case "Location":
+                // Check whether the GPS is enabled
+                if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_UPDATE_TIME, 1, mLocationListener);
+                    mLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                }
+                // Check whether the network is enabled
+                else if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                    mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_UPDATE_TIME, 1, mLocationListener);
+                    mLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                } else {
+                    Toast.makeText(mContext, "Please enable the GPS/Network location!", Toast.LENGTH_SHORT).show();
+                    mLocation = new Location("");
+                }
+                if (mLocation == null) {
+                    mLocation = new Location("");
+                }
+                break;
+            case "Temperature":
+                mSensorManager.registerListener(mTempListener, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
+                break;
+            case "Light":
+                mSensorManager.registerListener(mLightListener, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
+                break;
+            case "Pressure":
+                mSensorManager.registerListener(mPressListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
+                break;
+            case "Humidity":
+                mSensorManager.registerListener(mHumidListener, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
+                break;
+            case "Noise":
+                mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
+                mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
+                mAudioRecord.startRecording();
+                break;
+            default:
+                Log.d(TAG, "Aggregator or proxy collaborator");
+                break;
+        }
+    }
+
+    // Start all registered service
+    public void startServices(List<String> services) {
+        mServices = services;
+        for (String service : services) {
+            startAService(service);
+        }
     }
 
     // Read the most current value from a service
@@ -217,52 +267,29 @@ public abstract class CrowdSensor {
         }
     }
 
-    // Starting a sensing service
-    // "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-    @SuppressLint("MissingPermission")
-    public void startService(String service) {
-        switch (service) {
-            case "Location":
-                // Check whether the GPS is enabled
-                if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_UPDATE_TIME, 1, mLocationListener);
-                    mLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                }
-                // Check whether the network is enabled
-                else if (mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_UPDATE_TIME, 1, mLocationListener);
-                    mLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+    // Get the current result for all services allocated
+    public JSONObject getCurrentResult() {
+        // "Timestamp", "Latitude", "Longitude", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+        JSONObject mSamples = new JSONObject();
+        try {
+            mSamples.put("Timestamp", (int) currentTimeMillis() / 1000);
+            for (String service : mServices) {
+                if (service.equals("Location")) {
+                    mSamples.put("Latitude", getCurrentMeasurement("Latitude"));
+                    mSamples.put("Longitude", getCurrentMeasurement("Longitude"));
                 } else {
-                    Toast.makeText(mContext, "Please enable the GPS/Network location!", Toast.LENGTH_SHORT).show();
-                    mLocation = new Location("");
+                    mSamples.put(service, getCurrentMeasurement(service));
                 }
-                break;
-            case "Temperature":
-                mSensorManager.registerListener(mTempListener, mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE), SensorManager.SENSOR_DELAY_NORMAL);
-                break;
-            case "Light":
-                mSensorManager.registerListener(mLightListener, mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT), SensorManager.SENSOR_DELAY_NORMAL);
-                break;
-            case "Pressure":
-                mSensorManager.registerListener(mPressListener, mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE), SensorManager.SENSOR_DELAY_NORMAL);
-                break;
-            case "Humidity":
-                mSensorManager.registerListener(mHumidListener, mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY), SensorManager.SENSOR_DELAY_NORMAL);
-                break;
-            case "Noise":
-                mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE_IN_HZ, AudioFormat.CHANNEL_IN_DEFAULT, AudioFormat.ENCODING_PCM_16BIT, BUFFER_SIZE);
-                mAWeighting = new AWeighting(SAMPLE_RATE_IN_HZ);
-                mAudioRecord.startRecording();
-                break;
-            default:
-                Log.d(TAG, "Aggregator or proxy collaborator");
-                break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return mSamples;
     }
 
     // Stop all registered service
-    private void stopAllService() {
-        isGetSenseRun = false;
+    public void stopServices() {
+        mServices = null;
         try {
             // "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
             mLocationManager.removeUpdates(mLocationListener);
@@ -278,27 +305,12 @@ public abstract class CrowdSensor {
         }
     }
 
-    // Start the main thread for all services allocated, total number of samples, delay of each sample
-    public void startWorkingThread(List<String> services, int numSamples, float delay) {
-        isGetSenseRun = true;
-        //Log.e(TAG, "Work allocated: " + services);
-
-        mSamples = new JSONObject();
-        List<Integer> timestamp = new ArrayList<>();
-        List<Float> latitude = new ArrayList<>();
-        List<Float> longitude = new ArrayList<>();
-        List<Float> temperature = new ArrayList<>();
-        List<Float> light = new ArrayList<>();
-        List<Float> pressure = new ArrayList<>();
-        List<Float> humidity = new ArrayList<>();
-        List<Float> noise = new ArrayList<>();
-
-        for (String service : services) {
-            startService(service);
-        }
+    // Autonomous sensing thread
+    void startWorkingThread(List<String> services, int num, int delay) {
         new Thread(() -> {
+            // Sensing thread loop
             int count = 0;
-            while (isGetSenseRun && count < numSamples) {
+            while (count < num) {
                 // Sampling time delay
                 synchronized (mLock) {
                     try {
@@ -306,73 +318,11 @@ public abstract class CrowdSensor {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    //TODO
+                    count++;
                 }
-                timestamp.add((int) (currentTimeMillis() / 1000));
-                for (String service : services) {
-                    switch (service) {
-                        case "Location":
-                            latitude.add(getCurrentMeasurement("Latitude"));
-                            longitude.add(getCurrentMeasurement("Longitude"));
-                            break;
-                        case "Temperature":
-                            temperature.add(getCurrentMeasurement("Temperature"));
-                            break;
-                        case "Light":
-                            light.add(getCurrentMeasurement("Light"));
-                            break;
-                        case "Pressure":
-                            pressure.add(getCurrentMeasurement("Pressure"));
-                            break;
-                        case "Humidity":
-                            humidity.add(getCurrentMeasurement("Humidity"));
-                            break;
-                        case "Noise":
-                            noise.add(getCurrentMeasurement("Noise"));
-                            break;
-                        default:
-                            Log.d(TAG, "Aggregator or proxy collaborator");
-                            break;
-                    }
-                }
-                count += 1;
             }
-            try {
-                if (!timestamp.isEmpty()) {
-                    mSamples.put("Timestamp", timestamp);
-                }
-                if (!latitude.isEmpty()) {
-                    mSamples.put("Latitude", latitude);
-                }
-                if (!longitude.isEmpty()) {
-                    mSamples.put("Longitude", longitude);
-                }
-                if (!temperature.isEmpty()) {
-                    mSamples.put("Temperature", temperature);
-                }
-                if (!light.isEmpty()) {
-                    mSamples.put("Light", light);
-                }
-                if (!pressure.isEmpty()) {
-                    mSamples.put("Pressure", pressure);
-                }
-                if (!humidity.isEmpty()) {
-                    mSamples.put("Humidity", humidity);
-                }
-                if (!noise.isEmpty()) {
-                    mSamples.put("Noise", noise);
-                }
-                onWorkFinished(mSamples);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        ).start();
-    }
-
-    // Get the main result for all services allocated
-    public JSONObject getWorkingResult() {
-        stopAllService();
-        return mSamples;
+        }).start();
     }
 
     // Callback when the sensing work is finished

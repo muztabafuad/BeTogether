@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor;
 
 /*
@@ -249,7 +251,7 @@ public class ServiceActivity extends AppCompatActivity {
     private void stopExchanging() {
         float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
         long currentTime = System.currentTimeMillis();
-        mWelcomeView.setText("Power energy consumed in mA: " + (mStartBattery - currentBattery) + "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
+        mWelcomeView.setText("Power energy consumed in mAh: " + (mStartBattery - currentBattery) + "\nTime consumed in s: " + (currentTime - mStartTime) / 1000);
 
         isRunning = false;
 

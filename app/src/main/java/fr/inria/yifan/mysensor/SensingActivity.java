@@ -40,11 +40,11 @@ public class SensingActivity extends AppCompatActivity {
     public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
 
     // Parameters for sensing sampling
-    public static final int SAMPLE_NUMBER = 50;
-    public static final int SAMPLE_DELAY = 100;
+    public static final int SAMPLE_NUMBER = 10;
+    public static final int SAMPLE_DELAY = 1000;
 
     private final Object mLock; // Thread locker
-    //private boolean isGetSenseRun; // Running flag
+    private boolean isGetSenseRun; // Running flag
 
     // Declare all related views in UI
     private Button mStartButton;
@@ -139,26 +139,29 @@ public class SensingActivity extends AppCompatActivity {
     // Start the sensing thread
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void startRecord() {
+        isGetSenseRun = true;
+        // Service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+        mCrowdSensor.startServices(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"));
 
-
-        // JSONTest for a service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
-        mCrowdSensor.startWorkingThread(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"), SAMPLE_NUMBER, SAMPLE_DELAY);
-
+        // JSONTest for a
         new Thread(() -> {
-            // Wait for the sensing thread to finish
-            synchronized (mLock) {
-                try {
-                    mLock.wait(SAMPLE_NUMBER * SAMPLE_DELAY + 1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            // Sensing thread loop
+            int count = 0;
+            while (isGetSenseRun) {
+                // Sampling time delay
+                synchronized (mLock) {
+                    try {
+                        mLock.wait((long) SAMPLE_DELAY);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    JSONObject result = mCrowdSensor.getCurrentResult();
+                    runOnUiThread(() -> mAdapterSensing.add(result.toString()));
+                    // Upload to the cloud
+                    //CrowdSensor.doProxyUpload(result);
+                    count++;
                 }
             }
-
-            JSONObject result = mCrowdSensor.getWorkingResult();
-            runOnUiThread(() -> mAdapterSensing.add(result.toString()));
-
-            // Upload to the cloud
-            CrowdSensor.doProxyUpload(result);
         }).start();
     }
 
@@ -166,6 +169,8 @@ public class SensingActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("SetTextI18n")
     private void stopRecord() {
+        isGetSenseRun = false;
+        mCrowdSensor.stopServices();
 
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
