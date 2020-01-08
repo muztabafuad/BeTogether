@@ -147,7 +147,7 @@ public class BatteryUsage extends AppCompatActivity {
         isGetSenseRun = true;
         // Service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
         //mCrowdSensor.startServices(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"));
-        mCrowdSensor.startServices(Arrays.asList("Noise"));
+        mCrowdSensor.startServices(Arrays.asList("Temperature", "Light", "Pressure", "Humidity", "Noise"));
 
         new Thread(() -> {
             int count = 0;
@@ -166,7 +166,7 @@ public class BatteryUsage extends AppCompatActivity {
                 JSONObject result = mCrowdSensor.getCurrentResult();
                 runOnUiThread(() -> mAdapterSensing.add(result.toString()));
                 // Upload to the cloud
-                CrowdSensor.doProxyUpload(result);
+                //CrowdSensor.doProxyUpload(result);
                 count++;
             }
             float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
