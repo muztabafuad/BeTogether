@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import static fr.inria.yifan.mysensor.Context.ContextHelper.MIN_UPDATE_TIME;
+import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_DELAY;
+import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_NUMBER;
 import static java.lang.System.currentTimeMillis;
 
 /**
@@ -149,7 +151,7 @@ public abstract class CrowdSensor {
     }
 
     // Upload the content to the database on cloud
-    static void doProxyUpload(JSONObject instance) {
+    public static void doProxyUpload(JSONObject instance) {
         // Access a Cloud FireStore instance from App
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         try {
@@ -272,7 +274,7 @@ public abstract class CrowdSensor {
         // "Timestamp", "Latitude", "Longitude", "Temperature", "Light", "Pressure", "Humidity", "Noise"
         JSONObject mSamples = new JSONObject();
         try {
-            mSamples.put("Timestamp", (int) currentTimeMillis() / 1000);
+            mSamples.put("Timestamp", (int) (currentTimeMillis() / 1000));
             for (String service : mServices) {
                 if (service.equals("Location")) {
                     mSamples.put("Latitude", getCurrentMeasurement("Latitude"));
@@ -306,15 +308,15 @@ public abstract class CrowdSensor {
     }
 
     // Autonomous sensing thread
-    void startWorkingThread(List<String> services, int num, int delay) {
+    void startWorkingThread(List<String> services) {
         new Thread(() -> {
             // Sensing thread loop
             int count = 0;
-            while (count < num) {
+            while (count < SAMPLE_NUMBER) {
                 // Sampling time delay
                 synchronized (mLock) {
                     try {
-                        mLock.wait((long) delay);
+                        mLock.wait((long) SAMPLE_DELAY);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

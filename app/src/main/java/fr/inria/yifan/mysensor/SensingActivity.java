@@ -134,6 +134,7 @@ public class SensingActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        isGetSenseRun = false;
     }
 
     // Start the sensing thread
@@ -146,7 +147,6 @@ public class SensingActivity extends AppCompatActivity {
         // JSONTest for a
         new Thread(() -> {
             // Sensing thread loop
-            int count = 0;
             while (isGetSenseRun) {
                 // Sampling time delay
                 synchronized (mLock) {
@@ -159,7 +159,6 @@ public class SensingActivity extends AppCompatActivity {
                     runOnUiThread(() -> mAdapterSensing.add(result.toString()));
                     // Upload to the cloud
                     //CrowdSensor.doProxyUpload(result);
-                    count++;
                 }
             }
         }).start();

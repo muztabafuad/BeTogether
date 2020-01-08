@@ -25,9 +25,6 @@ import java.util.Map;
 
 import fr.inria.yifan.mysensor.Transmission.NetworkHelper;
 
-import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_DELAY;
-import static fr.inria.yifan.mysensor.SensingActivity.SAMPLE_NUMBER;
-
 /**
  * This class provides functions related to the Wifi Direct service discovery and the role allocation.
  * Service roles: "Coordinator" "Locator", "Proxy", "Aggregator", "Temperature", "Light", "Pressure", "Humidity", "Noise".
@@ -464,7 +461,7 @@ public class ServiceHelper extends BroadcastReceiver {
                             // Send the sensing data to the aggregator
                         }
                     };
-                    crowdSensor.startWorkingThread(mMyServices, SAMPLE_NUMBER, SAMPLE_DELAY);
+                    crowdSensor.startWorkingThread(mMyServices);
                     break;
 
                 // Raw sensing data handled by aggregator (currently coordinator)

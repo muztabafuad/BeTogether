@@ -1,3 +1,5 @@
+// V1
+
 package fr.inria.yifan.mysensor;
 
 import android.annotation.SuppressLint;
@@ -17,24 +19,31 @@ import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import org.json.JSONObject;
 
-import fr.inria.yifan.mysensor.Context.ContextHelper;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import fr.inria.yifan.mysensor.Sensing.CrowdSensor;
 import fr.inria.yifan.mysensor.Transmission.FilesIOHelper;
 
 import static java.lang.System.currentTimeMillis;
 
 /*
- * This activity provides functions storing/sending sensing data
+ * This activity provides functions monitoring battery consumption
  */
 
 @SuppressLint("Registered")
 public class BatteryUsage extends AppCompatActivity {
 
+    // Parameters for sensing sampling
+    public static final int SAMPLE_NUMBER = 300;
+
     // Email destination for the sensing data
     public static final String DST_MAIL_ADDRESS = "yifan.du@polytechnique.edu";
-    private static final String TAG = "Sensing activity";
+    public static final int SAMPLE_DELAY = 1000;
+    private static final String TAG = "Battery activity";
+
     private final Object mLock; // Thread locker
     private boolean isGetSenseRun; // Running flag
 
@@ -48,12 +57,11 @@ public class BatteryUsage extends AppCompatActivity {
     private FilesIOHelper mFilesIOHelper; // File helper
     private ArrayList<String> mSensingData; // Sensing data
 
-    private ContextHelper mContextHelper;
-
     private BatteryManager mBatteryManager;
-    private float mStartBattery;
+    private CrowdSensor mCrowdSensor;
 
     // Constructor initializes locker
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public BatteryUsage() {
         mLock = new Object();
     }
@@ -107,9 +115,16 @@ public class BatteryUsage extends AppCompatActivity {
         setContentView(R.layout.activity_sensing);
         bindViews();
 
+        mCrowdSensor = new CrowdSensor(this) {
+            @Override
+            public void onWorkFinished(JSONObject result) {
+                Log.e(TAG, "Work finished: " + result);
+            }
+        };
+
         mFilesIOHelper = new FilesIOHelper(this);
-        mContextHelper = new ContextHelper(this);
-        mContextHelper.startService();
+        // Get the battery manager
+        mBatteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
     }
 
     // Stop thread when exit!
@@ -123,94 +138,48 @@ public class BatteryUsage extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-
         isGetSenseRun = false;
-        mContextHelper.stopService();
     }
 
     // Start the sensing thread
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void startRecord() {
-
         isGetSenseRun = true;
-        mAdapterSensing.add("0 Duration, 1 Neighbors, 2 History, 3 LocAccuracy, 4 Bandwidth, 5 NetPower, 6 Battery, 7 Memory, "
-                + "8 Coordinator, 9 Locator, 10 Proxy, 11 Aggregator");
+        // Service set "Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"
+        //mCrowdSensor.startServices(Arrays.asList("Location", "Temperature", "Light", "Pressure", "Humidity", "Noise"));
+        mCrowdSensor.startServices(Arrays.asList("Noise"));
 
         new Thread(() -> {
-            while (isGetSenseRun) {
-                // Wait for the sensing thread to finish
+            int count = 0;
+            // Record the battery when start
+            float mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+            // Test thread
+            while (isGetSenseRun && count < SAMPLE_NUMBER) {
+                // Sampling time delay
                 synchronized (mLock) {
                     try {
-                        mLock.wait(1000);
-                    } catch (InterruptedException e) {
+                        mLock.wait((long) SAMPLE_DELAY);
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
-
-                // Context and intent test
-                HashMap context = mContextHelper.getContext();
-
-                // Random neighbors
-                //Random rand = new Random();
-                //int num = rand.nextInt(4);
-                //int[] neighbors = new int[]{1};
-                //int[] neighbors = new int[]{1, 2};
-                int[] neighbors = new int[]{1, 2, 3};
-
-                //for (int i = 0; i < neighbors.length; i++) {
-                //    neighbors[i] = rand.nextInt(2);
-                //}
-
-                HashMap intent = mContextHelper.getIntentValues(neighbors);
-                runOnUiThread(() -> mAdapterSensing.add(
-                        intent.get("Duration") + ", " +
-                                intent.get("Neighbors") + ", " +
-                                intent.get("History") + ", " +
-                                intent.get("LocAccuracy") + ", " +
-                                intent.get("Bandwidth") + ", " +
-                                intent.get("NetPower") + ", " +
-                                intent.get("Battery") + ", " +
-                                intent.get("Memory") + ", " +
-                                intent.get("Coordinator") + ", " +
-                                intent.get("Locator") + ", " +
-                                intent.get("Proxy") + ", " +
-                                intent.get("Aggregator")));
+                JSONObject result = mCrowdSensor.getCurrentResult();
+                runOnUiThread(() -> mAdapterSensing.add(result.toString()));
+                // Upload to the cloud
+                CrowdSensor.doProxyUpload(result);
+                count++;
             }
+            float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
+            mAdapterSensing.add("Power energy consumed in mA: " + (mStartBattery - currentBattery));
         }).start();
-
-
-        // Record the battery when start
-        mStartBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-        //mFilesIOHelper = new FilesIOHelper(this);
-        // Get the battery manager
-        //mBatteryManager = (BatteryManager) getSystemService(Context.BATTERY_SERVICE);
-
-        /*
-        try {
-            List<String> services = new ArrayList<>();
-            services.add("Locator");
-            services.add("Aggregator");
-            services.add("Light");
-
-            JSONObject json = new JSONObject();
-            json.put("Service", services);
-
-            List<String> myServices = new ArrayList<>((List<String>) json.get("Service"));
-            Log.e(TAG, "Received: " + json.get("Service") + ", my services are: " + myServices);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        */
-        float currentBattery = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER) / 1000f;
-        mAdapterSensing.add("Power energy consumed in mA: " + (mStartBattery - currentBattery));
     }
 
     // Stop the sensing
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("SetTextI18n")
     private void stopRecord() {
-
         isGetSenseRun = false;
+        mCrowdSensor.stopServices();
 
         if (mSwitchLog.isChecked()) {
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -262,5 +231,4 @@ public class BatteryUsage extends AppCompatActivity {
         }
         return content.toString();
     }
-
 }
