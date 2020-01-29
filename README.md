@@ -1,7 +1,7 @@
-# GroupSenseTogether
+# BeTogether
 Key Features 
 ---------------------
-#GroupSenseTogether is an Android application, a procotype for research purpose to elaborate in-network collaborative crowdsensing.
+#BeTogether is an Android application, a procotype for research purpose to elaborate in-network collaborative crowdsensing.
 It supports user context inference, context-aware collaboration, and sening and logging, by leveraging embedded sensors on smartphones.
 
 The context inference function distinguishes user activity, physical environment and device attributes.
@@ -17,17 +17,17 @@ The service discovery function provides context match, intent value calculation 
 
 Getting started 
 ------------------------
-Step 1 - Download or clone the source code of #GroupSenseTogether.  
+Step 1 - Download or clone the source code of #BeTogether.  
  
 Step 2 - Download [Android Studio](https://developer.android.com/studio/)  
-Start android Studio and open the #GroupSenseTogether project by selecting the directory wherein is placed #GroupSenseTogether. 
+Start android Studio and open the #BeTogether project by selecting the directory wherein is placed #BeTogether. 
 All dependencies are located in the file "build.gradle".
 
 Step 3 - Download the following java library:
 * [Weka-Android](https://github.com/Yifan-DU/Weka-Android/blob/master/dist/weka-stable-3.8.1-SNAPSHOT.jar) (version 
 3.8.1 is preferred) 
 
-Place the jar file that just has been downloaded into the "app/libs" folder of the #GroupSenseTogether app directory, through Windows Explorer or Mac Finder.
+Place the jar file that just has been downloaded into the "app/libs" folder of the #BeTogether app directory, through Windows Explorer or Mac Finder.
 Then open "Project" files view in android on the left side of Android Studio, find the "libs" folder, right click the "weka-stable-3.8.1-SNAPSHOT.jar" file, and select "Add as Library".
 
 Running on the mobile phone: 
@@ -38,8 +38,8 @@ The application may also request to turn on some components in runtime, such as 
 
 License 
 -------------
-#GroupSenseTogether is available under the terms of the Apache License, which implies that application developers are free to use #GroupSenseTogether. 
-It also means that developers are invited to contribute to improve #GroupSenseTogether as long as the original source code remains open.
+#BeTogether is available under the terms of the Apache License, which implies that application developers are free to use #BeTogether. 
+It also means that developers are invited to contribute to improve #BeTogether as long as the original source code remains open.
 
 Contributors
 ---------------------
