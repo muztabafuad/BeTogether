@@ -38,7 +38,7 @@ The application may also request to turn on some components in runtime, such as 
 
 License 
 -------------
-#BeTogether is available under the terms of the Apache License, which implies that application developers are free to use #BeTogether. 
+#BeTogether is available under the terms of the GPL License, which implies that application developers are free to use #BeTogether. 
 It also means that developers are invited to contribute to improve #BeTogether as long as the original source code remains open.
 
 Contributors
